@@ -35,9 +35,19 @@ println("Lagged λ = ", lambda(A_lag))
 
 ## Installation
 
+This package is not yet registered in the Julia General registry. Install directly from GitHub (the [ProjectionModels.jl](https://github.com/ecorecipes/ProjectionModels.jl) dependency must be installed first):
+
 ```julia
 using Pkg
-Pkg.add("CategoricalProjectionModels")
+Pkg.add(url="https://github.com/ecorecipes/ProjectionModels.jl")
+Pkg.add(url="https://github.com/ecorecipes/CategoricalProjectionModels.jl")
+```
+
+To enable the optional extensions for matrix and integral projection model interop, also install:
+
+```julia
+Pkg.add(url="https://github.com/ecorecipes/MatrixProjectionModels.jl")
+Pkg.add(url="https://github.com/ecorecipes/IntegralProjectionModels.jl")
 ```
 
 ## Related
