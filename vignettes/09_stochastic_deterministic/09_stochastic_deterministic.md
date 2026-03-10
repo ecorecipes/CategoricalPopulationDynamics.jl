@@ -1,25 +1,16 @@
----
-author:
-- Simon Frost
-authors:
-- Simon Frost
-engines:
-- path: /Applications/quarto/share/extension-subtrees/julia-engine/\_extensions/julia-engine/julia-engine.js
-title: "Environmental vs Demographic Stochasticity: A Categorical
-  Perspective"
-toc-title: Table of contents
----
+# Environmental vs Demographic Stochasticity: A Categorical Perspective
+Simon Frost
 
 ## Overview
 
 Population projection models face **three orthogonal sources of error**:
 
 1.  **Discretisation** (mesh resolution): Continuous kernel $\to$ finite
-    matrix. Error = $O(h^2)$ for midpoint rule, $O(h^4)$ for Simpson's.
+    matrix. Error = $O(h^2)$ for midpoint rule, $O(h^4)$ for Simpson’s.
 2.  **Environmental stochasticity** (Rees & Ellner 2009): Vital
     rates/kernels vary year-to-year. Affects *all* individuals equally.
     Present even with infinite population. Stochastic growth rate
-    $\lambda_s \leq \lambda_{\text{det}}$ (Tuljapurkar's inequality).
+    $\lambda_s \leq \lambda_{\text{det}}$ (Tuljapurkar’s inequality).
 3.  **Demographic stochasticity** (Vindenes et al. 2011): Finite
     population sampling noise. Individual fates drawn independently from
     a *fixed* kernel. Vanishes as $N \to \infty$ by SLLN. Variance
@@ -27,32 +18,16 @@ Population projection models face **three orthogonal sources of error**:
 
 These are **orthogonal binary axes**, giving $2^3 = 8$ model types:
 
-  -----------------------------------------------------------------------------------------
-    Disc.     Env.     Demo.   Category                 Error sources              Lean
-  --------- -------- --------- ------------------------ -------------------------- --------
-     ---      ---       ---    **Meas**                 ---                        Pts 1--4
-
-     ---      ---       Yes    **Stoch**                $O(1/\sqrt{N})$            Pt 16
-                               ($\kappa^{\otimes N}$)                              
-
-     ---      Yes       ---    **Meas** (random $f_e$)  Tuljapurkar                Pt 18
-
-     ---      Yes       Yes    **Stoch** (random        Tulj. + $O(1/\sqrt{N})$    Pts 16,
-                               $\kappa_e$)                                         18
-
-     Yes      ---       ---    **Mat** ($A \cdot n$)    $O(h^2)$                   Pts
-                                                                                   5--7,
-                                                                                   15, 17
-
-     Yes      ---       Yes    **Mat** + sampling       $O(h^2) + O(1/\sqrt{N})$   Pts 16,
-                                                                                   17
-
-     Yes      Yes       ---    **Mat** (random $A_e$)   $O(h^2)$ + Tulj.           Pts 17,
-                                                                                   18
-
-     Yes      Yes       Yes    **Mat** + env + sampling all three                  Pts
-                                                                                   16--18
-  -----------------------------------------------------------------------------------------
+| Disc. | Env. | Demo. | Category | Error sources | Lean |
+|:--:|:--:|:--:|----|----|----|
+| — | — | — | **Meas** | — | Pts 1–4 |
+| — | — | Yes | **Stoch** ($\kappa^{\otimes N}$) | $O(1/\sqrt{N})$ | Pt 16 |
+| — | Yes | — | **Rand(Meas)** | Tuljapurkar | Pts 18–19 |
+| — | Yes | Yes | **Rand(Stoch)** | Tulj. + $O(1/\sqrt{N})$ | Pts 16, 18–19 |
+| Yes | — | — | **Mat** ($A \cdot n$) | $O(h^2)$ | Pts 5–7, 15, 17 |
+| Yes | — | Yes | **FinStoch** (Binom/Poisson) | $O(h^2) + O(1/\sqrt{N})$ | Pts 16, 17 |
+| Yes | Yes | — | **Rand(Mat)** | $O(h^2)$ + Tulj. | Pts 17–19 |
+| Yes | Yes | Yes | **Rand(FinStoch)** | all three | Pts 16–19 |
 
 This vignette demonstrates each axis computationally, connecting to the
 formal results in the `proofs/` Lean proof library and the
@@ -60,8 +35,7 @@ formal results in the `proofs/` Lean proof library and the
 
 ## Setup
 
-::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 using CategoricalProjectionModels
 import IntegralProjectionModels as IPM
 import MatrixProjectionModels as MPM
@@ -75,7 +49,21 @@ using Random
 using ProjectionModels: lambda
 using Plots
 ```
-:::
+
+    Precompiling packages...
+       9407.8 ms  ✓ SciMLBase
+       1382.3 ms  ✓ SciMLBase → SciMLBaseMLStyleExt
+       2267.8 ms  ✓ SciMLBase → SciMLBaseDistributionsExt
+       2820.6 ms  ✓ IntegralProjectionModels
+       4208.9 ms  ✓ IntegralProjectionModels → IntegralProjectionModelsCatlabExt
+      5 dependencies successfully precompiled in 30 seconds. 275 already precompiled.
+    Precompiling packages...
+       1187.2 ms  ✓ ScopedValues
+      14313.3 ms  ✓ JLD2
+       4530.9 ms  ✓ MatrixProjectionModels
+       4860.4 ms  ✓ CategoricalProjectionModels → CategoricalProjectionModelsIPMExt
+       5027.9 ms  ✓ CategoricalProjectionModels → CategoricalProjectionModelsMPMExt
+      5 dependencies successfully precompiled in 29 seconds. 291 already precompiled.
 
 ## Part 1: One Net, Two Worlds
 
@@ -86,8 +74,7 @@ worlds.
 
 ### Abstract Specification
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 net = LabelledProjectionNet([:size],
     :survive_grow => (:size => :size),
     :reproduce => (:size => :size))
@@ -97,17 +84,13 @@ println("  States:      ", sname(net))
 println("  Transitions: ", tname(net))
 ```
 
-::: {.cell-output .cell-output-stdout}
     Projection net:
       States:      [:size]
       Transitions: [:survive_grow, :reproduce]
-:::
-::::
 
 ### Vital Rates (Shared Parameterisation)
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 # Baseline parameters
 s_int = 0.5;   s_slope = 0.3
 g_int = 0.2;   g_slope = 0.8;   g_sd = 0.5
@@ -131,18 +114,14 @@ F_kernel(z_new, z) = f_rate(z) * recruit(z_new)
 full_kernel(z_new, z) = P_kernel(z_new, z) + F_kernel(z_new, z)
 ```
 
-::: {.cell-output .cell-output-display execution_count="1"}
     full_kernel (generic function with 1 method)
-:::
-::::
 
 ### Deterministic Model (Meas)
 
 In the deterministic world, the kernel is integrated exactly via the
 midpoint rule (left Kan extension):
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 domain = ContinuousProjectionDomain(L, U, 100)
 
 transition_kernels = Dict(
@@ -159,12 +138,9 @@ ipm_sol = IPM.solve(ipm_prob, IPM.EigenAnalysis())
 println("Deterministic λ = ", round(λ_det, digits=6))
 ```
 
-::: {.cell-output .cell-output-stdout}
     Deterministic λ = 1.791561
-:::
-::::
 
-## Part 2: The det Functor --- Embedding Meas into Stoch
+## Part 2: The det Functor — Embedding Meas into Stoch
 
 The `det` functor maps a measurable function $f : X \to Y$ to the Dirac
 kernel $\delta_{f(\cdot)} : X \rightsquigarrow Y$. This embedding
@@ -178,8 +154,7 @@ quadrature error.
 
 ### Midpoint Evaluation vs Bin Average
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 # Single-bin example: [a, b] = [1.0, 2.0]
 a_bin = 1.0
 b_bin = 2.0
@@ -207,17 +182,14 @@ println("Gap |stoch - det| = ", round(abs(stoch_value - det_value), digits=8))
 println("Midpoint error bound M₂h²/24 = ", round(2.0 * (b_bin - a_bin)^2 / 24, digits=8))
 ```
 
-::: {.cell-output .cell-output-stdout}
     Deterministic (midpoint): 2.25
     Stochastic (bin average): 2.33335
     Exact integral:           2.33333333
 
     Gap |stoch - det| = 0.08335
     Midpoint error bound M₂h²/24 = 0.08333333
-:::
-::::
 
-The gap is the **quadrature error** --- exactly what the formal proof
+The gap is the **quadrature error** — exactly what the formal proof
 (`stoch_vs_det_lanValue` in `proofs/CpmProofs/MeasDet.lean`) bounds by
 $M_2 h^2 / 24$.
 
@@ -226,8 +198,7 @@ $M_2 h^2 / 24$.
 As the bin width $h \to 0$, the stochastic (bin average) and
 deterministic (midpoint) values converge at rate $O(h^2)$:
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 # f(x) = sin(x), M₂ = max|f''| = 1
 f_sin(x) = sin(x)
 widths = [2.0, 1.0, 0.5, 0.25, 0.125, 0.0625]
@@ -257,10 +228,7 @@ plot!(widths, widths.^2 ./ 24,
     linestyle=:dash, color=:red)
 ```
 
-::: {.cell-output .cell-output-display execution_count="1"}
-![](09_stochastic_deterministic_files/figure-markdown/cell-7-output-1.svg)
-:::
-::::
+![](09_stochastic_deterministic_files/figure-commonmark/cell-7-output-1.svg)
 
 ## Part 3: Demographic Stochasticity
 
@@ -272,21 +240,20 @@ Numbers**.
 
 Key properties:
 
-- The kernel $\kappa$ is **fixed** --- it does not vary between
+- The kernel $\kappa$ is **fixed** — it does not vary between
   individuals or time steps
-- Variance $\propto 1/N$ --- vanishes as population grows
+- Variance $\propto 1/N$ — vanishes as population grows
 - Categorically: the $N$-fold product $\kappa^{\otimes N} : X^N \to X^N$
   of a single morphism
 - Survival transitions: Binomial($N$, $p$); Fecundity:
   Poisson($\lambda \cdot N$)
 
 This is formalized in `proofs/CpmProofs/StochConvergence.lean` (Results
-83--90).
+83–90).
 
 ### SLLN for a Single Kernel Entry
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 Random.seed!(42)
 
 # Kernel entry K(z_i, z_j) = ∫ P(z_i, z) dUnif(z_j ± h/2)
@@ -330,10 +297,7 @@ hline!([true_mean], label="True mean (bin average)", color=:green,
     linewidth=2, linestyle=:dot)
 ```
 
-::: {.cell-output .cell-output-display execution_count="1"}
-![](09_stochastic_deterministic_files/figure-markdown/cell-8-output-1.svg)
-:::
-::::
+![](09_stochastic_deterministic_files/figure-commonmark/cell-8-output-1.svg)
 
 The sample mean converges to the **bin average** (stochastic Kan value)
 as $N \to \infty$. The remaining gap to the **midpoint** (deterministic
@@ -343,8 +307,7 @@ Kan value) is the quadrature error $O(h^2)$.
 
 Demographic variance scales as $1/N$:
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 Random.seed!(42)
 Ns_var = [10, 25, 50, 100, 250, 500, 1000, 2500, 5000]
 variances = Float64[]
@@ -372,10 +335,7 @@ plot!(Ns_var, c ./ Ns_var,
     linestyle=:dash, color=:red)
 ```
 
-::: {.cell-output .cell-output-display execution_count="1"}
-![](09_stochastic_deterministic_files/figure-markdown/cell-9-output-1.svg)
-:::
-::::
+![](09_stochastic_deterministic_files/figure-commonmark/cell-9-output-1.svg)
 
 ## Part 4: Environmental Stochasticity
 
@@ -386,21 +346,20 @@ persists even with infinite population size.
 
 Key properties:
 
-- The *morphism* (kernel) is random --- varies across time steps
-- Present even at $N = \infty$ --- not a finite-population effect
+- The *morphism* (kernel) is random — varies across time steps
+- Present even at $N = \infty$ — not a finite-population effect
 - Categorically: a distribution over morphisms $\kappa_e : X \to X$ in
   **Stoch**
 - Stochastic growth rate:
-  $\lambda_s = \exp(E[\log \lambda_t]) \leq \rho(E[K_t])$ (Tuljapurkar's
+  $\lambda_s = \exp(E[\log \lambda_t]) \leq \rho(E[K_t])$ (Tuljapurkar’s
   inequality)
 
 This is formalized in `proofs/CpmProofs/EnvStochastic.lean` (Results
-96--99).
+96–99).
 
 ### Year-Specific Kernel Matrices
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 Random.seed!(42)
 
 # 20 year-specific parameter perturbations (environmental variation)
@@ -444,18 +403,14 @@ println("\nλ (baseline kernel):     ", round(λ_det, digits=4))
 println("ρ(mean matrix E[K_e]):   ", round(λ_mean_matrix, digits=4))
 ```
 
-::: {.cell-output .cell-output-stdout}
     Per-year λ range: [1.4384, 2.2037]
 
     λ (baseline kernel):     1.7916
     ρ(mean matrix E[K_e]):   1.8408
-:::
-::::
 
 ### Stochastic Simulation (Kernel Resampling)
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 Random.seed!(123)
 T_sim = 10000
 n = n_meshpoints(domain)
@@ -480,16 +435,12 @@ println("Tuljapurkar penalty    = ", round(λ_mean_matrix - λ_s, digits=6))
 println("Tuljapurkar: λ_s ≤ ρ(E[K])? ", λ_s ≤ λ_mean_matrix)
 ```
 
-::: {.cell-output .cell-output-stdout}
     ρ(mean matrix E[K_e]) = 1.840833
     Stochastic λ_s        = 1.834042
     Tuljapurkar penalty    = 0.006791
     Tuljapurkar: λ_s ≤ ρ(E[K])? true
-:::
-::::
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 running_mean = [mean(log_lambdas[burn_in+1:t]) for t in burn_in+1:length(log_lambdas)]
 
 plot(burn_in+1:length(log_lambdas), exp.(running_mean),
@@ -500,25 +451,21 @@ hline!([λ_s], label="λ_s (final)", color=:red, linewidth=2)
 hline!([λ_mean_matrix], label="ρ(E[K_e])", color=:black, linewidth=2, linestyle=:dash)
 ```
 
-::: {.cell-output .cell-output-display execution_count="1"}
-![](09_stochastic_deterministic_files/figure-markdown/cell-12-output-1.svg)
-:::
-::::
+![](09_stochastic_deterministic_files/figure-commonmark/cell-12-output-1.svg)
 
-### Tuljapurkar's Inequality: λ_s Decreases with Variance
+### Tuljapurkar’s Inequality: λ_s Decreases with Variance
 
 We sweep over increasing environmental variance to demonstrate
-Tuljapurkar's inequality. To isolate the effect of variance from changes
+Tuljapurkar’s inequality. To isolate the effect of variance from changes
 in the mean, we use **mean-preserving** scalar perturbations: each
-year's matrix is $K_e = m_e \cdot K_{\text{det}}$ where the multipliers
+year’s matrix is $K_e = m_e \cdot K_{\text{det}}$ where the multipliers
 $m_e = \exp(\sigma \varepsilon_e) / \overline{\exp(\sigma \varepsilon)}$
 are normalized to have sample mean exactly 1. This ensures
 $\bar{K} = K_{\text{det}}$ exactly, so $\rho(\bar{K})$ is constant
 across $\sigma$ values. The stochastic growth rate $\lambda_s$ then
 decreases monotonically with variance.
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 Random.seed!(42)
 n_env = 20
 base_ε = randn(n_env)
@@ -579,17 +526,12 @@ plot!(σ_fine, λ_theory,
     linestyle=:dot, color=:green)
 ```
 
-::: {.cell-output .cell-output-display execution_count="1"}
-![](09_stochastic_deterministic_files/figure-markdown/cell-13-output-1.svg)
-:::
-::::
+![](09_stochastic_deterministic_files/figure-commonmark/cell-13-output-1.svg)
 
 With mean-preserving perturbations, $\lambda_s$ decreases monotonically
 with environmental SD while $\rho(\bar{K})$ remains constant. The
 Tuljapurkar penalty $\rho(\bar{K}) - \lambda_s$ grows with variance.
 
-:::: {.cell execution_count="1"}
-::: {.cell-output .cell-output-stdout}
     Tuljapurkar penalty by σ (mean-preserving perturbation):
       σ = 0.0:  ρ(E[K]) = 1.7916,  λ_s = 1.7916,  penalty = 0.0,  λ_s ≤ ρ(E[K])? true
       σ = 0.08:  ρ(E[K]) = 1.7916,  λ_s = 1.7878,  penalty = 0.0038,  λ_s ≤ ρ(E[K])? true
@@ -600,12 +542,10 @@ Tuljapurkar penalty $\rho(\bar{K}) - \lambda_s$ grows with variance.
       σ = 0.45:  ρ(E[K]) = 1.7916,  λ_s = 1.683,  penalty = 0.1086,  λ_s ≤ ρ(E[K])? true
       σ = 0.52:  ρ(E[K]) = 1.7916,  λ_s = 1.6473,  penalty = 0.1443,  λ_s ≤ ρ(E[K])? true
       σ = 0.6:  ρ(E[K]) = 1.7916,  λ_s = 1.6075,  penalty = 0.184,  λ_s ≤ ρ(E[K])? true
-:::
-::::
 
 **Note**: When vital rates are perturbed on their natural scales (logit
 for survival, log for fecundity), the mean matrix $E[K_e]$ itself
-changes with $\sigma$ due to Jensen's inequality on the nonlinear link
+changes with $\sigma$ due to Jensen’s inequality on the nonlinear link
 functions. In that case, $\lambda_s$ may increase even as the
 Tuljapurkar penalty grows, because $\rho(E[K_e])$ increases faster. The
 inequality $\lambda_s \leq \rho(E[K_e])$ still holds, but to see
@@ -613,12 +553,13 @@ $\lambda_s$ decrease one must compare against a fixed mean matrix.
 
 ## Part 5: The 2³ Model Cube
 
-The three error axes --- discretisation, environmental stochasticity,
-and demographic stochasticity --- are **orthogonal binary choices**.
-This gives $2^3 = 8$ model types, each in a different category:
+The three error axes — discretisation, environmental stochasticity, and
+demographic stochasticity — are **orthogonal binary choices**. This
+gives $2^3 = 8$ model types, each in a named category. We introduce the
+**Rand(C)** construction to name environmental stochasticity
+categorically: a morphism in **Rand(C)** is a probability distribution
+over morphisms in **C** (Part 19, Results 103–110).
 
-:::: {.cell execution_count="1"}
-::: {.cell-output .cell-output-stdout}
          Three orthogonal axes → 2³ = 8 model types
 
                   No demographic              Demographic (N < ∞)
@@ -629,36 +570,36 @@ This gives $2^3 = 8$ model types, each in a different category:
                 └────────┬────────┘         └────────┬────────┘
                          │ h→0                       │ h→0
                 ┌────────▼────────┐         ┌────────▼────────┐
-                │     Mat         │  N→∞    │  Mat + sampling  │
+                │     Mat         │  N→∞    │    FinStoch      │
                 │  (A·n, +h²)    │◄────────│  (Binom/Poisson) │  Discrete
                 └─────────────────┘         └─────────────────┘
 
                 ┌─────────────────┐         ┌─────────────────┐
-      Env       │  Meas + env     │  N→∞    │  Stoch + env    │
+      Env       │  Rand(Meas)     │  N→∞    │  Rand(Stoch)    │
       stoch.    │ (random f_e,    │◄────────│ (random κ_e,    │  Continuous
                 │  +Tuljapurkar)  │         │  +Tulj + 1/√N)  │
                 └────────┬────────┘         └────────┬────────┘
                          │ h→0                       │ h→0
                 ┌────────▼────────┐         ┌────────▼────────┐
-                │  Mat + env      │  N→∞    │  Mat+env+samp   │
+                │  Rand(Mat)      │  N→∞    │ Rand(FinStoch)  │
                 │ (random A_e,    │◄────────│  (all three     │  Discrete
                 │  +h²+Tulj)     │         │   error sources) │
                 └─────────────────┘         └─────────────────┘
 
       Arrows show convergence: h→0 (disc→cont), N→∞ (demo→det)
+      Three axis-functors form a commutative cube:
+        disc: Meas→Mat, Stoch→FinStoch, Rand(Meas)→Rand(Mat), ...
+        demo: Meas→Stoch, Mat→FinStoch, Rand(Meas)→Rand(Stoch), ...
+        rand: C→Rand(C) for any base category C (Dirac embedding δ)
 
       Error decomposition:
         |λ̂ - λ_true| ≤ C₁·h² + C₂·σ²_env + C₃/√N
                         ─────    ────────    ──────
                         disc.    environ.    demog.
                        (Pt 17)  (Pt 18)    (Pt 16)
-:::
-::::
 
 ### Lean Formalization Map
 
-:::: {.cell execution_count="1"}
-::: {.cell-output .cell-output-stdout}
     ═══════════════════════════════════════════════════════════════════
       Formal Results (proofs/CpmProofs, machine-checked in Lean 4)
     ═══════════════════════════════════════════════════════════════════
@@ -675,8 +616,8 @@ This gives $2^3 = 8$ model types, each in a different category:
         R94  rowSumNormDist ≤ M₂Lh²/24         (matrix-level O(h²))
         R95  dominantEigenvalue error control   (spectral reduction)
 
-      AXIS 2: Environmental stochasticity
-      ────────────────────────────────────
+      AXIS 2: Environmental stochasticity — Rand(C) construction
+      ──────────────────────────────────────────────────────────
       EnvStochastic.lean:
         R96  StochEnv                           (env-indexed kernel family)
         R97  envMeanKernel                      (mean kernel E[K_e])
@@ -685,6 +626,15 @@ This gives $2^3 = 8$ model types, each in a different category:
         R100 env_vs_demographic_orthogonality   (categorical distinction)
         R101 env_stoch_variance_decomposition   (total = env + demo/N)
         R102 orthogonal_error_decomposition     (3-axis error bound)
+      RandCategory.lean:
+        R103 RandMorph                          (morphism in Rand(Mat))
+        R104 diracEmbed                         (δ: Mat → Rand(Mat))
+        R105 randExpect                         (E[·]: Rand(Mat) → Mat)
+        R106 dirac_expect_roundtrip             (E[δ(A)] = A)
+        R107 rand_identity_expect               (E[δ(I)] = I)
+        R108 tuljapurkar_spectral_contraction   (Rand contracts ρ)
+        R109 rand_commutative_cube              (disc∘rand = rand∘disc, ...)
+        R110 model_cube_classification          (8 types with Rand(C) names)
 
       AXIS 3: Demographic stochasticity
       ─────────────────────────────────
@@ -694,8 +644,6 @@ This gives $2^3 = 8$ model types, each in a different category:
         R88  stoch_det_factorization            (Kan = detOfIntegrateAlong)
         R90  population_size_convergence        (demographic noise vanishes)
     ═══════════════════════════════════════════════════════════════════
-:::
-::::
 
 ## Part 6: Combined Effects
 
@@ -706,8 +654,7 @@ sampling noise on top.
 
 ### Environmental Stochasticity Alone (N = ∞)
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 # Build year-specific MPMs for stochastic simulation
 Random.seed!(42)
 mpms_by_year = MPM.MatrixProjectionModel[]
@@ -744,20 +691,16 @@ println("Environmental stochasticity only (N=∞):")
 println("  λ_s = ", round(λ_env, digits=6))
 ```
 
-::: {.cell-output .cell-output-stdout}
     Environmental stochasticity only (N=∞):
       λ_s = 1.835555
-:::
-::::
 
 ### Adding Demographic Stochasticity (Finite N)
 
-MPM.jl's `add_mpm_error()` adds demographic sampling noise on top of a
+MPM.jl’s `add_mpm_error()` adds demographic sampling noise on top of a
 kernel matrix. Survival transitions are drawn from Binomial
 distributions, fecundity from Poisson distributions.
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 Random.seed!(42)
 
 # Compare different population sizes
@@ -792,7 +735,6 @@ for N in sample_sizes
 end
 ```
 
-::: {.cell-output .cell-output-stdout}
     Environmental + demographic stochasticity:
       N = ∞ (env only):  λ_s = 1.8356
       N =   20:          λ_s = 1.8284 ± 0.0153
@@ -800,11 +742,8 @@ end
       N =  100:          λ_s = 1.8346 ± 0.0087
       N =  500:          λ_s = 1.833 ± 0.0042
       N = 1000:          λ_s = 1.8328 ± 0.0043
-:::
-::::
 
-:::: {.cell execution_count="1"}
-``` {.julia .cell-code}
+``` julia
 # Visualize: demographic variance vanishes for large N
 mean_λ = [mean(λ_by_N[N]) for N in sample_sizes]
 std_λ = [std(λ_by_N[N]) for N in sample_sizes]
@@ -824,10 +763,7 @@ plot!(sample_sizes, c_ref ./ sqrt.(sample_sizes),
     linestyle=:dash, color=:red)
 ```
 
-::: {.cell-output .cell-output-display execution_count="1"}
-![](09_stochastic_deterministic_files/figure-markdown/cell-19-output-1.svg)
-:::
-::::
+![](09_stochastic_deterministic_files/figure-commonmark/cell-19-output-1.svg)
 
 ### Variance Decomposition
 
@@ -835,8 +771,6 @@ The total variance in $\hat{\lambda}$ decomposes as (Result 101):
 
 $$\text{Var}[\hat{\lambda}] = \underbrace{\text{Var}_{\text{env}}[\lambda_e]}_{\text{does not vanish}} + \underbrace{\frac{\text{Var}_{\text{demo}}}{N}}_{\to 0 \text{ as } N \to \infty}$$
 
-:::: {.cell execution_count="1"}
-::: {.cell-output .cell-output-stdout}
     Variance decomposition:
       Environmental variance (N=∞): σ²_env ≈ 0.028384
 
@@ -849,28 +783,17 @@ $$\text{Var}[\hat{\lambda}] = \underbrace{\text{Var}_{\text{env}}[\lambda_e]}_{\
 
       For large N, environmental variance dominates.
       For small N, demographic variance dominates.
-:::
-::::
 
 ## Summary
 
 This vignette demonstrated the **three orthogonal axes** of error in
 population projection models:
 
-  -----------------------------------------------------------------------------------------------------------
-  Axis                 Source         Scaling                                 Lean       Key result
-  -------------------- -------------- --------------------------------------- ---------- --------------------
-  **Discretisation**   Mesh           $O(h^2)$ midpoint, $O(h^4)$ Simpson     Parts      R80, R95
-                       resolution $h$                                         5--7, 15,  
-                                                                              17         
-
-  **Environmental**    Year-to-year   $\lambda_s \leq \lambda_{\text{det}}$   Part 18    R99 (Tuljapurkar)
-                       kernel                                                            
-                       variation                                                         
-
-  **Demographic**      Finite         $O(1/\sqrt{N})$, vanishes               Part 16    R84, R90 (SLLN)
-                       population $N$                                                    
-  -----------------------------------------------------------------------------------------------------------
+| Axis | Source | Scaling | Lean | Key result |
+|----|----|----|----|----|
+| **Discretisation** | Mesh resolution $h$ | $O(h^2)$ midpoint, $O(h^4)$ Simpson | Parts 5–7, 15, 17 | R80, R95 |
+| **Environmental** | Year-to-year kernel variation | $\lambda_s \leq \lambda_{\text{det}}$ | Part 18 | R99 (Tuljapurkar) |
+| **Demographic** | Finite population $N$ | $O(1/\sqrt{N})$, vanishes | Part 16 | R84, R90 (SLLN) |
 
 ### Key Takeaways
 
@@ -881,15 +804,15 @@ population projection models:
     single morphism (Result 100).
 
 2.  **2³ = 8 model types**: Three binary axes (disc/cont, env yes/no,
-    demo yes/no) give 8 combinations, each in a different category ---
-    from **Meas** (continuous, no stochasticity) to **Mat** + env +
-    sampling (discrete, both stochastic sources). The error decomposes
-    additively across active axes (Result 102).
+    demo yes/no) give 8 combinations, each in a different category —
+    from **Meas** (continuous, no stochasticity) to **Rand(FinStoch)**
+    (discrete, both stochastic sources). The error decomposes additively
+    across active axes (Result 102).
 
 3.  **Environmental stochasticity persists at N = ∞**: Unlike
     demographic noise, environmental variance does not vanish with
     population size. It reduces $\lambda_s$ below $\lambda_{\text{det}}$
-    by Tuljapurkar's inequality (Result 99).
+    by Tuljapurkar’s inequality (Result 99).
 
 4.  **Demographic noise vanishes by SLLN**: For a *fixed* kernel, $N$
     i.i.d. samples converge to the kernel integral (Results 84, 90). The
