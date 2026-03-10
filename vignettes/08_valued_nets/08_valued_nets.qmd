@@ -1,0 +1,286 @@
+---
+title: "Valued Projection Nets"
+author: "Simon Frost"
+format:
+  html:
+    code-fold: false
+    toc: true
+engine: julia
+---
+
+## Overview
+
+A `LabelledProjectionNet` captures the **topology** of a population model — which demographic processes connect which state variables — but carries no numeric data. A `ValuedProjectionNet` extends this by associating **sparse numeric entries** with each transition, following the pattern of AlgebraicPetri.jl's `LabelledReactionNet` (which bundles structure with reaction rates).
+
+This vignette shows how to construct valued projection nets from sparse transition specifications, materialize them to matrices, and lower them to concrete `MatrixProjectionModel` objects for analysis.
+
+## Setup
+
+```{julia}
+using CategoricalProjectionModels
+import MatrixProjectionModels
+using Catlab
+using Catlab.CategoricalAlgebra
+using LinearAlgebra
+using ProjectionModels: lambda
+using Plots
+
+const MPM = MatrixProjectionModels
+```
+
+## Motivation: From Life Cycle Graphs to Models
+
+Ecologists describe population dynamics as **life cycle graphs** — directed graphs where nodes are stages and edges are demographic transitions with associated rates or probabilities. A valued projection net captures exactly this information:
+
+- **Stage names**: the nodes (e.g., seed, seedling, adult)
+- **Transitions**: named demographic processes (e.g., survival, fecundity)
+- **Sparse entries**: the nonzero `(from => to) => value` entries for each transition
+
+This is more structured than a raw matrix: transitions are named and grouped, so you can extract or modify individual processes.
+
+## Constructing a ValuedProjectionNet
+
+### Pitcher's Thistle
+
+The pitcher's thistle (*Cirsium pitcheri*) model from COMPADRE has 6 stages and two demographic processes — survival/growth and fecundity.
+
+```{julia}
+thistle = ValuedProjectionNet(
+    [:seed_bank, :seedling, :small, :medium, :large, :flowering],
+    :survival => [
+        (:seed_bank => :seedling)  => 0.05,
+        (:seedling  => :small)     => 0.30,
+        (:small     => :small)     => 0.45,
+        (:small     => :medium)    => 0.25,
+        (:medium    => :small)     => 0.08,   # retrogression
+        (:medium    => :medium)    => 0.52,
+        (:medium    => :large)     => 0.20,
+        (:large     => :medium)    => 0.15,   # retrogression
+        (:large     => :large)     => 0.55,
+        (:large     => :flowering) => 0.20],
+    :fecundity => [
+        (:flowering => :seed_bank) => 350.0])
+```
+
+### Inspecting the Net
+
+```{julia}
+println("Stage names:      ", stage_names(thistle))
+println("Transition names: ", transition_names(thistle))
+println("Underlying net:   ", n_states(thistle.net), " state(s), ",
+    n_transitions(thistle.net), " transition(s)")
+```
+
+The underlying `LabelledProjectionNet` has a single abstract state `:stage` (all stages are bins within one state dimension) and two transitions. The `ValuedProjectionNet` adds the stage names and sparse numeric data on top.
+
+## Materializing Matrices
+
+### Individual Transition Matrices
+
+Each named transition can be materialized to a dense matrix independently:
+
+```{julia}
+U = transition_matrix(thistle, :survival)
+F = transition_matrix(thistle, :fecundity)
+
+p1 = heatmap(["SB","SD","S","M","L","FL"], ["SB","SD","S","M","L","FL"],
+    U, title="Survival (U)", color=:viridis,
+    xlabel="From stage", ylabel="To stage")
+
+p2 = heatmap(["SB","SD","S","M","L","FL"], ["SB","SD","S","M","L","FL"],
+    F, title="Fecundity (F)", color=:viridis,
+    xlabel="From stage", ylabel="To stage")
+
+plot(p1, p2, layout=(1,2), size=(800, 350))
+```
+
+### Full Projection Matrix
+
+The `to_matrix` function additively sums all transition matrices to produce the full projection matrix $\mathbf{A}$:
+
+```{julia}
+A = to_matrix(thistle)
+println("A = U + F: ", A ≈ U + F)
+println("λ = ", round(lambda(A), digits=4))
+```
+
+## Lowering to MatrixProjectionModel
+
+The `lower` function converts a `ValuedProjectionNet` to a concrete `MatrixProjectionModel` from MatrixProjectionModels.jl:
+
+```{julia}
+mpm = lower(thistle, MPMTarget())
+println("Type:        ", typeof(mpm))
+println("Stages:      ", mpm.stage_names)
+println("λ:           ", round(MPM.lambda(mpm), digits=4))
+```
+
+The lowered MPM is a standard `MatrixProjectionModel` — all analysis functions from MatrixProjectionModels.jl work directly:
+
+```{julia}
+println("Damping ratio:  ", round(MPM.damping_ratio(Matrix(mpm)), digits=4))
+U = transition_matrix(thistle, :survival)
+F = transition_matrix(thistle, :fecundity)
+println("Net repro rate: ", round(MPM.net_repro_rate(U, F), digits=2))
+println("Generation time: ", round(MPM.gen_time(U, F), digits=2))
+```
+
+Note that the U/F decomposition is not preserved through lowering (the lowered MPM sets U=A), so we extract the survival and fecundity matrices from the `ValuedProjectionNet` directly.
+
+## Example: Loggerhead Sea Turtle
+
+The loggerhead sea turtle model (Crouse, Crowder & Caswell 1987) demonstrates how a more detailed transition decomposition can separate stasis from progression:
+
+```{julia}
+turtle = ValuedProjectionNet(
+    [:egg_hatch, :sm_juv, :lg_juv, :subadult, :adult],
+    :stasis => [
+        (:sm_juv   => :sm_juv)   => 0.7370,
+        (:lg_juv   => :lg_juv)   => 0.6610,
+        (:subadult => :subadult) => 0.6907,
+        (:adult    => :adult)    => 0.8091],
+    :progression => [
+        (:egg_hatch => :sm_juv)   => 0.6747,
+        (:sm_juv    => :lg_juv)   => 0.0486,
+        (:lg_juv    => :subadult) => 0.0147,
+        (:subadult  => :adult)    => 0.0518],
+    :reproduction => [
+        (:adult => :egg_hatch) => 127.0])
+```
+
+With three named transitions, we can examine each process separately:
+
+```{julia}
+println("Stasis matrix:")
+display(transition_matrix(turtle, :stasis))
+println()
+println("Progression matrix:")
+display(transition_matrix(turtle, :progression))
+println()
+println("Reproduction matrix:")
+display(transition_matrix(turtle, :reproduction))
+```
+
+```{julia}
+A_turtle = to_matrix(turtle)
+println("λ = ", round(lambda(A_turtle), digits=4))
+```
+
+### Elasticity by Process
+
+Because transitions are named, we can compute the elasticity contribution of each process:
+
+```{julia}
+mpm_turtle = lower(turtle, MPMTarget())
+E = MPM.elasticity(Matrix(mpm_turtle))
+
+# Sum elasticity entries corresponding to each transition
+stage_idx = Dict(s => i for (i, s) in enumerate(stage_names(turtle)))
+process_elasticity = Dict{Symbol, Float64}()
+
+for tname in transition_names(turtle)
+    entries = turtle.transition_values[tname]
+    e_sum = 0.0
+    for ((from, to), _) in entries
+        e_sum += E[stage_idx[to], stage_idx[from]]
+    end
+    process_elasticity[tname] = e_sum
+end
+
+for (proc, e) in sort(Base.collect(process_elasticity), by=last, rev=true)
+    println("  ", rpad(proc, 15), round(e, digits=4))
+end
+```
+
+## Comparison with LabelledProjectionNet + Dict
+
+The `lower` function also accepts a `LabelledProjectionNet` with sparse transition data passed as a `Dict`. This is useful when you already have a categorical net from a composition workflow:
+
+```{julia}
+net = LabelledProjectionNet([:stage],
+    :survival => (:stage => :stage),
+    :fecundity => (:stage => :stage))
+
+transition_data = Dict(
+    :survival => [
+        (:seed_bank => :seedling)  => 0.05,
+        (:seedling  => :small)     => 0.30,
+        (:small     => :small)     => 0.45,
+        (:small     => :medium)    => 0.25,
+        (:medium    => :small)     => 0.08,
+        (:medium    => :medium)    => 0.52,
+        (:medium    => :large)     => 0.20,
+        (:large     => :medium)    => 0.15,
+        (:large     => :large)     => 0.55,
+        (:large     => :flowering) => 0.20],
+    :fecundity => [
+        (:flowering => :seed_bank) => 350.0])
+
+stage_list = [:seed_bank, :seedling, :small, :medium, :large, :flowering]
+
+mpm_from_net = lower(net, MPMTarget(), transition_data, stage_list)
+println("λ from net + data: ", round(MPM.lambda(mpm_from_net), digits=4))
+println("Matches VNet:      ", mpm_from_net.A ≈ mpm.A)
+```
+
+## Workflow: Categorical Specification to Population Analysis
+
+Here is a complete workflow combining valued nets with MatrixProjectionModels analysis:
+
+```{julia}
+# 1. SPECIFY — define the model as a valued projection net
+plant = ValuedProjectionNet(
+    [:seed, :seedling, :vegetative, :reproductive],
+    :establishment => [
+        (:seed     => :seedling) => 0.10],
+    :growth => [
+        (:seedling    => :vegetative)    => 0.25,
+        (:vegetative  => :reproductive)  => 0.40],
+    :stasis => [
+        (:seedling    => :seedling)      => 0.30,
+        (:vegetative  => :vegetative)    => 0.50,
+        (:reproductive => :reproductive) => 0.85],
+    :seed_production => [
+        (:reproductive => :seed) => 50.0],
+    :seed_bank => [
+        (:seed => :seed) => 0.20])
+
+# 2. MATERIALIZE — convert to matrix
+A_plant = to_matrix(plant)
+
+# 3. LOWER — create MPM for full analysis
+mpm_plant = lower(plant, MPMTarget())
+
+# 4. ANALYSE
+println("=== Perennial Plant Model ===")
+println("Stages: ", stage_names(plant))
+println("Transitions: ", transition_names(plant))
+println("λ = ", round(MPM.lambda(mpm_plant), digits=4))
+println("Population ", MPM.lambda(mpm_plant) > 1 ? "GROWING" : "DECLINING")
+println()
+
+# Build U from survival-related transitions for life history analysis
+U_plant = transition_matrix(plant, :establishment) +
+          transition_matrix(plant, :growth) +
+          transition_matrix(plant, :stasis) +
+          transition_matrix(plant, :seed_bank)
+println("Life expectancy (reproductive): ",
+    round(MPM.life_expect_mean(U_plant)[end], digits=2), " years")
+
+# 5. VISUALIZE
+heatmap(String.(stage_names(plant)), String.(stage_names(plant)),
+    A_plant, title="Perennial plant — projection matrix",
+    color=:viridis, xlabel="From stage", ylabel="To stage")
+```
+
+## Summary
+
+Valued projection nets extend the categorical framework with sparse numeric data:
+
+1. **`ValuedProjectionNet`** — bundles a `LabelledProjectionNet` with stage names and sparse `(from => to) => value` entries per named transition
+2. **`transition_matrix(vnet, name)`** — materializes a single transition to a dense matrix
+3. **`to_matrix(vnet)`** — sums all transitions into the full projection matrix $\mathbf{A}$
+4. **`lower(vnet, MPMTarget())`** — converts to a `MatrixProjectionModel` for downstream analysis
+5. **Named transitions** — enable process-level decomposition (stasis vs progression vs reproduction) while maintaining full compatibility with matrix-based analyses
+
+The key insight is that valued nets occupy a middle ground between raw matrices and fully categorical specifications: they carry enough structure to track individual demographic processes, while remaining easy to construct from the sparse transition data that ecologists work with.

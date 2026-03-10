@@ -1,0 +1,20 @@
+# Julia
+Manifest.toml
+*.jl.cov
+*.jl.mem
+docs/build/
+docs/site/
+
+# Quarto
+vignettes/**/*.html
+vignettes/**/*.md
+vignettes/**/*.pdf
+vignettes/**/*.tex
+vignettes/**/*_files/
+
+# Lean build artifacts
+proofs/.lake/
+
+# OS
+.DS_Store
+Thumbs.db
