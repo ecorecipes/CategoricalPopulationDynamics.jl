@@ -7,7 +7,6 @@ docs/site/
 
 # Quarto
 vignettes/**/*.html
-vignettes/**/*.md
 vignettes/**/*.pdf
 vignettes/**/*.tex
 vignettes/**/*_files/
