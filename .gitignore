@@ -9,7 +9,7 @@ docs/site/
 vignettes/**/*.html
 vignettes/**/*.pdf
 vignettes/**/*.tex
-vignettes/**/*_files/
+vignettes/**/*_files/libs/
 
 # Lean build artifacts
 proofs/.lake/
