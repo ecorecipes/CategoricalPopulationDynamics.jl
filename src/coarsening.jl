@@ -56,3 +56,11 @@ function coarsen(A::AbstractMatrix,
         n_coarse)
     return coarsen(A, f)
 end
+
+function coarsen(A::AbstractMatrix,
+        from::ContinuousDomain,
+        to::ContinuousDomain)
+    cpd_from = ContinuousProjectionDomain(from.lower, from.upper, from.n_meshpoints)
+    cpd_to = ContinuousProjectionDomain(to.lower, to.upper, to.n_meshpoints)
+    return coarsen(A, cpd_from, cpd_to)
+end

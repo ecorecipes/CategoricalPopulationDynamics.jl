@@ -3,7 +3,7 @@ Simon Frost
 
 ## Overview
 
-CategoricalProjectionModels.jl provides a **category-theoretic
+CategoricalPopulationDynamics.jl provides a **category-theoretic
 framework** for constructing, composing, and transforming structured
 population models. It sits above IntegralProjectionModels.jl (IPMs) and
 MatrixProjectionModels.jl (MPMs), providing:
@@ -28,13 +28,13 @@ simple perennial plant model.
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 using Catlab
 using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.Programs: @relation
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 
@@ -319,7 +319,7 @@ println("Population is ", lambda(K) > 1 ? "growing" : "declining")
 ## Summary
 
 In this vignette we introduced the core abstractions of
-CategoricalProjectionModels.jl:
+CategoricalPopulationDynamics.jl:
 
 1.  **Projection nets** — ACSet schemas for abstract model specification
 2.  **Domains** — continuous and discrete state variable discretisation

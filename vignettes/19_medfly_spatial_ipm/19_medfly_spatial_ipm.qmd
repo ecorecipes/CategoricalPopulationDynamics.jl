@@ -1,0 +1,548 @@
+---
+title: "Continuous-State IPM with Spatial Stratification"
+subtitle: "Medfly Invasive Potential Across Climate Zones"
+author: "Simon Frost"
+format:
+  html:
+    code-fold: false
+    toc: true
+engine: julia
+---
+
+## Overview
+
+The Mediterranean fruit fly (*Ceratitis capitata*) is one of the world's most destructive invasive pests, capable of infesting over 300 host plants. Its invasive potential varies dramatically across climate zones — a question that demands both **continuous-state demography** (body mass influences fecundity and survival) and **spatial structure** (flies disperse between climate zones).
+
+This vignette demonstrates how CategoricalPopulationDynamics.jl combines two categorical operations on continuous-state IPMs:
+
+1. **Left Kan extension** — discretise continuous body-mass kernels into matrices
+2. **Heterogeneous `stratify`** — couple different IPM-derived matrices per climate zone via a dispersal matrix
+
+The key insight is that `stratify` works on IPM-derived matrices exactly as it does on hand-built ones: the categorical framework makes no distinction between matrix origins.
+
+## Setup
+
+```{julia}
+using CategoricalPopulationDynamics
+import IntegralProjectionModels
+using Catlab
+using Catlab.CategoricalAlgebra
+using LinearAlgebra
+using StructuredPopulationCore: lambda
+using Plots
+
+const IPM = IntegralProjectionModels
+```
+
+## Vital Rate Functions
+
+Medfly adult body mass ($z$, in mg) ranges from roughly 3 to 15 mg. Larger flies have higher fecundity and better survival, while offspring are typically smaller than their parents. All vital rates are temperature-modulated.
+
+### Survival
+
+```{julia}
+function survival(z, T)
+    # Base survival increases with body mass
+    s_base = 0.6 + 0.03 * z
+    # Temperature modulation: optimal at 25°C
+    T_opt = 25.0
+    T_range = 10.0
+    s_temp = exp(-0.5 * ((T - T_opt) / T_range)^2)
+    return min(0.98, s_base * s_temp)
+end
+```
+
+### Growth
+
+Adults don't grow much between time steps, but there is mass variation due to feeding conditions and temperature stress:
+
+```{julia}
+function growth_mean(z, T)
+    T_opt = 25.0
+    loss = 0.01 * (T - T_opt)^2 / 100
+    return z * (1.0 - loss)
+end
+
+const growth_sd = 0.3
+
+function growth_kernel(z_new, z, T)
+    μ = growth_mean(z, T)
+    return exp(-0.5 * ((z_new - μ) / growth_sd)^2) / (growth_sd * sqrt(2π))
+end
+```
+
+### Fecundity
+
+Egg production follows a Brière-type temperature response bounded by lower ($T_L = 10.5\degree$C) and upper ($T_U = 35.5\degree$C) thresholds, scaled by maternal body mass:
+
+```{julia}
+function fecundity_rate(z, T)
+    T_low, T_up = 10.5, 35.5
+    (T <= T_low || T >= T_up) && return 0.0
+    rate_T = 2.5e-5 * T * (T - T_low) * sqrt(T_up - T)
+    return rate_T * (0.5 + 0.3 * z) * 0.5  # sex ratio correction
+end
+
+const offspring_mean = 5.0
+const offspring_sd = 0.8
+
+offspring_dist(z_new) = exp(-0.5 * ((z_new - offspring_mean) / offspring_sd)^2) / (offspring_sd * sqrt(2π))
+```
+
+### Composite Kernels
+
+The survival-growth kernel $P(z', z; T)$ and fecundity kernel $F(z', z; T)$ together define the full projection kernel $K = P + F$:
+
+```{julia}
+P_kernel(z_new, z, T) = survival(z, T) * growth_kernel(z_new, z, T)
+F_kernel(z_new, z, T) = fecundity_rate(z, T) * offspring_dist(z_new)
+full_kernel(z_new, z, T) = P_kernel(z_new, z, T) + F_kernel(z_new, z, T)
+```
+
+### Visualise Vital Rates
+
+```{julia}
+T_range = 5.0:0.5:40.0
+z_ref = 8.0
+
+p1 = plot(T_range, [survival(z_ref, T) for T in T_range],
+    xlabel="Temperature (°C)", ylabel="Survival prob.",
+    title="Survival (z = $(z_ref) mg)", legend=false,
+    color=:darkgreen, linewidth=2)
+p2 = plot(T_range, [fecundity_rate(z_ref, T) for T in T_range],
+    xlabel="Temperature (°C)", ylabel="Fecundity rate",
+    title="Fecundity (z = $(z_ref) mg)", legend=false,
+    color=:darkorange, linewidth=2)
+plot(p1, p2, layout=(1, 2), size=(700, 280))
+```
+
+## IPM at Reference Temperature
+
+Before spatial analysis, we build a single-patch IPM at the thermal optimum ($T = 25\degree$C) using the categorical lowering pipeline: `LabelledProjectionNet` → `IPMTarget` → `lower` → `solve`.
+
+### Domain
+
+```{julia}
+domain = ContinuousProjectionDomain(2.0, 16.0, 50)
+println("Body mass domain: [$(domain.lower), $(domain.upper)] mg, $(domain.n_meshpoints) bins")
+println("Step size h = ", round(step_size(domain), digits=4), " mg")
+```
+
+### Categorical Specification and Lowering
+
+```{julia}
+T_ref = 25.0
+
+net = LabelledProjectionNet([:mass],
+    :survive_grow => (:mass => :mass),
+    :reproduce => (:mass => :mass))
+
+target = IPMTarget(:mass => domain)
+
+transition_kernels = Dict(
+    :survive_grow => (z_new, z) -> P_kernel(z_new, z, T_ref),
+    :reproduce => (z_new, z) -> F_kernel(z_new, z, T_ref))
+
+ipm_prob = lower(net, target, transition_kernels)
+ipm_sol = IPM.solve(ipm_prob, IPM.EigenAnalysis())
+λ_ipm = IPM.lambda(ipm_sol)
+
+println("IPM at T = $(T_ref)°C:")
+println("  λ (via solve) = ", round(λ_ipm, digits=6))
+```
+
+```{julia}
+w_ipm = IPM.stable_distribution(ipm_sol)
+z_mesh = meshpoints(domain)
+plot(z_mesh, w_ipm,
+    xlabel="Body mass z (mg)", ylabel="Frequency",
+    title="Stable body-mass distribution (T = $(T_ref)°C)",
+    label="w(z)", linewidth=2, color=:steelblue, fill=true, alpha=0.3)
+```
+
+## Direct Matrix via Left Kan Extension
+
+The left Kan extension discretises the continuous kernel directly into a matrix. At the same resolution, $\lambda$ must match the IPM solve result exactly:
+
+```{julia}
+full_kernel_ref(z_new, z) = full_kernel(z_new, z, T_ref)
+A_ref = left_kan_extension(full_kernel_ref, domain)
+
+λ_kan = lambda(A_ref)
+println("λ (Kan extension) = ", round(λ_kan, digits=6))
+println("λ (IPM solve)     = ", round(λ_ipm, digits=6))
+println("Exact match: ", isapprox(λ_kan, λ_ipm; atol=1e-10))
+```
+
+```{julia}
+heatmap(z_mesh, z_mesh, A_ref,
+    xlabel="From z (mg)", ylabel="To z' (mg)",
+    title="Full kernel matrix K (T = $(T_ref)°C)",
+    color=:viridis, size=(480, 420))
+```
+
+## Climate-Zone-Specific Matrices
+
+California has three distinct climate zones relevant to medfly establishment. Each zone's mean temperature drives different vital rates, yielding different local IPM matrices.
+
+```{julia}
+zones = [
+    (name=:Coastal,  location="Santa Barbara",    T=16.5),
+    (name=:Inland,   location="Sacramento Valley", T=17.5),
+    (name=:Desert,   location="Imperial Valley",   T=23.0),
+]
+
+println(rpad("Zone", 10), rpad("Location", 22), rpad("Mean T (°C)", 14), "Description")
+println("-"^60)
+println(rpad("Coastal", 10), rpad("Santa Barbara", 22), rpad("16.5", 14), "Mild, maritime")
+println(rpad("Inland", 10), rpad("Sacramento Valley", 22), rpad("17.5", 14), "Hot summers, cool winters")
+println(rpad("Desert", 10), rpad("Imperial Valley", 22), rpad("23.0", 14), "Hot, arid")
+```
+
+We build one IPM matrix per zone using `left_kan_extension`:
+
+```{julia}
+A_zones = Matrix{Float64}[]
+λ_zones = Float64[]
+
+for zone in zones
+    K_zone(z_new, z) = full_kernel(z_new, z, zone.T)
+    A = left_kan_extension(K_zone, domain)
+    push!(A_zones, A)
+    push!(λ_zones, lambda(A))
+end
+
+println(rpad("Zone", 10), rpad("T (°C)", 10), rpad("λ", 12), "Status")
+println("-"^42)
+for (i, zone) in enumerate(zones)
+    status = λ_zones[i] > 1.01 ? "GROWING" :
+             λ_zones[i] > 0.99 ? "~ stable" : "DECLINING"
+    println(rpad(zone.name, 10), rpad(zone.T, 10),
+        rpad(round(λ_zones[i], digits=4), 12), status)
+end
+```
+
+```{julia}
+zone_names = [String(z.name) for z in zones]
+bar(zone_names, λ_zones,
+    ylabel="λ (local growth rate)",
+    title="Isolated Patch Growth Rates",
+    legend=false,
+    color=[:steelblue, :goldenrod, :firebrick],
+    alpha=0.8, ylim=(0.0, maximum(λ_zones) * 1.15))
+hline!([1.0], linestyle=:dash, color=:black, linewidth=1.5, label="λ = 1")
+annotate!([(i, λ_zones[i] + 0.03, text(round(λ_zones[i], digits=3), 8))
+           for i in 1:3])
+```
+
+```{julia}
+# Visualise zone-specific kernel matrices
+ps = [heatmap(z_mesh, z_mesh, A_zones[i],
+    title="$(zones[i].name) ($(zones[i].T)°C)",
+    xlabel="From z (mg)", ylabel="To z' (mg)",
+    color=:viridis, clims=(0, maximum(A_zones[3])))
+    for i in 1:3]
+plot(ps..., layout=(1, 3), size=(900, 280))
+```
+
+## Heterogeneous Spatial Stratification
+
+Now we couple the three climate zones using **heterogeneous stratification**. Each zone retains its own IPM-derived dynamics; the dispersal matrix $D$ controls how individuals redistribute among zones each time step.
+
+Medfly dispersal is predominantly local, with occasional longer-range movement (e.g. fruit transport):
+
+```{julia}
+D = [0.92 0.06 0.02;   # → Coastal
+     0.05 0.88 0.07;   # → Inland
+     0.01 0.04 0.95]   # → Desert
+
+println("Dispersal matrix D:")
+println("  Column sums: ", round.(sum(D, dims=1), digits=4))
+```
+
+```{julia}
+heatmap(zone_names, zone_names, D,
+    title="Dispersal matrix D",
+    xlabel="From zone", ylabel="To zone",
+    color=:YlOrRd, clims=(0, 1), size=(400, 360))
+```
+
+### Stratified Metapopulation Matrix
+
+```{julia}
+A_meta = stratify(A_zones, D)
+n = size(A_zones[1], 1)
+
+println("Metapopulation matrix: ", size(A_meta))
+println("  = $(length(zones)) zones × $(n) size bins")
+```
+
+```{julia}
+full_labels_idx = 1:size(A_meta, 1)
+heatmap(A_meta,
+    title="Stratified metapopulation matrix",
+    xlabel="From (zone × size)", ylabel="To (zone × size)",
+    color=:viridis, size=(550, 500))
+vline!([n + 0.5, 2n + 0.5], color=:white, linewidth=2, label=false)
+hline!([n + 0.5, 2n + 0.5], color=:white, linewidth=2, label=false)
+```
+
+## Metapopulation Growth Rate
+
+The dominant eigenvalue of the stratified matrix gives the metapopulation growth rate. We compare it to the isolated patch rates:
+
+```{julia}
+λ_meta = lambda(A_meta)
+println("λ (metapopulation)       = ", round(λ_meta, digits=6))
+println("λ (best isolated patch)  = ", round(maximum(λ_zones), digits=6))
+for (i, zone) in enumerate(zones)
+    println("λ ($(zone.name) isolated) = ", round(λ_zones[i], digits=6))
+end
+```
+
+### Verification: Identity Dispersal
+
+With no dispersal (identity coupling), the metapopulation growth rate should equal the maximum isolated patch rate — the zones are decoupled and the dominant eigenvalue is simply the largest:
+
+```{julia}
+D_isolated = Matrix(1.0I, 3, 3)
+A_isolated = stratify(A_zones, D_isolated)
+λ_isolated = lambda(A_isolated)
+
+println("λ (identity dispersal)  = ", round(λ_isolated, digits=6))
+println("max(λ_i)                = ", round(maximum(λ_zones), digits=6))
+println("Match: ", isapprox(λ_isolated, maximum(λ_zones); atol=1e-10))
+```
+
+## Source-Sink Analysis
+
+The stable distribution of the stratified matrix reveals how the total population is distributed across zones at equilibrium. Zones that harbour a disproportionate share of the population relative to their eigenvalue are **sources** — they export individuals to subsidise **sink** zones.
+
+```{julia}
+w_meta = real.(eigvecs(A_meta)[:, argmax(real.(eigvals(A_meta)))])
+w_meta = w_meta ./ sum(w_meta)
+
+# Split into per-zone distributions
+zone_totals = Float64[]
+for (i, zone) in enumerate(zones)
+    idx = ((i-1)*n+1):(i*n)
+    push!(zone_totals, sum(w_meta[idx]))
+end
+
+println("Stable metapopulation distribution:")
+println(rpad("Zone", 10), rpad("Fraction", 12), rpad("λ_local", 10), "Role")
+println("-"^42)
+for (i, zone) in enumerate(zones)
+    role = zone_totals[i] > 0.4 ? "SOURCE" :
+           zone_totals[i] > 0.2 ? "contributor" : "SINK"
+    println(rpad(zone.name, 10),
+        rpad(round(zone_totals[i], digits=4), 12),
+        rpad(round(λ_zones[i], digits=4), 10), role)
+end
+```
+
+```{julia}
+bar(zone_names, zone_totals,
+    ylabel="Fraction of total population",
+    title="Stable Metapopulation Distribution",
+    legend=false,
+    color=[:steelblue, :goldenrod, :firebrick],
+    alpha=0.8)
+```
+
+```{julia}
+# Body-mass distributions within each zone
+p = plot(xlabel="Body mass z (mg)", ylabel="Frequency",
+    title="Stable size distribution by zone")
+colors = [:steelblue, :goldenrod, :firebrick]
+for (i, zone) in enumerate(zones)
+    idx = ((i-1)*n+1):(i*n)
+    w_zone = w_meta[idx]
+    w_zone_norm = w_zone ./ sum(w_zone)
+    plot!(p, z_mesh, w_zone_norm,
+        label=String(zone.name), linewidth=2, color=colors[i])
+end
+p
+```
+
+## Temperature Sensitivity
+
+Climate warming could shift the invasive potential of each zone. We test the effect of warming each zone by +1, +2, and +3 °C:
+
+```{julia}
+warming_scenarios = [0.0, 1.0, 2.0, 3.0]
+λ_warming = zeros(length(zones), length(warming_scenarios))
+
+for (j, ΔT) in enumerate(warming_scenarios)
+    A_warmed = Matrix{Float64}[]
+    for zone in zones
+        T_new = zone.T + ΔT
+        K_warm(z_new, z) = full_kernel(z_new, z, T_new)
+        push!(A_warmed, left_kan_extension(K_warm, domain))
+    end
+    A_meta_warm = stratify(A_warmed, D)
+    λ_warming[:, j] .= [lambda(A) for A in A_warmed]
+end
+
+println(rpad("Zone", 10), [rpad("+$(Int(ΔT))°C", 10) for ΔT in warming_scenarios]...)
+println("-"^50)
+for (i, zone) in enumerate(zones)
+    print(rpad(zone.name, 10))
+    for j in 1:length(warming_scenarios)
+        print(rpad(round(λ_warming[i, j], digits=4), 10))
+    end
+    println()
+end
+```
+
+```{julia}
+p = plot(xlabel="Warming ΔT (°C)", ylabel="λ (local)",
+    title="Temperature Sensitivity by Zone", legend=:topright)
+for (i, zone) in enumerate(zones)
+    plot!(p, warming_scenarios, λ_warming[i, :],
+        label=String(zone.name), marker=:circle, markersize=5,
+        linewidth=2, color=colors[i])
+end
+hline!([1.0], linestyle=:dash, color=:black, linewidth=1, label="λ = 1")
+p
+```
+
+```{julia}
+# Metapopulation λ under warming
+λ_meta_warming = Float64[]
+for ΔT in warming_scenarios
+    A_warmed = [left_kan_extension(
+        (z_new, z) -> full_kernel(z_new, z, zone.T + ΔT), domain)
+        for zone in zones]
+    push!(λ_meta_warming, lambda(stratify(A_warmed, D)))
+end
+
+plot(warming_scenarios, λ_meta_warming,
+    xlabel="Warming ΔT (°C)", ylabel="λ (metapopulation)",
+    title="Metapopulation Growth Under Warming",
+    marker=:square, markersize=6, linewidth=2, color=:purple,
+    legend=false)
+hline!([1.0], linestyle=:dash, color=:black, linewidth=1)
+```
+
+## Coarsening
+
+An IPM with 50 mesh points per zone yields a $150 \times 150$ metapopulation matrix. For rapid screening across many scenarios, we can **coarsen** each zone's matrix from 50 to 10 bins while approximately preserving $\lambda$.
+
+The coarsening is a pushforward along a `FinFunction`, implemented via Catlab. Because $50$ is a multiple of $10$, every 5 fine bins map to a single coarse bin.
+
+```{julia}
+domain_fine = domain  # 50 bins
+domain_coarse = ContinuousProjectionDomain(2.0, 16.0, 10)
+
+A_coarse_zones = [coarsen(A, domain_fine, domain_coarse) for A in A_zones]
+λ_coarse = [lambda(A) for A in A_coarse_zones]
+
+println(rpad("Zone", 10), rpad("λ (n=50)", 12), rpad("λ (n=10)", 12), "Rel. error")
+println("-"^46)
+for (i, zone) in enumerate(zones)
+    err = abs(λ_coarse[i] - λ_zones[i]) / λ_zones[i]
+    println(rpad(zone.name, 10),
+        rpad(round(λ_zones[i], digits=6), 12),
+        rpad(round(λ_coarse[i], digits=6), 12),
+        round(err, sigdigits=2))
+end
+```
+
+### Coarsened Stratification
+
+We can stratify the coarsened matrices and compare the metapopulation $\lambda$ against the fine-resolution version:
+
+```{julia}
+A_meta_coarse = stratify(A_coarse_zones, D)
+λ_meta_coarse = lambda(A_meta_coarse)
+
+println("Metapopulation λ (fine, n=50):   ", round(λ_meta, digits=6))
+println("Metapopulation λ (coarse, n=10): ", round(λ_meta_coarse, digits=6))
+rel_err = abs(λ_meta_coarse - λ_meta) / λ_meta
+println("Relative error:                  ", round(rel_err, sigdigits=2))
+println("Matrix size: fine = ", size(A_meta), ", coarse = ", size(A_meta_coarse))
+```
+
+## Convergence Analysis
+
+The left Kan extension converges as mesh resolution increases (midpoint rule is $O(h^2)$). We verify this for each zone and for the stratified metapopulation:
+
+```{julia}
+mesh_sizes = [10, 15, 20, 30, 50, 75, 100, 150, 200]
+
+# Reference at high resolution
+domain_ref = ContinuousProjectionDomain(2.0, 16.0, 500)
+A_ref_zones = [left_kan_extension(
+    (z_new, z) -> full_kernel(z_new, z, zone.T), domain_ref)
+    for zone in zones]
+λ_ref_zones = [lambda(A) for A in A_ref_zones]
+λ_ref_meta = lambda(stratify(A_ref_zones, D))
+
+# Convergence sweep
+λ_conv = zeros(length(zones), length(mesh_sizes))
+λ_conv_meta = Float64[]
+
+for (j, n_mesh) in enumerate(mesh_sizes)
+    dom_j = ContinuousProjectionDomain(2.0, 16.0, n_mesh)
+    As = [left_kan_extension(
+        (z_new, z) -> full_kernel(z_new, z, zone.T), dom_j)
+        for zone in zones]
+    λ_conv[:, j] = [lambda(A) for A in As]
+    push!(λ_conv_meta, lambda(stratify(As, D)))
+end
+```
+
+```{julia}
+p = plot(xlabel="Mesh points (n)", ylabel="Relative error in λ",
+    title="Convergence: λ vs Resolution",
+    yscale=:log10, xscale=:log10, legend=:bottomleft)
+for (i, zone) in enumerate(zones)
+    errors = abs.(λ_conv[i, :] .- λ_ref_zones[i]) ./ λ_ref_zones[i]
+    errors = max.(errors, 1e-16)
+    plot!(p, mesh_sizes, errors,
+        label="$(zone.name)", marker=:circle, markersize=4,
+        linewidth=2, color=colors[i])
+end
+meta_errors = abs.(λ_conv_meta .- λ_ref_meta) ./ λ_ref_meta
+meta_errors = max.(meta_errors, 1e-16)
+plot!(p, mesh_sizes, meta_errors,
+    label="Metapopulation", marker=:square, markersize=5,
+    linewidth=2, color=:purple, linestyle=:dash)
+p
+```
+
+```{julia}
+println("Convergence summary (relative error in λ):")
+println(rpad("n", 6), [rpad(String(z.name), 12) for z in zones]..., "Metapop")
+println("-"^54)
+for (j, n_mesh) in enumerate(mesh_sizes)
+    print(rpad(n_mesh, 6))
+    for i in 1:3
+        err = abs(λ_conv[i, j] - λ_ref_zones[i]) / λ_ref_zones[i]
+        print(rpad(round(err, sigdigits=2), 12))
+    end
+    err_m = abs(λ_conv_meta[j] - λ_ref_meta) / λ_ref_meta
+    println(round(err_m, sigdigits=2))
+end
+```
+
+## Summary
+
+This vignette demonstrated that IPM-derived matrices compose seamlessly with the categorical operations in CategoricalPopulationDynamics.jl:
+
+| Operation | What it does | Verified property |
+|-----------|-------------|-------------------|
+| `left_kan_extension` | Kernel → matrix | λ matches IPM `solve` exactly |
+| `stratify` (heterogeneous) | Zone-specific matrices + dispersal | λ(isolated) = max(λ_i) with identity D |
+| `coarsen` | 50 bins → 10 bins | λ preserved within numerical tolerance |
+| `coarsen` + `stratify` | Coarsened spatial model | λ ≈ fine spatial λ |
+
+The medfly model reveals:
+
+- **Temperature sensitivity**: the Desert zone (Imperial Valley) operates closest to the medfly thermal optimum, producing the highest local $\lambda$
+- **Source-sink structure**: the Desert zone acts as a demographic source, subsidising Coastal and Inland zones
+- **Warming effects**: even modest warming (+1–3 °C) can tip marginal zones from sinks to sources, expanding the invasive range
+- **Efficient screening**: coarsening to 10 bins enables rapid scenario exploration with minimal accuracy loss
+
+The categorical framework — Kan extensions for discretisation, `stratify` for spatial structure, `coarsen` for resolution control — provides a principled, composable toolkit for multi-scale invasion ecology.

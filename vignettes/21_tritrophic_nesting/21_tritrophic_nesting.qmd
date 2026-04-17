@@ -1,0 +1,426 @@
+---
+title: "PBDM Supply–Demand via Timescale Nesting"
+subtitle: "Coupling Resource Acquisition to Demographic Projection"
+author: "Simon Frost"
+format:
+  html:
+    code-fold: false
+    toc: true
+engine: julia
+---
+
+## Overview
+
+**Physiologically based demographic models** (PBDMs) couple an organism's
+resource acquisition (supply) to its vital rates (demand).  The PBDM paradigm
+introduced by Gutierrez and collaborators (Gutierrez et al., 1975; Gutierrez
+& Baumgärtner, 1984) formalises this as a hierarchy of timescales:
+
+1. **Resource dynamics** (fast) — photosynthesis, foraging, carbon fixation
+2. **Organism demography** (medium) — survival, development, reproduction
+3. **Community interactions** (slow) — herbivory, parasitism, crop yield
+
+This vignette demonstrates how **timescale nesting** with `⋉` maps directly
+onto the PBDM supply–demand framework.  We build a simplified cotton–bollworm
+system where:
+
+| Level | Process | Timescale | States |
+|-------|---------|-----------|--------|
+| 1 | Photosynthetic carbon supply | Hourly (12 h/day) | Light-limited, saturated |
+| 2 | Cotton plant growth | Daily (120 d/season) | Vegetative, fruiting, mature |
+| 3 | Bollworm pest pressure | Seasonal | Clean, infested |
+
+Changes in radiation or temperature at Level 1 cascade through carbon supply →
+plant growth → pest carrying capacity, providing an integrated
+physiologically grounded demographic projection.
+
+## Setup
+
+```{julia}
+using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘, ⋉
+using LinearAlgebra
+using StructuredPopulationCore: lambda
+using Plots
+```
+
+## Biological Background
+
+**Cotton** (*Gossypium hirsutum*) is a perennial grown as an annual crop.
+Carbon fixed through photosynthesis is allocated to vegetative organs (leaves,
+stems, roots) and reproductive organs (squares, bolls).  The allocation
+fraction shifts seasonally: early-season growth is predominantly vegetative,
+mid-season plants flower and set fruit, and late-season mature bolls accumulate
+lint (Gutierrez et al., 1975).
+
+**Bollworm** (*Helicoverpa* spp.) larvae feed on cotton squares and bolls.
+Their population growth depends on the availability of fruiting structures —
+a direct link between plant supply and pest demand.
+
+In the PBDM framework, the plant's daily carbon budget determines how fast it
+transitions through developmental stages, and the abundance of fruiting stages
+determines the bollworm's effective reproduction rate.
+
+## Level 1: Photosynthetic Carbon Supply
+
+We model the plant's instantaneous photosynthetic state as a two-state Markov
+chain operating on an **hourly** timescale.  Leaves are either **light-limited**
+(below saturating irradiance) or **saturated** (at maximum photosynthetic rate).
+Temperature and cloudiness affect the transition rates.
+
+```{julia}
+"""
+    photosynthesis_rate(T; T_opt=27.0, T_width=8.0)
+
+Gaussian temperature response for net photosynthesis.
+Peaks at `T_opt` °C with half-maximum width `T_width` °C.
+Based on cotton photosynthetic response curves (Reddy et al., 1991).
+"""
+function photosynthesis_rate(T; T_opt=27.0, T_width=8.0)
+    return exp(-0.5 * ((T - T_opt) / T_width)^2)
+end
+
+function make_carbon_vpn(T; cloud_factor=1.0)
+    photo = photosynthesis_rate(T)
+    # Light capture rate: fraction of hours achieving saturating irradiance
+    light_capture = 0.30 * photo * cloud_factor
+    # Light loss: saturated → limited (cloud passage, leaf angle change)
+    light_loss = 0.10
+    # Persistence
+    limited_stay  = 0.55
+    saturated_stay = 0.82
+
+    limited  = ValuedProjectionNet([:light_limited, :saturated],
+        :light_capture => [(:light_limited => :saturated) => light_capture])
+    loss     = ValuedProjectionNet([:light_limited, :saturated],
+        :light_loss    => [(:saturated => :light_limited) => light_loss])
+    persist  = ValuedProjectionNet([:light_limited, :saturated],
+        :persistence   => [(:light_limited => :light_limited) => limited_stay,
+                           (:saturated => :saturated)         => saturated_stay])
+    return limited ⊕ loss ⊕ persist
+end
+```
+
+At optimal temperature (27 °C), the carbon supply model yields:
+
+```{julia}
+carbon_27 = make_carbon_vpn(27.0)
+A_carbon = to_matrix(carbon_27)
+λ_c = lambda(A_carbon)
+
+println("Carbon supply matrix (27°C):")
+display(round.(A_carbon, digits=4))
+println("\nλ_carbon = ", round(λ_c, digits=4))
+println("Daily supply index (λ^12) = ", round(λ_c^12, digits=4))
+```
+
+```{julia}
+T_range = 5:1:45
+supply_index = [lambda(to_matrix(make_carbon_vpn(T)))^12 for T in T_range]
+
+plot(T_range, supply_index,
+    xlabel="Temperature (°C)", ylabel="Daily carbon supply (λ¹²)",
+    title="Cotton photosynthetic supply index",
+    linewidth=2, color=:forestgreen, legend=false,
+    size=(600, 350))
+vline!([27], linestyle=:dash, color=:gray, alpha=0.5)
+annotate!(29, maximum(supply_index)*0.95, text("T_opt = 27°C", 8, :gray))
+```
+
+The Gaussian temperature response produces a symmetric supply curve centred on
+27 °C.  At temperature extremes, carbon supply drops sharply — plants fix less
+carbon when cold (enzyme limitation) or hot (stomatal closure).
+
+## Level 2: Cotton Plant Growth
+
+The plant growth model tracks three developmental stages on a **daily**
+timescale:
+
+- **Vegetative**: leaf and stem growth (carbon invested in canopy expansion)
+- **Fruiting**: flowers, squares, and developing bolls
+- **Mature**: harvestable bolls with lint and seed
+
+The development rate from vegetative → fruiting depends on accumulated carbon
+(photoperiod and temperature effects in the full PBDM).  We model this as a
+transition scaled by the carbon supply sub-model.
+
+```{julia}
+# Plant growth parameters (daily rates at 27°C reference)
+# Development: fraction advancing per day
+dev_veg_to_fruit = 0.03   # ~33 days vegetative phase
+dev_fruit_to_mat = 0.02   # ~50 days fruiting phase
+
+# Survival: fraction remaining in stage
+surv_veg  = 0.98    # vegetative survival (robust)
+surv_fruit = 0.95   # fruiting survival (square/boll shed)
+surv_mat  = 0.99    # mature survival (bolls persist)
+
+# Fecundity: new vegetative growth from mature plants (ratoon/regrowth)
+regrowth = 0.1      # low regrowth rate
+
+development = ValuedProjectionNet([:vegetative, :fruiting, :mature],
+    :development => [(:vegetative => :fruiting) => dev_veg_to_fruit,
+                     (:fruiting => :mature)     => dev_fruit_to_mat])
+
+survival = ValuedProjectionNet([:vegetative, :fruiting, :mature],
+    :survival => [(:vegetative => :vegetative) => surv_veg - dev_veg_to_fruit,
+                  (:fruiting => :fruiting)     => surv_fruit - dev_fruit_to_mat,
+                  (:mature => :mature)         => surv_mat])
+
+fecundity = ValuedProjectionNet([:vegetative, :fruiting, :mature],
+    :fecundity => [(:mature => :vegetative) => regrowth])
+
+plant_base = development ⊕ survival ⊕ fecundity
+```
+
+### Nesting Carbon Supply into Development
+
+The key PBDM insight: the rate at which plants advance from vegetative to
+fruiting stages depends on daily carbon fixation.  We nest the photosynthetic
+supply model into the `:development` transition:
+
+```{julia}
+carbon_emb = TimescaleEmbedding(make_carbon_vpn(27.0), 12, :lambda)
+plant_nested = plant_base ⋉ (:development => carbon_emb)
+println(plant_nested)
+```
+
+```{julia}
+A_plant = to_matrix(plant_nested)
+λ_plant = lambda(A_plant)
+
+println("Plant growth matrix (27°C):")
+display(round.(A_plant, digits=4))
+println("\nλ_plant = ", round(λ_plant, digits=4))
+eff_dev = A_plant[2,1]
+println("Effective veg → fruit rate = ", round(eff_dev, digits=4),
+        " (base: ", dev_veg_to_fruit, ")")
+```
+
+## Level 3: Bollworm Pest Pressure
+
+The bollworm population depends on the availability of fruiting structures.
+We model two crop states on a **seasonal** timescale:
+
+- **Clean**: no significant pest damage
+- **Infested**: bollworm population established, fruit loss occurring
+
+The clean → infested transition rate is proportional to plant productivity
+(more fruit = more oviposition sites and larval food).  The infested → clean
+transition represents pest control (natural enemies, pesticides, host
+resistance).
+
+```{julia}
+pest_base = ValuedProjectionNet([:clean, :infested],
+    :infestation  => [(:clean => :infested) => 1.0],     # placeholder, nested
+    :control      => [(:infested => :clean) => 0.15],    # 15% pest control/day
+    :crop_persist => [(:clean => :clean)    => 0.85,
+                      (:infested => :infested) => 0.70]) # infested plants lose more
+```
+
+### Two-Level Nesting: Carbon → Plant → Pest
+
+We nest the entire plant model (which itself contains the carbon sub-model)
+into the pest's infestation transition.  The plant's seasonal growth rate
+determines how many fruiting structures are available for bollworm colonisation.
+
+```{julia}
+plant_emb = TimescaleEmbedding(plant_nested, 120, :lambda, scale=0.05)
+pest_nested = pest_base ⋉ (:infestation => plant_emb)
+println(pest_nested)
+```
+
+```{julia}
+A_pest = to_matrix(pest_nested)
+λ_pest = lambda(A_pest)
+eff_infest = evaluate(plant_emb)
+
+println("Pest pressure matrix:")
+display(round.(A_pest, digits=4))
+println("\nEffective infestation rate = ", round(eff_infest, digits=4))
+println("Crop system λ = ", round(λ_pest, digits=4))
+if λ_pest > 1
+    println("→ Pest pressure INCREASING")
+else
+    println("→ Pest pressure CONTAINED")
+end
+```
+
+## Temperature Sensitivity Cascade
+
+A core advantage of the PBDM approach is that physiological responses at the
+leaf level propagate mechanistically to the population level.  We sweep
+temperature and observe how carbon supply → plant growth → pest pressure
+cascade through the hierarchy.
+
+```{julia}
+T_sweep = 10.0:0.5:42.0
+results = map(T_sweep) do T
+    # Level 1: carbon supply
+    carbon = make_carbon_vpn(T)
+    c_emb = TimescaleEmbedding(carbon, 12, :lambda)
+    supply = evaluate(c_emb)
+
+    # Level 2: plant growth with nested carbon
+    plant = plant_base ⋉ (:development => c_emb)
+    λ_pl = lambda(to_matrix(plant))
+
+    # Level 3: pest pressure with nested plant
+    p_emb = TimescaleEmbedding(plant, 120, :lambda, scale=0.05)
+    pest = pest_base ⋉ (:infestation => p_emb)
+    λ_pe = lambda(to_matrix(pest))
+
+    (T=T, supply=supply, λ_plant=λ_pl, λ_pest=λ_pe,
+     infestation=evaluate(p_emb))
+end
+
+Ts = [r.T for r in results]
+```
+
+```{julia}
+p1 = plot(Ts, [r.supply for r in results],
+    ylabel="Daily supply (λ¹²)", title="Level 1: Carbon fixation",
+    linewidth=2, color=:forestgreen, legend=false)
+vline!([27], linestyle=:dash, color=:gray, alpha=0.3)
+
+p2 = plot(Ts, [r.λ_plant for r in results],
+    ylabel="Daily λ", title="Level 2: Plant growth",
+    linewidth=2, color=:goldenrod, legend=false)
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5)
+
+p3 = plot(Ts, [r.infestation for r in results],
+    ylabel="Infestation rate", title="Level 2 → 3: Pest colonisation",
+    linewidth=2, color=:brown, legend=false)
+
+p4 = plot(Ts, [r.λ_pest for r in results],
+    xlabel="Temperature (°C)", ylabel="Seasonal λ",
+    title="Level 3: Pest system",
+    linewidth=2, color=:crimson, legend=false)
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5)
+
+plot(p1, p2, p3, p4, layout=(2,2), size=(800, 600),
+    plot_title="PBDM temperature cascade: cotton–bollworm")
+```
+
+The cascade shows how the Gaussian photosynthetic optimum (27 °C) creates a
+thermal window for pest outbreaks.  Below ~15 °C or above ~38 °C, plant
+growth is too slow to support bollworm populations.
+
+## Cloud Cover Sensitivity
+
+We can also sweep a non-temperature driver — **cloud cover** — which affects
+only Level 1 (photosynthetic light capture) but cascades upward:
+
+```{julia}
+cloud_range = 0.2:0.05:1.0
+cloud_results = map(cloud_range) do cf
+    carbon = make_carbon_vpn(27.0; cloud_factor=cf)
+    c_emb = TimescaleEmbedding(carbon, 12, :lambda)
+    plant = plant_base ⋉ (:development => c_emb)
+    p_emb = TimescaleEmbedding(plant, 120, :lambda, scale=0.05)
+    pest = pest_base ⋉ (:infestation => p_emb)
+    (cloud=cf, λ_pest=lambda(to_matrix(pest)),
+     supply=evaluate(c_emb))
+end
+
+plot(
+    [r.cloud for r in cloud_results],
+    [r.λ_pest for r in cloud_results],
+    xlabel="Cloud factor (1.0 = clear sky)",
+    ylabel="Pest system λ",
+    title="Cloud cover effect on pest dynamics (T = 27°C)",
+    linewidth=2, color=:steelblue, legend=false,
+    size=(600, 350))
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5)
+```
+
+## Modifying Processes with ⊘
+
+The compositional framework allows targeted intervention modelling.  For
+example, simulating a **Bt cotton** variety where fruiting survival increases
+(bollworm feeding reduced):
+
+```{julia}
+# Bt cotton: increase fruiting survival from 0.95 to 0.98
+plant_bt = plant_nested ⊘ (:survival => ((from, to), val) ->
+    from == :fruiting && to == :fruiting ? val + 0.03 : val)
+
+println("Conventional cotton λ_plant = ",
+    round(lambda(to_matrix(plant_nested)), digits=4))
+println("Bt cotton λ_plant           = ",
+    round(lambda(to_matrix(plant_bt)), digits=4))
+```
+
+Simulating **irrigation** by boosting the carbon supply sub-model's persistence
+rates (less water stress → sustained photosynthesis):
+
+```{julia}
+# Irrigated: modify the carbon supply model's saturated persistence
+carbon_irrigated = make_carbon_vpn(35.0)  # hot conditions
+carbon_irrigated_boost = carbon_irrigated ⊘ (:persistence =>
+    ((from, to), val) -> from == :saturated ? val + 0.05 : val)
+
+supply_dryland  = lambda(to_matrix(make_carbon_vpn(35.0)))^12
+supply_irrigated = lambda(to_matrix(carbon_irrigated_boost))^12
+println("Carbon supply at 35°C (dryland):   ", round(supply_dryland, digits=4))
+println("Carbon supply at 35°C (irrigated): ", round(supply_irrigated, digits=4))
+println("Irrigation benefit: +$(round((supply_irrigated/supply_dryland - 1)*100, digits=1))%")
+```
+
+## Comparison with Flat Approach
+
+The nested approach encodes the **mechanistic hierarchy** explicitly.  In a
+flat (non-nested) model, the modeller must pre-compute effective rates for each
+temperature and assemble them manually.  Nesting automates this and preserves
+the compositional structure for downstream analysis.
+
+```{julia}
+# Flat approach: manually compute effective development rate
+function flat_plant_λ(T)
+    supply = lambda(to_matrix(make_carbon_vpn(T)))^12
+    A = to_matrix(plant_base)
+    A[2,1] *= supply    # manually scale development
+    A[3,2] *= supply    # scale fruiting → mature too
+    return lambda(A)
+end
+
+# Nested approach: automatic
+function nested_plant_λ(T)
+    c_emb = TimescaleEmbedding(make_carbon_vpn(T), 12, :lambda)
+    plant = plant_base ⋉ (:development => c_emb)
+    return lambda(to_matrix(plant))
+end
+
+# Compare
+println(rpad("T(°C)", 8), rpad("Flat λ", 12), rpad("Nested λ", 12), "Match?")
+println("-"^38)
+for T in [15.0, 20.0, 27.0, 35.0, 40.0]
+    lf = flat_plant_λ(T)
+    ln = nested_plant_λ(T)
+    match = isapprox(lf, ln, atol=1e-10) ? "✓" : "✗"
+    println(rpad(T, 8), rpad(round(lf, digits=6), 12),
+            rpad(round(ln, digits=6), 12), match)
+end
+```
+
+The flat and nested approaches agree exactly, confirming that nesting
+faithfully scales the base transition values.  The advantage of nesting is that
+the sub-model structure is preserved, enabling modification at any level
+without recomputing intermediate values.
+
+## Summary
+
+This vignette demonstrated how the PBDM supply–demand paradigm maps to
+**timescale nesting** in CategoricalPopulationDynamics.jl:
+
+| PBDM Concept | Categorical Operation | Example |
+|-------------|----------------------|---------|
+| Resource acquisition (supply) | Inner `ValuedProjectionNet` | Carbon fixation model |
+| Demand coupling | `⋉` nesting with `TimescaleEmbedding` | Supply → development rate |
+| Trophic cascading | Recursive nesting | Plant → pest infestation |
+| Environmental sensitivity | Temperature sweep of innermost model | Gaussian photosynthetic response |
+| Intervention | `⊘` modification of nested processes | Bt cotton, irrigation |
+
+The key insight: **fast-timescale physiology** (hourly photosynthesis) and
+**slow-timescale demography** (seasonal crop/pest dynamics) compose cleanly
+when each level is a self-contained projection model embedded via `⋉`.

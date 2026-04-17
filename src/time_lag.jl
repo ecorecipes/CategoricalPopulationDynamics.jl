@@ -6,7 +6,7 @@ states `S → S × {0,...,L}` (L+1 copies), transitions placed at assigned lag
 offsets, plus identity shift transitions on the sub-diagonal.
 """
 
-using ProjectionModels: TimeLagStructure, expand_lag_matrix
+using StructuredPopulationCore: TimeLagStructure, expand_lag_matrix
 
 """
     lag_expand(pn::LabelledProjectionNet, lag_assignment::Dict{Symbol, Int})

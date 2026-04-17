@@ -1,5 +1,5 @@
 """
-Lightweight domain types for CategoricalProjectionModels.
+Lightweight domain types for CategoricalPopulationDynamics.
 
 These avoid circular dependencies with IntegralProjectionModels while
 providing enough structure for Kan extensions and coarsening.

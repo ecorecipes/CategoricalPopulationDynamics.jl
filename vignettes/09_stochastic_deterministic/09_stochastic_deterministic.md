@@ -36,7 +36,7 @@ formal results in the `proofs/` Lean proof library and the
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 import IntegralProjectionModels as IPM
 import MatrixProjectionModels as MPM
 using Catlab
@@ -46,7 +46,7 @@ using Catlab.Programs: @relation
 using LinearAlgebra
 using Statistics
 using Random
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 
@@ -61,8 +61,8 @@ using Plots
        1187.2 ms  ✓ ScopedValues
       14313.3 ms  ✓ JLD2
        4530.9 ms  ✓ MatrixProjectionModels
-       4860.4 ms  ✓ CategoricalProjectionModels → CategoricalProjectionModelsIPMExt
-       5027.9 ms  ✓ CategoricalProjectionModels → CategoricalProjectionModelsMPMExt
+       4860.4 ms  ✓ CategoricalPopulationDynamics → CategoricalPopulationDynamicsIPMExt
+       5027.9 ms  ✓ CategoricalPopulationDynamics → CategoricalPopulationDynamicsMPMExt
       5 dependencies successfully precompiled in 29 seconds. 291 already precompiled.
 
 ## Part 1: One Net, Two Worlds

@@ -3,7 +3,7 @@ Simon Frost
 
 ## Overview
 
-CategoricalProjectionModels.jl sits above IntegralProjectionModels.jl
+CategoricalPopulationDynamics.jl sits above IntegralProjectionModels.jl
 and MatrixProjectionModels.jl, providing a unified abstract layer.
 **Lowering** converts a categorical specification (projection net +
 transition data) into a concrete model object. **Lifting** goes the
@@ -16,7 +16,7 @@ representations, and verify that they agree.
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 import IntegralProjectionModels
 import MatrixProjectionModels
 using Catlab
@@ -24,7 +24,7 @@ using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.Programs: @relation
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 
 const IPM = IntegralProjectionModels
@@ -94,7 +94,7 @@ ipm_prob = lower(net, target_ipm, transition_kernels)
 println("IPM Problem type: ", typeof(ipm_prob))
 ```
 
-    IPM Problem type: IntegralProjectionModels.IPMProblem{IntegralProjectionModels.SimpleIPM, ProjectionModels.DensityIndependent, ProjectionModels.Deterministic, IntegralProjectionModels.CustomKernel{CategoricalProjectionModelsIPMExt.var"#composed_kernel#composed_kernel##0"{Dict{Symbol, Function}, Vector{Symbol}}, IntegralProjectionModels.ContinuousDomain{Float64}}, IntegralProjectionModels.ContinuousDomain{Float64}, Vector{Float64}, Nothing, Nothing}
+    IPM Problem type: IntegralProjectionModels.IPMProblem{IntegralProjectionModels.SimpleIPM, ProjectionModels.DensityIndependent, ProjectionModels.Deterministic, IntegralProjectionModels.CustomKernel{CategoricalPopulationDynamicsIPMExt.var"#composed_kernel#composed_kernel##0"{Dict{Symbol, Function}, Vector{Symbol}}, IntegralProjectionModels.ContinuousDomain{Float64}}, IntegralProjectionModels.ContinuousDomain{Float64}, Vector{Float64}, Nothing, Nothing}
 
 ### Solve and Analyse the IPM
 
@@ -197,7 +197,7 @@ $\mathbf{A}$, the original sub-transition decomposition is not
 recoverable — the lifted net has a single transition:
 
 ``` julia
-lifted_net = CategoricalProjectionModels.lift(mpm, ProjectionNetTarget())
+lifted_net = CategoricalPopulationDynamics.lift(mpm, ProjectionNetTarget())
 println("Lifted net:")
 println("  States:      ", sname(lifted_net))
 println("  Transitions: ", tname(lifted_net))

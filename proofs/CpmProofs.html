@@ -5,7 +5,7 @@
   <meta name="generator" content="pandoc" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=yes" />
   <meta name="author" content="Simon Frost" />
-  <title>Formal Verification of CategoricalProjectionModels.jl</title>
+  <title>Formal Verification of CategoricalPopulationDynamics.jl</title>
   <style>
     /* Default styles provided by pandoc.
     ** See https://pandoc.org/MANUAL.html#variables-for-html for config info.
@@ -33,7 +33,7 @@
 <body>
 <header id="title-block-header">
 <h1 class="title">Formal Verification of
-CategoricalProjectionModels.jl</h1>
+CategoricalPopulationDynamics.jl</h1>
 <p class="author">Simon Frost</p>
 </header>
 <nav id="TOC" role="doc-toc">
@@ -1495,7 +1495,7 @@ import Mathlib.CategoryTheory.Functor.Flat</code></pre>
 id="adjunction-framework-for-discretisation-and-refinement">Adjunction
 Framework for Discretisation and Refinement</h1>
 <p><strong>Machine-checked proofs of the categorical adjunction chain
-underlying CategoricalProjectionModels.jl — the abstract framework
+underlying CategoricalPopulationDynamics.jl — the abstract framework
 connecting continuous IPMs and discrete MPMs.</strong></p>
 <p><em>Author: Simon Frost</em></p>
 <p>This file formalises the adjunction chain Lan_D ⊣ D* ⊣ Ran_D and its
@@ -1503,7 +1503,7 @@ structural properties: triangle identities, full faithfulness
 characterisation of error, naturality of unit/counit, round-trip
 self-consistency, colimit preservation, and flatness.</p>
 <p>These results correspond to Parts 1–8 of the
-CategoricalProjectionModels.jl formal verification.</p>
+CategoricalPopulationDynamics.jl formal verification.</p>
 <h2 id="glossary-of-terms">Glossary of Terms</h2>
 <h3 id="categorical-terms">Categorical Terms</h3>
 <table>
@@ -2101,12 +2101,12 @@ import Mathlib.Algebra.Ring.Basic</code></pre>
 Dispersal Preserves the Dominant Eigenvalue</h1>
 <p><strong>Machine-checked proofs of the Kronecker product properties
 underpinning spatial stratification in
-CategoricalProjectionModels.jl.</strong></p>
+CategoricalPopulationDynamics.jl.</strong></p>
 <p><em>Author: Simon Frost</em></p>
 <p>This file formalises the key algebraic identity (mixed-product rule
 for Kronecker products) and its consequence: symmetric dispersal
 preserves the dominant eigenvalue. This corresponds to Part 9 of the
-CategoricalProjectionModels.jl formal verification.</p>
+CategoricalPopulationDynamics.jl formal verification.</p>
 <hr />
 <h2
 id="part-9-symmetric-dispersal-preserves-the-dominant-eigenvalue">Part
@@ -2206,14 +2206,14 @@ import Mathlib.Algebra.BigOperators.Ring.Finset</code></pre>
 Algebra: Composition, Stratification, Coarsening</h1>
 <p><strong>Machine-checked proofs of the algebraic properties of kernel
 composition, stratification, coarsening, and non-recoverability in
-CategoricalProjectionModels.jl.</strong></p>
+CategoricalPopulationDynamics.jl.</strong></p>
 <p><em>Author: Simon Frost</em></p>
 <p>This file formalises: - Additive composition of kernels (commutative
 monoid structure) - Stratification distributes over kernel addition -
 Coarsening functoriality and commutativity with stratification -
 Non-recoverability of sub-decompositions</p>
 <p>These results correspond to Parts 10–13 of the
-CategoricalProjectionModels.jl formal verification.</p>
+CategoricalPopulationDynamics.jl formal verification.</p>
 <hr />
 <h2 id="part-10-additive-composition-of-kernels">Part 10: Additive
 Composition of Kernels</h2>

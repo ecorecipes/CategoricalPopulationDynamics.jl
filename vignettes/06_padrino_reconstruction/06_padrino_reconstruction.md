@@ -11,7 +11,7 @@ structure — which demographic processes drive population growth? How
 sensitive is $\lambda$ to each component?
 
 This vignette takes a real PADRINO model, **reconstructs it from first
-principles** using CategoricalProjectionModels.jl’s compositional
+principles** using CategoricalPopulationDynamics.jl’s compositional
 framework, and demonstrates the analytical advantages of the categorical
 approach:
 
@@ -26,7 +26,7 @@ approach:
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 import IntegralProjectionModels as IPM
 using CSV, DataFrames, Downloads
 using Catlab
@@ -34,7 +34,7 @@ using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.Programs: @relation
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 
@@ -316,7 +316,7 @@ faithful.
 
 ## Step 5: Categorical Composition
 
-Now we use CategoricalProjectionModels.jl to compose the model from
+Now we use CategoricalPopulationDynamics.jl to compose the model from
 named components.
 
 ### Define the Projection Net

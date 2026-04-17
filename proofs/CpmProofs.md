@@ -871,7 +871,7 @@ import Mathlib.CategoryTheory.Functor.Flat
 # Adjunction Framework for Discretisation and Refinement
 
 **Machine-checked proofs of the categorical adjunction chain underlying
-CategoricalProjectionModels.jl — the abstract framework connecting
+CategoricalPopulationDynamics.jl — the abstract framework connecting
 continuous IPMs and discrete MPMs.**
 
 *Author: Simon Frost*
@@ -881,7 +881,7 @@ structural properties: triangle identities, full faithfulness
 characterisation of error, naturality of unit/counit, round-trip
 self-consistency, colimit preservation, and flatness.
 
-These results correspond to Parts 1–8 of the CategoricalProjectionModels.jl
+These results correspond to Parts 1–8 of the CategoricalPopulationDynamics.jl
 formal verification.
 
 ## Glossary of Terms
@@ -1450,14 +1450,14 @@ import Mathlib.Algebra.Ring.Basic
 # Symmetric Dispersal Preserves the Dominant Eigenvalue
 
 **Machine-checked proofs of the Kronecker product properties underpinning
-spatial stratification in CategoricalProjectionModels.jl.**
+spatial stratification in CategoricalPopulationDynamics.jl.**
 
 *Author: Simon Frost*
 
 This file formalises the key algebraic identity (mixed-product rule for
 Kronecker products) and its consequence: symmetric dispersal preserves
 the dominant eigenvalue. This corresponds to Part 9 of the
-CategoricalProjectionModels.jl formal verification.
+CategoricalPopulationDynamics.jl formal verification.
 
 ---
 
@@ -1567,7 +1567,7 @@ import Mathlib.Algebra.BigOperators.Ring.Finset
 
 **Machine-checked proofs of the algebraic properties of kernel
 composition, stratification, coarsening, and non-recoverability
-in CategoricalProjectionModels.jl.**
+in CategoricalPopulationDynamics.jl.**
 
 *Author: Simon Frost*
 
@@ -1577,7 +1577,7 @@ This file formalises:
 - Coarsening functoriality and commutativity with stratification
 - Non-recoverability of sub-decompositions
 
-These results correspond to Parts 10–13 of the CategoricalProjectionModels.jl
+These results correspond to Parts 10–13 of the CategoricalPopulationDynamics.jl
 formal verification.
 
 ---

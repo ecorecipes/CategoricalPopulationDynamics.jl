@@ -1,10 +1,10 @@
-# CategoricalProjectionModels.jl
+# CategoricalPopulationDynamics.jl
 
 A Julia package for categorical and functorial approaches to structured population models, built on [Catlab.jl](https://github.com/AlgebraicJulia/Catlab.jl).
 
 ## Overview
 
-CategoricalProjectionModels.jl provides a mathematical framework for specifying, composing, and transforming structured population models using applied category theory. Population models are represented as *projection nets* — labelled Petri-net-like structures whose transitions carry demographic kernels — and manipulated via functorial operations such as Kan extensions, stratification, and compositional assembly.
+CategoricalPopulationDynamics.jl provides a mathematical framework for specifying, composing, and transforming structured population models using applied category theory. Population models are represented as *projection nets* — labelled Petri-net-like structures whose transitions carry demographic kernels — and manipulated via functorial operations such as Kan extensions, stratification, and compositional assembly.
 
 Key capabilities include:
 
@@ -18,8 +18,8 @@ Key capabilities include:
 ## Quick Start
 
 ```julia
-using CategoricalProjectionModels
-using ProjectionModels: lambda
+using CategoricalPopulationDynamics
+using StructuredPopulationCore: lambda
 
 # Define a valued projection net
 vnet = ValuedProjectionNet([:seed, :small, :large],
@@ -43,8 +43,8 @@ This package is not yet registered in the Julia General registry. Install direct
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/ecorecipes/ProjectionModels.jl")
-Pkg.add(url="https://github.com/ecorecipes/CategoricalProjectionModels.jl")
+Pkg.add(url="https://github.com/ecorecipes/StructuredPopulationCore.jl")
+Pkg.add(url="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl")
 ```
 
 To enable the optional extensions for matrix and integral projection model interop, also install:
@@ -56,7 +56,7 @@ Pkg.add(url="https://github.com/ecorecipes/IntegralProjectionModels.jl")
 
 ## Related Packages
 
-- [ProjectionModels.jl](https://github.com/ecorecipes/ProjectionModels.jl) — shared abstractions for projection models
+- [ProjectionModels.jl](https://github.com/ecorecipes/StructuredPopulationCore.jl) — shared abstractions for projection models
 - [MatrixProjectionModels.jl](https://github.com/ecorecipes/MatrixProjectionModels.jl) — discrete-stage matrix population models
 - [IntegralProjectionModels.jl](https://github.com/ecorecipes/IntegralProjectionModels.jl) — continuous-state integral projection models
 - [Catlab.jl](https://github.com/AlgebraicJulia/Catlab.jl) — applied category theory in Julia

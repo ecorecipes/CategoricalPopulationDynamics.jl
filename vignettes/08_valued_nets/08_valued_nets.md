@@ -17,12 +17,12 @@ to concrete `MatrixProjectionModel` objects for analysis.
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 import MatrixProjectionModels
 using Catlab
 using Catlab.CategoricalAlgebra
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 
 const MPM = MatrixProjectionModels
@@ -59,8 +59,8 @@ const MPM = MatrixProjectionModels
     Precompiling packages...
        2760.6 ms  ✓ IntegralProjectionModels
        5905.0 ms  ✓ IntegralProjectionModels → IntegralProjectionModelsCatlabExt
-       3794.1 ms  ✓ CategoricalProjectionModels → CategoricalProjectionModelsIPMExt
-       3800.8 ms  ✓ CategoricalProjectionModels → CategoricalProjectionModelsMPMExt
+       3794.1 ms  ✓ CategoricalPopulationDynamics → CategoricalPopulationDynamicsIPMExt
+       3800.8 ms  ✓ CategoricalPopulationDynamics → CategoricalPopulationDynamicsMPMExt
       4 dependencies successfully precompiled in 21 seconds. 292 already precompiled.
 
     MatrixProjectionModels
@@ -106,7 +106,7 @@ thistle = ValuedProjectionNet(
         (:flowering => :seed_bank) => 350.0])
 ```
 
-    ValuedProjectionNet{Float64}(CategoricalProjectionModels.LabelledProjectionNet:
+    ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
       S = 1:1
       T = 1:2
       Src = 1:2
@@ -233,7 +233,7 @@ turtle = ValuedProjectionNet(
         (:adult => :egg_hatch) => 127.0])
 ```
 
-    ValuedProjectionNet{Float64}(CategoricalProjectionModels.LabelledProjectionNet:
+    ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
       S = 1:1
       T = 1:3
       Src = 1:3

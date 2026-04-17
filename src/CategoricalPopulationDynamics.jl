@@ -1,4 +1,4 @@
-module CategoricalProjectionModels
+module CategoricalPopulationDynamics
 
 import Base: collect
 
@@ -7,9 +7,10 @@ using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.WiringDiagrams.UndirectedWiringDiagrams: AbstractUWD
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda, ContinuousDomain
 
 import Catlab.WiringDiagrams: oapply
+import Catlab: ⊕, evaluate
 
 # Schemas
 export SchProjectionNet, SchLabelledProjectionNet,
@@ -39,10 +40,15 @@ export ProjectionSharer, oapply,
 
 # Valued projection nets
 export ValuedProjectionNet, stage_names, transition_names,
-       transition_matrix, to_matrix
+       transition_matrix, to_matrix, map_values, ⊕, ⊘
+
+# Projection systems
+export ProjectionSystemNet, component_names
 
 # Lowering/lifting
-export AbstractLoweringTarget, IPMTarget, MPMTarget, ProjectionNetTarget,
+export AbstractLoweringTarget, IPMTarget, ContinuousIPMTarget, PSPMTarget,
+       FiniteStateDynamicsTarget,
+       MPMTarget, StateDependentMPMTarget, ProjectionNetTarget,
        lower, lift
 
 include("schemas.jl")
@@ -54,10 +60,15 @@ include("diagnostics.jl")
 include("sharers.jl")
 include("composition.jl")
 include("valued.jl")
+include("systems.jl")
 include("lowering.jl")
 
 # Time-lagged models
 include("time_lag.jl")
 export lag_expand, lag_stratify
+
+# Timescale nesting
+include("nesting.jl")
+export TimescaleEmbedding, NestableVPN, nest, evaluate, extract_summary, ⋉
 
 end # module

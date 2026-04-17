@@ -5,7 +5,7 @@ Simon Frost
 
 Real structured population models are built from **components** —
 survival, growth, reproduction, dormancy — that share state variables.
-CategoricalProjectionModels.jl provides three levels of compositional
+CategoricalPopulationDynamics.jl provides three levels of compositional
 construction:
 
 1.  **`compose_transitions`** — Catlab-free additive sum of sub-matrices
@@ -19,13 +19,13 @@ equivalence, and builds progressively more complex models.
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 using Catlab
 using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.Programs: @relation
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 

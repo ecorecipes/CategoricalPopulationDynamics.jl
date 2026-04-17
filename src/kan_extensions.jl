@@ -28,6 +28,11 @@ function left_kan_extension(kernel_fn, domain::ContinuousProjectionDomain)
     return A
 end
 
+function left_kan_extension(kernel_fn, domain::ContinuousDomain)
+    cpd = ContinuousProjectionDomain(domain.lower, domain.upper, domain.n_meshpoints)
+    return left_kan_extension(kernel_fn, cpd)
+end
+
 """
     right_kan_extension(A::AbstractMatrix, domain::ContinuousProjectionDomain)
 
@@ -45,4 +50,9 @@ function right_kan_extension(A::AbstractMatrix, domain::ContinuousProjectionDoma
         return A[i, j] / h
     end
     return piecewise_kernel
+end
+
+function right_kan_extension(A::AbstractMatrix, domain::ContinuousDomain)
+    cpd = ContinuousProjectionDomain(domain.lower, domain.upper, domain.n_meshpoints)
+    return right_kan_extension(A, cpd)
 end

@@ -34,7 +34,7 @@ This vignette demonstrates each axis computationally, connecting to the formal r
 ## Setup
 
 ```{julia}
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 import IntegralProjectionModels as IPM
 import MatrixProjectionModels as MPM
 using Catlab
@@ -44,7 +44,7 @@ using Catlab.Programs: @relation
 using LinearAlgebra
 using Statistics
 using Random
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 

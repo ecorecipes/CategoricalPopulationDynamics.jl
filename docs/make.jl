@@ -1,15 +1,15 @@
 using Documenter
-using CategoricalProjectionModels
-using ProjectionModels
+using CategoricalPopulationDynamics
+using StructuredPopulationCore
 
 makedocs(;
-    modules = [CategoricalProjectionModels, ProjectionModels],
+    modules = [CategoricalPopulationDynamics, StructuredPopulationCore],
     warnonly = true,
     authors = "Simon Frost",
-    sitename = "CategoricalProjectionModels.jl",
+    sitename = "CategoricalPopulationDynamics.jl",
     format = Documenter.HTML(;
         prettyurls = get(ENV, "CI", "false") == "true",
-        canonical = "https://ecorecipes.github.io/CategoricalProjectionModels.jl",
+        canonical = "https://ecorecipes.github.io/CategoricalPopulationDynamics.jl",
     ),
     pages = [
         "Home" => "index.md",
@@ -28,5 +28,5 @@ makedocs(;
 )
 
 deploydocs(;
-    repo = "github.com/ecorecipes/CategoricalProjectionModels.jl.git",
+    repo = "github.com/ecorecipes/CategoricalPopulationDynamics.jl.git",
 )

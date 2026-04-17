@@ -10,14 +10,14 @@ engine: julia
 
 ## Overview
 
-CategoricalProjectionModels.jl sits above IntegralProjectionModels.jl and MatrixProjectionModels.jl, providing a unified abstract layer. **Lowering** converts a categorical specification (projection net + transition data) into a concrete model object. **Lifting** goes the other direction — extracting a projection net from a concrete model.
+CategoricalPopulationDynamics.jl sits above IntegralProjectionModels.jl and MatrixProjectionModels.jl, providing a unified abstract layer. **Lowering** converts a categorical specification (projection net + transition data) into a concrete model object. **Lifting** goes the other direction — extracting a projection net from a concrete model.
 
 This vignette demonstrates the full workflow: define a model categorically, lower it to both an IPM and an MPM, analyse both representations, and verify that they agree.
 
 ## Setup
 
 ```{julia}
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 import IntegralProjectionModels
 import MatrixProjectionModels
 using Catlab
@@ -25,7 +25,7 @@ using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.Programs: @relation
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 
 const IPM = IntegralProjectionModels
@@ -161,7 +161,7 @@ title!("Stable distribution comparison")
 The `lift` operation extracts a projection net from a concrete model. Since a `MatrixProjectionModel` stores only the aggregated matrix $\mathbf{A}$, the original sub-transition decomposition is not recoverable — the lifted net has a single transition:
 
 ```{julia}
-lifted_net = CategoricalProjectionModels.lift(mpm, ProjectionNetTarget())
+lifted_net = CategoricalPopulationDynamics.lift(mpm, ProjectionNetTarget())
 println("Lifted net:")
 println("  States:      ", sname(lifted_net))
 println("  Transitions: ", tname(lifted_net))

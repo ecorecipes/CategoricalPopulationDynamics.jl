@@ -1,0 +1,554 @@
+---
+title: "Tritrophic Composition via Wiring Diagrams"
+subtitle: "Categorical Assembly of Plant–Aphid–Parasitoid Food Webs"
+author: "Simon Frost"
+format:
+  html:
+    code-fold: false
+    toc: true
+engine: julia
+---
+
+## Overview
+
+Multi-trophic food webs — plants, herbivores, and natural enemies — are the ecological stage on which **physiologically based demographic models** (PBDMs) play out. The foundational PBDM of Gilbert & Gutierrez (1973) studied the **thimbleberry–aphid–parasitoid** system in the Berkeley Hills, where:
+
+- **Thimbleberry** (*Rubus parviflorus*) provides a seasonally varying resource base,
+- **Aphids** (*Masonaphis maxima*) feed on the plant and reproduce parthenogenetically,
+- **Parasitoids** (*Praon* sp.) attack aphid nymphs, imposing top-down control.
+
+This vignette shows how CategoricalPopulationDynamics.jl's **undirected wiring diagram (UWD)** composition formalises this tritrophic system. Each species is an independent lifecycle (`ValuedProjectionNet`), and trophic interactions are **coupling transitions** assembled via `oapply`. The full 5×5 model (2 aphid stages + 3 parasitoid stages) decomposes as:
+
+$$
+\mathbf{A}_{\text{full}} = \mathbf{A}_{\text{aphid\_surv}} + \mathbf{A}_{\text{aphid\_fec}} + \mathbf{A}_{\text{para\_surv}} + \mathbf{A}_{\text{para\_fec}} + \Delta\mathbf{A}_{\text{parasitism}}
+$$
+
+where each component is a sparse 5×5 matrix and the parasitism term provides the cross-trophic coupling: it *reduces* aphid nymphal survival while *increasing* parasitoid larval recruitment.
+
+## Setup
+
+```{julia}
+using CategoricalPopulationDynamics
+using Catlab
+using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
+using Catlab.Programs: @relation
+using LinearAlgebra
+using StructuredPopulationCore: lambda
+using Plots
+```
+
+## Aphid Lifecycle
+
+The aphid *Masonaphis maxima* has two discrete stages — **nymph** and **adult** — with parthenogenetic reproduction. At a summer temperature of approximately 18 °C (Berkeley Hills mean), daily demographic rates are:
+
+```{julia}
+# Aphid lifecycle parameters (~18°C)
+dev_nymph  = 0.10    # ~10 day nymphal period
+dev_adult  = 0.033   # ~30 day adult lifespan
+μ_nymph    = 0.05    # baseline nymphal mortality
+μ_adult    = 0.08    # baseline adult mortality
+fecundity  = 3.0     # nymphs per adult per day (parthenogenetic)
+```
+
+From these rates we compute daily survival probabilities and transition rates:
+
+```{julia}
+σ_nymph = 1 - μ_nymph   # nymphal survival
+σ_adult = 1 - μ_adult    # adult survival
+
+# Stasis: survive AND remain in current stage
+stasis_nymph = σ_nymph * (1 - dev_nymph)
+# Progression: survive AND advance to next stage
+prog_nymph_to_adult = σ_nymph * dev_nymph
+# Adult stasis (no further progression; includes senescence)
+stasis_adult = σ_adult * (1 - dev_adult)
+
+println("Aphid transitions:")
+println("  Stasis nymph:      ", round(stasis_nymph, digits=4))
+println("  Nymph → adult:     ", round(prog_nymph_to_adult, digits=4))
+println("  Stasis adult:      ", round(stasis_adult, digits=4))
+println("  Fecundity:         ", fecundity)
+```
+
+### Building the ValuedProjectionNet
+
+```{julia}
+aphid = ValuedProjectionNet(
+    [:nymph, :adult],
+    :survival => [
+        (:nymph => :nymph) => stasis_nymph,
+        (:nymph => :adult) => prog_nymph_to_adult,
+        (:adult => :adult) => stasis_adult],
+    :fecundity => [
+        (:adult => :nymph) => fecundity])
+
+println("Aphid stages:      ", stage_names(aphid))
+println("Aphid transitions: ", transition_names(aphid))
+```
+
+### Aphid projection matrix and growth rate
+
+```{julia}
+A_aphid = to_matrix(aphid)
+λ_aphid = lambda(A_aphid)
+
+println("Aphid projection matrix (2×2):")
+display(A_aphid)
+println()
+println("λ_aphid = ", round(λ_aphid, digits=6))
+println("Without parasitoids, the aphid population is ",
+        λ_aphid > 1 ? "GROWING (λ > 1)" : "stable or declining")
+```
+
+```{julia}
+aphid_labels = String.(stage_names(aphid))
+heatmap(aphid_labels, aphid_labels, A_aphid,
+    title="Aphid lifecycle (2×2)",
+    xlabel="From stage", ylabel="To stage",
+    color=:viridis, aspect_ratio=1, size=(400, 350))
+```
+
+## Parasitoid Lifecycle
+
+The parasitoid *Praon* sp. has three stages — **larva** (developing inside the aphid host), **mummy** (post-host, pre-emergence), and **adult**:
+
+```{julia}
+# Parasitoid lifecycle parameters (~18°C)
+dev_larva_p  = 0.07    # ~14 day larval stage (inside aphid)
+dev_mummy_p  = 0.10    # ~10 day mummy stage
+dev_adult_p  = 0.04    # ~25 day adult lifespan
+μ_larva_p    = 0.03    # larval mortality
+μ_mummy_p    = 0.02    # mummy mortality
+μ_adult_p    = 0.06    # adult mortality
+fecundity_p  = 2.0     # eggs per adult parasitoid per day
+```
+
+```{julia}
+σ_larva_p = 1 - μ_larva_p
+σ_mummy_p = 1 - μ_mummy_p
+σ_adult_p = 1 - μ_adult_p
+
+stasis_larva   = σ_larva_p * (1 - dev_larva_p)
+prog_larva_mummy = σ_larva_p * dev_larva_p
+stasis_mummy   = σ_mummy_p * (1 - dev_mummy_p)
+prog_mummy_adult = σ_mummy_p * dev_mummy_p
+stasis_adult_p = σ_adult_p * (1 - dev_adult_p)
+
+println("Parasitoid transitions:")
+println("  Stasis larva:      ", round(stasis_larva, digits=4))
+println("  Larva → mummy:     ", round(prog_larva_mummy, digits=4))
+println("  Stasis mummy:      ", round(stasis_mummy, digits=4))
+println("  Mummy → adult:     ", round(prog_mummy_adult, digits=4))
+println("  Stasis adult:      ", round(stasis_adult_p, digits=4))
+println("  Fecundity:         ", fecundity_p)
+```
+
+### Building the ValuedProjectionNet
+
+```{julia}
+parasitoid = ValuedProjectionNet(
+    [:larva, :mummy, :adult_p],
+    :survival => [
+        (:larva  => :larva)   => stasis_larva,
+        (:larva  => :mummy)   => prog_larva_mummy,
+        (:mummy  => :mummy)   => stasis_mummy,
+        (:mummy  => :adult_p) => prog_mummy_adult,
+        (:adult_p => :adult_p) => stasis_adult_p],
+    :fecundity_p => [
+        (:adult_p => :larva) => fecundity_p])
+
+println("Parasitoid stages:      ", stage_names(parasitoid))
+println("Parasitoid transitions: ", transition_names(parasitoid))
+```
+
+### Parasitoid projection matrix and growth rate
+
+```{julia}
+A_parasitoid = to_matrix(parasitoid)
+λ_parasitoid = lambda(A_parasitoid)
+
+println("Parasitoid projection matrix (3×3):")
+display(A_parasitoid)
+println()
+println("λ_parasitoid = ", round(λ_parasitoid, digits=6))
+println("The parasitoid alone (unlimited hosts) is ",
+        λ_parasitoid > 1 ? "GROWING" : "DECLINING")
+```
+
+```{julia}
+para_labels = String.(stage_names(parasitoid))
+heatmap(para_labels, para_labels, A_parasitoid,
+    title="Parasitoid lifecycle (3×3)",
+    xlabel="From stage", ylabel="To stage",
+    color=:viridis, aspect_ratio=1, size=(400, 350))
+```
+
+## UWD Specification
+
+The tritrophic system has five demographic processes — aphid survival, aphid fecundity, parasitoid survival, parasitoid fecundity, and the parasitism coupling — all acting on a shared state space of 5 stages. The **undirected wiring diagram** formalises this:
+
+```{julia}
+uwd = @relation (state,) begin
+    aphid_survival(state,)
+    aphid_fecundity(state,)
+    parasitoid_survival(state,)
+    parasitoid_fecundity(state,)
+    parasitism_coupling(state,)
+end
+```
+
+Each box in the UWD is a demographic process contributing to the same 5-dimensional state vector: `[nymph, adult, larva, mummy, adult_p]`. The junction `state` identifies that all processes share these same state variables.
+
+## Compositional Assembly
+
+### Embedding sub-matrices in the 5×5 space
+
+Since `oapply` requires all sharers to have the same state dimension, we embed each 2×2 (aphid) or 3×3 (parasitoid) sub-matrix into the full 5×5 space:
+
+```{julia}
+# Full state ordering: nymph(1), adult(2), larva(3), mummy(4), adult_p(5)
+N = 5
+full_labels = ["nymph", "adult", "larva", "mummy", "adult_p"]
+aphid_idx = 1:2      # aphid occupies rows/cols 1-2
+para_idx  = 3:5      # parasitoid occupies rows/cols 3-5
+
+# Parasitism attack rate
+parasitism = 0.05    # parasitoid attack rate on aphid nymphs per day
+```
+
+```{julia}
+# Aphid survival (5×5, nonzero in top-left 2×2)
+A_aphid_surv = zeros(N, N)
+U_aphid = transition_matrix(aphid, :survival)
+A_aphid_surv[aphid_idx, aphid_idx] .= U_aphid
+
+# Aphid fecundity (5×5, nonzero in top-left 2×2)
+A_aphid_fec = zeros(N, N)
+F_aphid = transition_matrix(aphid, :fecundity)
+A_aphid_fec[aphid_idx, aphid_idx] .= F_aphid
+
+# Parasitoid survival (5×5, nonzero in bottom-right 3×3)
+A_para_surv = zeros(N, N)
+U_para = transition_matrix(parasitoid, :survival)
+A_para_surv[para_idx, para_idx] .= U_para
+
+# Parasitoid fecundity (5×5, nonzero in bottom-right 3×3)
+A_para_fec = zeros(N, N)
+F_para = transition_matrix(parasitoid, :fecundity_p)
+A_para_fec[para_idx, para_idx] .= F_para
+
+# Parasitism coupling (cross-block: reduces aphid nymph, recruits parasitoid larvae)
+A_parasitism = zeros(N, N)
+A_parasitism[1, 1] = -parasitism   # additional nymphal mortality
+A_parasitism[3, 1] = parasitism    # consumed nymphs → parasitoid larvae
+
+println("Sub-matrix summary:")
+println("  Aphid survival:      nnz = ", count(!iszero, A_aphid_surv))
+println("  Aphid fecundity:     nnz = ", count(!iszero, A_aphid_fec))
+println("  Parasitoid survival: nnz = ", count(!iszero, A_para_surv))
+println("  Parasitoid fecundity:nnz = ", count(!iszero, A_para_fec))
+println("  Parasitism coupling: nnz = ", count(!iszero, A_parasitism))
+```
+
+### Composing via `oapply`
+
+Wrap each 5×5 sub-matrix as a `ProjectionSharer` and compose according to the UWD:
+
+```{julia}
+sharers = Dict(
+    :aphid_survival       => ProjectionSharer(A_aphid_surv),
+    :aphid_fecundity      => ProjectionSharer(A_aphid_fec),
+    :parasitoid_survival  => ProjectionSharer(A_para_surv),
+    :parasitoid_fecundity => ProjectionSharer(A_para_fec),
+    :parasitism_coupling  => ProjectionSharer(A_parasitism))
+
+result = oapply(uwd, sharers)
+A_full = result.matrix
+λ_full = lambda(A_full)
+
+println("Full tritrophic projection matrix (5×5):")
+display(round.(A_full, digits=4))
+println()
+println("λ_full = ", round(λ_full, digits=6))
+```
+
+```{julia}
+heatmap(full_labels, full_labels, A_full,
+    title="Tritrophic projection matrix (5×5)",
+    xlabel="From stage", ylabel="To stage",
+    color=:viridis, size=(500, 450))
+vline!([2.5], color=:white, linewidth=2, label=false)
+hline!([2.5], color=:white, linewidth=2, label=false)
+```
+
+The white lines separate the aphid block (top-left 2×2) from the parasitoid block (bottom-right 3×3). The off-diagonal entry at `[larva, nymph]` is the parasitism coupling that links the two species.
+
+## Direct Construction
+
+We verify the `oapply` result by building the same 5×5 matrix directly:
+
+```{julia}
+A_direct = zeros(N, N)
+
+# Aphid block (rows/cols 1-2)
+A_direct[aphid_idx, aphid_idx] .= A_aphid
+
+# Parasitoid block (rows/cols 3-5)
+A_direct[para_idx, para_idx] .= A_parasitoid
+
+# Parasitism coupling
+A_direct[1, 1] -= parasitism      # reduce nymphal stasis
+A_direct[3, 1] += parasitism      # recruit parasitoid larvae
+
+println("Direct construction matches oapply: ", A_direct ≈ A_full)
+println("λ (direct)  = ", round(lambda(A_direct), digits=8))
+println("λ (oapply)  = ", round(lambda(A_full), digits=8))
+```
+
+Both methods produce identical results — the UWD provides a formal, auditable specification of the food web structure while the direct construction provides a sanity check.
+
+## Trophic Cascade Analysis
+
+The compositional framework makes it straightforward to analyse trophic cascades by adding or removing species:
+
+```{julia}
+# Aphid alone (no parasitoid): only aphid sub-matrices
+A_aphid_only = compose_transitions(Dict(
+    :aphid_survival  => A_aphid_surv,
+    :aphid_fecundity => A_aphid_fec))
+λ_aphid_only = lambda(A_aphid_only)
+
+# Parasitoid alone (no host): only parasitoid sub-matrices
+A_para_only = compose_transitions(Dict(
+    :parasitoid_survival  => A_para_surv,
+    :parasitoid_fecundity => A_para_fec))
+λ_para_only = lambda(A_para_only)
+
+# Full tritrophic (already computed)
+println("Trophic cascade analysis:")
+println("─" ^ 55)
+println(rpad("Scenario", 30), rpad("λ", 12), "Status")
+println("─" ^ 55)
+for (name, λ) in [
+    ("Aphid alone (no parasitoid)", λ_aphid_only),
+    ("Parasitoid alone (no host)",  λ_para_only),
+    ("Full tritrophic",             λ_full)]
+    status = λ > 1 ? "↑ growing" : "↓ declining"
+    println(rpad(name, 30), rpad(round(λ, digits=6), 12), status)
+end
+```
+
+```{julia}
+scenario_names = ["Aphid alone", "Parasitoid alone", "Full tritrophic"]
+λ_scenarios = [λ_aphid_only, λ_para_only, λ_full]
+colors = [:coral, :steelblue, :teal]
+
+bar(scenario_names, λ_scenarios,
+    ylabel="Population growth rate (λ)",
+    title="Trophic cascade: species isolation vs coupling",
+    legend=false, color=colors, alpha=0.8,
+    size=(600, 400))
+hline!([1.0], linestyle=:dash, color=:red, linewidth=2, label="λ = 1")
+annotate!(2.0, 1.01, text("λ = 1 (replacement)", :red, 8, :bottom))
+```
+
+The parasitoid cannot persist without hosts (λ < 1), while the aphid grows rapidly without natural enemies. The coupled system has intermediate growth — the parasitoid depresses aphid growth via top-down control.
+
+## Parasitism Rate Sweep
+
+How sensitive is the system to parasitism intensity? We sweep the attack rate from 0 to 0.15 and track the dominant eigenvalue:
+
+```{julia}
+α_range = range(0.0, 0.15, length=60)
+λ_sweep = Float64[]
+
+for α in α_range
+    ΔA = zeros(N, N)
+    ΔA[1, 1] = -α     # nymphal mortality
+    ΔA[3, 1] = α      # parasitoid recruitment
+
+    A_sweep = A_aphid_surv + A_aphid_fec + A_para_surv + A_para_fec + ΔA
+    push!(λ_sweep, lambda(A_sweep))
+end
+```
+
+```{julia}
+plot(Base.collect(α_range), λ_sweep,
+    xlabel="Parasitism rate (α, per day)",
+    ylabel="λ (dominant eigenvalue)",
+    title="System growth rate vs parasitism intensity",
+    label="λ(α)", linewidth=2, color=:teal,
+    size=(650, 400))
+hline!([1.0], linestyle=:dash, color=:red, linewidth=1.5, label="λ = 1")
+vline!([parasitism], linestyle=:dot, color=:gray, linewidth=1.5,
+    label="baseline α = $parasitism")
+```
+
+```{julia}
+# Find critical parasitism rate where λ = 1
+idx_cross = findfirst(i -> λ_sweep[i] > 1 && λ_sweep[i+1] <= 1, 1:length(λ_sweep)-1)
+if idx_cross !== nothing
+    α_crit = α_range[idx_cross]
+    println("Critical parasitism rate (λ ≈ 1): α ≈ ", round(α_crit, digits=4))
+else
+    println("λ remains > 1 across the full sweep range")
+    println("Minimum λ = ", round(minimum(λ_sweep), digits=6),
+            " at α = ", round(α_range[argmin(λ_sweep)], digits=4))
+end
+```
+
+## Plant Phenology as Stratification
+
+The thimbleberry's seasonal leaf phenology creates a time-varying resource base. We model three seasonal periods — **spring flush**, **summer peak**, and **autumn senescence** — each with different effective aphid fecundity (reflecting bottom-up resource limitation):
+
+```{julia}
+# Seasonal fecundity multipliers (plant quality effect on aphid reproduction)
+season_multipliers = [0.6, 1.0, 0.3]   # spring, summer, autumn
+season_names = ["Spring", "Summer", "Autumn"]
+
+println("Seasonal aphid fecundity (plant quality effect):")
+for (name, mult) in zip(season_names, season_multipliers)
+    println("  $name: fecundity = ", round(fecundity * mult, digits=2),
+            " (×$mult)")
+end
+```
+
+### Season-specific aphid-parasitoid matrices
+
+```{julia}
+function build_tritrophic(; fec_mult=1.0, α=parasitism)
+    A = zeros(N, N)
+    # Aphid survival (unchanged across seasons)
+    A[aphid_idx, aphid_idx] .= U_aphid
+    # Aphid fecundity (scaled by plant quality)
+    A[aphid_idx, aphid_idx] .+= fec_mult .* F_aphid
+    # Parasitoid (unchanged across seasons)
+    A[para_idx, para_idx] .= A_parasitoid
+    # Parasitism coupling
+    A[1, 1] -= α
+    A[3, 1] += α
+    return A
+end
+
+A_seasons = [build_tritrophic(fec_mult=m) for m in season_multipliers]
+
+println("λ by season:")
+for (name, A_s) in zip(season_names, A_seasons)
+    println("  $name: λ = ", round(lambda(A_s), digits=6))
+end
+```
+
+### Stratification across seasons
+
+We use **heterogeneous stratification** with a seasonal transition matrix. Assuming a simple cyclic progression (spring → summer → autumn → spring):
+
+```{julia}
+# Seasonal coupling: deterministic progression through seasons
+# Each row = destination season; each column = source season
+# Within a time step, individuals in season s move to season s+1
+D_season = [0.0  0.0  1.0;    # spring ← autumn
+            1.0  0.0  0.0;    # summer ← spring
+            0.0  1.0  0.0]    # autumn ← summer
+
+A_stratified = stratify(A_seasons, D_season)
+
+println("Stratified model size: ", size(A_stratified))
+println("λ (stratified, seasonal cycle) = ", round(lambda(A_stratified), digits=6))
+```
+
+```{julia}
+strat_labels = [string(s, "-", st) for s in season_names for st in full_labels]
+
+heatmap(strat_labels, strat_labels, A_stratified,
+    title="Seasonally stratified tritrophic model (15×15)",
+    xlabel="From (season-stage)", ylabel="To (season-stage)",
+    color=:viridis, size=(700, 650), xrotation=45)
+# Block boundaries
+for b in [5.5, 10.5]
+    vline!([b], color=:white, linewidth=2, label=false)
+    hline!([b], color=:white, linewidth=2, label=false)
+end
+```
+
+### Seasonal effect on population growth
+
+```{julia}
+λ_by_season = [lambda(A_s) for A_s in A_seasons]
+λ_strat = lambda(A_stratified)
+
+bar(season_names, λ_by_season,
+    ylabel="λ", title="Growth rate: seasonal snapshots vs annual cycle",
+    label="Within-season λ", color=:steelblue, alpha=0.8,
+    size=(600, 400))
+hline!([λ_strat], linewidth=2, color=:teal, linestyle=:dash,
+    label="Annual λ (stratified)")
+hline!([1.0], linewidth=1.5, color=:red, linestyle=:dot, label="λ = 1")
+```
+
+The annual growth rate (from the stratified model) integrates across the seasonal cycle — it is not the geometric mean of within-season rates, because the stage structure carries over between seasons.
+
+## Component Sensitivity
+
+The compositional framework enables systematic sensitivity analysis: remove each sub-transition from the `oapply` composition and measure the change in λ:
+
+```{julia}
+component_names = [:aphid_survival, :aphid_fecundity,
+                   :parasitoid_survival, :parasitoid_fecundity,
+                   :parasitism_coupling]
+component_matrices = Dict(
+    :aphid_survival       => A_aphid_surv,
+    :aphid_fecundity      => A_aphid_fec,
+    :parasitoid_survival  => A_para_surv,
+    :parasitoid_fecundity => A_para_fec,
+    :parasitism_coupling  => A_parasitism)
+
+println(rpad("Removed component", 28), rpad("λ", 12), "Δλ")
+println("─" ^ 48)
+
+λ_removed = Dict{Symbol, Float64}()
+for name in component_names
+    reduced = Dict(k => v for (k, v) in component_matrices if k != name)
+    A_red = compose_transitions(reduced)
+    λ_red = lambda(A_red)
+    λ_removed[name] = λ_red
+    Δλ = λ_red - λ_full
+    println(rpad(string(name), 28), rpad(round(λ_red, digits=6), 12),
+            round(Δλ, digits=6))
+end
+```
+
+```{julia}
+labels_sens = replace.(string.(component_names), "_" => " ")
+Δλ_vals = [λ_removed[n] - λ_full for n in component_names]
+
+bar(labels_sens, Δλ_vals,
+    ylabel="Δλ (change from full model)",
+    title="Component sensitivity: effect of removing each process",
+    legend=false, color=[:coral, :coral, :steelblue, :steelblue, :teal],
+    alpha=0.8, xrotation=15, size=(700, 420), bottom_margin=10Plots.mm)
+hline!([0.0], linestyle=:dash, color=:gray, linewidth=1)
+```
+
+Removing aphid fecundity has the largest (negative) impact — without reproduction, the aphid population cannot sustain itself. Removing the parasitism coupling increases λ (releases the aphid from top-down control). These sensitivities provide a principled basis for identifying key processes in the tritrophic interaction.
+
+## Summary
+
+This vignette demonstrated how **UWD composition** enables formal specification and analysis of multi-trophic food webs:
+
+1. **Independent lifecycles** — aphid and parasitoid are each defined as `ValuedProjectionNet` objects with named survival and fecundity transitions.
+2. **Embedding** — 2×2 and 3×3 sub-matrices are embedded in the full 5×5 space, with the parasitism coupling as a cross-block term.
+3. **UWD composition** — `oapply` assembles the five 5×5 components according to a wiring diagram, producing the coupled tritrophic matrix.
+4. **Direct verification** — manual construction confirms exact agreement with the compositional result.
+5. **Trophic cascades** — freely adding/removing species reveals top-down and bottom-up control.
+6. **Parameter sweeps** — the parasitism rate sweep identifies critical biocontrol thresholds.
+7. **Seasonal stratification** — `stratify` replicates the tritrophic system across seasonal periods with plant-mediated fecundity variation.
+8. **Component sensitivity** — systematic removal of each sub-transition quantifies its contribution to system growth.
+
+The categorical framework turns a complex food web into a **modular assembly problem**: define each species lifecycle once, specify trophic couplings as sparse perturbation matrices, and compose via a formal wiring diagram. This makes the model structure explicit, auditable, and easy to modify for exploring alternative food web configurations.
+
+### References
+
+Gilbert, N., & Gutierrez, A.P. (1973). A plant-aphid-parasite relationship. *Journal of Animal Ecology*, 42(2), 323–340.
+
+Gutierrez, A.P. (1996). *Applied Population Ecology: A Supply-Demand Approach*. John Wiley & Sons.

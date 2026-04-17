@@ -3,7 +3,7 @@ Simon Frost
 
 ## Overview
 
-The mathematical heart of CategoricalProjectionModels.jl is the
+The mathematical heart of CategoricalPopulationDynamics.jl is the
 **adjunction chain** between continuous kernels (IPMs) and discrete
 matrices (MPMs):
 
@@ -24,9 +24,9 @@ resolution.
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 

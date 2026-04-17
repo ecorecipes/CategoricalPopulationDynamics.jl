@@ -10,7 +10,7 @@ engine: julia
 
 ## Overview
 
-The mathematical heart of CategoricalProjectionModels.jl is the **adjunction chain** between continuous kernels (IPMs) and discrete matrices (MPMs):
+The mathematical heart of CategoricalPopulationDynamics.jl is the **adjunction chain** between continuous kernels (IPMs) and discrete matrices (MPMs):
 
 $$\text{Lan}_D \dashv D^* \dashv \text{Ran}_D$$
 
@@ -23,9 +23,9 @@ This adjunction gives us **round-trip diagnostics**: the unit $\eta$ and counit 
 ## Setup
 
 ```{julia}
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 

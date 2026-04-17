@@ -1,6 +1,6 @@
 # Schemas & Nets
 
-Projection nets are the core data structures of CategoricalProjectionModels.jl. They represent structured population models as labelled directed graphs where nodes are life stages and edges are demographic transitions.
+Projection nets are the core data structures of CategoricalPopulationDynamics.jl. They represent structured population models as labelled directed graphs where nodes are life stages and edges are demographic transitions.
 
 ## Schemas
 

@@ -7,7 +7,7 @@ The [COMADRE](https://compadre-db.org/) Animal Matrix Database contains
 thousands of published matrix population models. This vignette takes an
 iconic model — the **loggerhead sea turtle** (*Caretta caretta*) from
 Crouse, Crowder & Caswell (1987) — and demonstrates how the categorical
-framework in CategoricalProjectionModels.jl enables deeper structural
+framework in CategoricalPopulationDynamics.jl enables deeper structural
 analysis than working with the projection matrix alone.
 
 This model transformed conservation policy: the original elasticity
@@ -30,14 +30,14 @@ We will:
 ## Setup
 
 ``` julia
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
 import MatrixProjectionModels as MPM
 using Catlab
 using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.Programs: @relation
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 

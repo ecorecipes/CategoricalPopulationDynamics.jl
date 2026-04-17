@@ -88,7 +88,7 @@
     end
 
     @testset "ValuedProjectionNet lag matches expand_lag_matrix" begin
-        using ProjectionModels: expand_lag_matrix, TimeLagStructure
+        using StructuredPopulationCore: expand_lag_matrix, TimeLagStructure
 
         vnet = ValuedProjectionNet([:seed, :small, :large],
             :survival => [(:seed => :small) => 0.2, (:small => :large) => 0.4,
@@ -109,7 +109,7 @@
     end
 
     @testset "lag_stratify" begin
-        using ProjectionModels: expand_lag_matrix, TimeLagStructure
+        using StructuredPopulationCore: expand_lag_matrix, TimeLagStructure
 
         U = [0.0 0.0; 0.5 0.3]
         F = [0.0 2.0; 0.0 0.0]
@@ -128,7 +128,7 @@
     end
 
     @testset "Lag-stratification commutativity (eigenvalue)" begin
-        using ProjectionModels: expand_lag_matrix, TimeLagStructure
+        using StructuredPopulationCore: expand_lag_matrix, TimeLagStructure
 
         U = [0.0 0.0; 0.5 0.3]
         F = [0.0 2.0; 0.0 0.0]

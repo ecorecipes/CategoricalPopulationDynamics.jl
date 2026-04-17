@@ -17,12 +17,13 @@ This vignette shows how to construct valued projection nets from sparse transiti
 ## Setup
 
 ```{julia}
-using CategoricalProjectionModels
+using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘
 import MatrixProjectionModels
 using Catlab
 using Catlab.CategoricalAlgebra
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 
 const MPM = MatrixProjectionModels
@@ -42,11 +43,13 @@ This is more structured than a raw matrix: transitions are named and grouped, so
 
 ### Pitcher's Thistle
 
-The pitcher's thistle (*Cirsium pitcheri*) model from COMPADRE has 6 stages and two demographic processes — survival/growth and fecundity.
+The pitcher's thistle (*Cirsium pitcheri*) model from COMPADRE has 6 stages and two demographic processes — survival/growth and fecundity. We build each process as its own `ValuedProjectionNet` and then combine them with the `⊕` (merge) operator, which joins nets that share the same stages but have disjoint transition names:
 
 ```{julia}
-thistle = ValuedProjectionNet(
-    [:seed_bank, :seedling, :small, :medium, :large, :flowering],
+stages = [:seed_bank, :seedling, :small, :medium, :large, :flowering]
+
+thistle_survival = ValuedProjectionNet(
+    stages,
     :survival => [
         (:seed_bank => :seedling)  => 0.05,
         (:seedling  => :small)     => 0.30,
@@ -57,9 +60,14 @@ thistle = ValuedProjectionNet(
         (:medium    => :large)     => 0.20,
         (:large     => :medium)    => 0.15,   # retrogression
         (:large     => :large)     => 0.55,
-        (:large     => :flowering) => 0.20],
+        (:large     => :flowering) => 0.20])
+
+thistle_fecundity = ValuedProjectionNet(
+    stages,
     :fecundity => [
         (:flowering => :seed_bank) => 350.0])
+
+thistle = thistle_survival ⊕ thistle_fecundity
 ```
 
 ### Inspecting the Net
@@ -278,9 +286,10 @@ heatmap(String.(stage_names(plant)), String.(stage_names(plant)),
 Valued projection nets extend the categorical framework with sparse numeric data:
 
 1. **`ValuedProjectionNet`** — bundles a `LabelledProjectionNet` with stage names and sparse `(from => to) => value` entries per named transition
-2. **`transition_matrix(vnet, name)`** — materializes a single transition to a dense matrix
-3. **`to_matrix(vnet)`** — sums all transitions into the full projection matrix $\mathbf{A}$
-4. **`lower(vnet, MPMTarget())`** — converts to a `MatrixProjectionModel` for downstream analysis
-5. **Named transitions** — enable process-level decomposition (stasis vs progression vs reproduction) while maintaining full compatibility with matrix-based analyses
+2. **`⊕` (merge)** — composes two `ValuedProjectionNet`s that share the same stages but have disjoint transition names, enabling modular model construction
+3. **`transition_matrix(vnet, name)`** — materializes a single transition to a dense matrix
+4. **`to_matrix(vnet)`** — sums all transitions into the full projection matrix $\mathbf{A}$
+5. **`lower(vnet, MPMTarget())`** — converts to a `MatrixProjectionModel` for downstream analysis
+6. **Named transitions** — enable process-level decomposition (stasis vs progression vs reproduction) while maintaining full compatibility with matrix-based analyses
 
 The key insight is that valued nets occupy a middle ground between raw matrices and fully categorical specifications: they carry enough structure to track individual demographic processes, while remaining easy to construct from the sparse transition data that ecologists work with.
