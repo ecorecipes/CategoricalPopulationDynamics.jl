@@ -1,39 +1,32 @@
----
-title: "Multi-Timescale Colony Dynamics"
-subtitle: "Hierarchical Nesting for *Bombus terrestris*"
-author: "Simon Frost"
-format:
-  html:
-    code-fold: false
-    toc: true
-engine: julia
----
+# Multi-Timescale Colony Dynamics
+Simon Frost
 
 ## Overview
 
-Bumblebee colony dynamics span multiple timescales: individual foraging bouts
-operate on an hourly scale, colony-level demography plays out over days, and
-population persistence is determined by annual queen production and overwintering
-survival.  This vignette demonstrates **timescale nesting** — a compositional
-tool that embeds fast-timescale models *inside* transitions of slower-timescale
-models.  Changes at the foraging level automatically propagate upward through
-the hierarchy, enabling clean sensitivity analysis of how environmental drivers
-(e.g., temperature) at the finest scale cascade to population-level outcomes.
+Bumblebee colony dynamics span multiple timescales: individual foraging
+bouts operate on an hourly scale, colony-level demography plays out over
+days, and population persistence is determined by annual queen
+production and overwintering survival. This vignette demonstrates
+**timescale nesting** — a compositional tool that embeds fast-timescale
+models *inside* transitions of slower-timescale models. Changes at the
+foraging level automatically propagate upward through the hierarchy,
+enabling clean sensitivity analysis of how environmental drivers (e.g.,
+temperature) at the finest scale cascade to population-level outcomes.
 
 We construct a three-level nested model for *Bombus terrestris*:
 
-| Level | Timescale | Resolution | Model |
-|-------|-----------|------------|-------|
-| 1 | Foraging bout | Hourly (10 h/day) | Worker activity states |
-| 2 | Colony dynamics | Daily (150 d/season) | Brood → nurse → forager |
-| 3 | Population | Yearly | Queen → colony lifecycle |
+| Level | Timescale       | Resolution           | Model                    |
+|-------|-----------------|----------------------|--------------------------|
+| 1     | Foraging bout   | Hourly (10 h/day)    | Worker activity states   |
+| 2     | Colony dynamics | Daily (150 d/season) | Brood → nurse → forager  |
+| 3     | Population      | Yearly               | Queen → colony lifecycle |
 
-The `⋉` (`\ltimes`) operator nests inner models into outer transitions, and
-the full hierarchy is materialized recursively by `to_matrix`.
+The `⋉` (`\ltimes`) operator nests inner models into outer transitions,
+and the full hierarchy is materialized recursively by `to_matrix`.
 
 ## Setup
 
-```{julia}
+``` julia
 using CategoricalPopulationDynamics
 using CategoricalPopulationDynamics: ⊕, ⊘, ⋉
 using LinearAlgebra
@@ -43,36 +36,39 @@ using Plots
 
 ## Biological Background
 
-*Bombus terrestris* is an annual-cycle bumblebee.  A mated queen emerges from
-hibernation in spring, founds a colony alone, and rears the first cohort of
-workers.  The colony grows through a worker-production phase (~120 days),
-followed by a sexual phase producing males and new queens (gynes).  New queens
-mate, enter diapause, and — if they survive the winter — found the next year's
-colonies.
+*Bombus terrestris* is an annual-cycle bumblebee. A mated queen emerges
+from hibernation in spring, founds a colony alone, and rears the first
+cohort of workers. The colony grows through a worker-production phase
+(~120 days), followed by a sexual phase producing males and new queens
+(gynes). New queens mate, enter diapause, and — if they survive the
+winter — found the next year’s colonies.
 
-**Foraging** is the colony's lifeline: workers collect nectar and pollen to
-sustain brood development and adult maintenance.  Foraging activity is strongly
-temperature-dependent — *B. terrestris* forages across a wide thermal range
-(5–38 °C) but peaks at 15–28 °C (Corbet et al., 1993; Kwon & Saeed, 2003).
+**Foraging** is the colony’s lifeline: workers collect nectar and pollen
+to sustain brood development and adult maintenance. Foraging activity is
+strongly temperature-dependent — *B. terrestris* forages across a wide
+thermal range (5–38 °C) but peaks at 15–28 °C (Corbet et al., 1993; Kwon
+& Saeed, 2003).
 
-**Colony productivity** depends on the balance between worker emergence (a
-slow process with ~22-day brood + nurse periods) and forager mortality.  The
-number of gynes produced over a season determines the colony's contribution to
-the next generation.
+**Colony productivity** depends on the balance between worker emergence
+(a slow process with ~22-day brood + nurse periods) and forager
+mortality. The number of gynes produced over a season determines the
+colony’s contribution to the next generation.
 
-**Population persistence** hinges on the founding-success × gyne-production ×
-overwinter-survival chain.  Climate warming may benefit populations in cold
-regions but push warm-edge populations past thermal limits.
+**Population persistence** hinges on the founding-success ×
+gyne-production × overwinter-survival chain. Climate warming may benefit
+populations in cold regions but push warm-edge populations past thermal
+limits.
 
 ## Level 1: Foraging Bout Model
 
-We model individual worker activity as a two-state Markov chain operating on an
-hourly timescale.  Workers are either **idle** (resting, guarding, nursing) or
-**actively foraging**.  The transition from idle → active depends on ambient
-temperature via a triangular activity function calibrated from *B. terrestris*
-behavioral data (Corbet et al., 1993; Kwon & Saeed, 2003).
+We model individual worker activity as a two-state Markov chain
+operating on an hourly timescale. Workers are either **idle** (resting,
+guarding, nursing) or **actively foraging**. The transition from idle →
+active depends on ambient temperature via a triangular activity function
+calibrated from *B. terrestris* behavioral data (Corbet et al., 1993;
+Kwon & Saeed, 2003).
 
-```{julia}
+``` julia
 """
     foraging_activity(T)
 
@@ -100,9 +96,11 @@ function make_foraging_vpn(T)
 end
 ```
 
+    make_foraging_vpn (generic function with 1 method)
+
 At optimal temperature (20 °C), the foraging model is:
 
-```{julia}
+``` julia
 foraging_20 = make_foraging_vpn(20.0)
 A_forage = to_matrix(foraging_20)
 println("Foraging matrix (20°C):")
@@ -111,12 +109,22 @@ println("\nλ_forage = ", round(lambda(A_forage), digits=4))
 println("Daily efficiency (λ^10) = ", round(lambda(A_forage)^10, digits=4))
 ```
 
-The dominant eigenvalue λ < 1 reflects that workers cycle through activity
-states with some loss (mortality, failed trips).  Raised to the 10th power
-(10 active hours per day), this gives the **daily foraging efficiency** — the
-fraction of maximum food collection actually achieved.
+    Foraging matrix (20°C):
 
-```{julia}
+    λ_forage = 0.95
+    Daily efficiency (λ^10) = 0.5987
+
+    2×2 Matrix{Float64}:
+     0.6   0.15
+     0.35  0.8
+
+The dominant eigenvalue λ \< 1 reflects that workers cycle through
+activity states with some loss (mortality, failed trips). Raised to the
+10th power (10 active hours per day), this gives the **daily foraging
+efficiency** — the fraction of maximum food collection actually
+achieved.
+
+``` julia
 # Temperature sweep of foraging efficiency
 T_range = 0:1:45
 forage_eff = [lambda(to_matrix(make_foraging_vpn(T)))^10 for T in T_range]
@@ -130,16 +138,18 @@ vline!([15, 28], linestyle=:dash, color=:gray, alpha=0.5, label="")
 annotate!(21.5, 0.65, text("Optimal\nrange", 8, :gray))
 ```
 
+![](20_bumblebee_nesting_files/figure-commonmark/cell-5-output-1.svg)
+
 ## Level 2: Colony Dynamics
 
-The colony model tracks three stage classes on a **daily** timescale, adapted
-from Khoury et al. (2011) and Banks et al. (2017):
+The colony model tracks three stage classes on a **daily** timescale,
+adapted from Khoury et al. (2011) and Banks et al. (2017):
 
 - **Brood**: eggs and larvae (~22-day development period)
 - **Nurse**: young adult workers tending brood (~20-day period)
 - **Forager**: mature workers collecting resources
 
-```{julia}
+``` julia
 development = ValuedProjectionNet([:brood, :nurse, :forager],
     :development => [(:brood => :nurse)   => 0.045,    # 1/22 ≈ 0.045
                      (:nurse => :forager)  => 0.050])   # 1/20 = 0.050
@@ -155,25 +165,44 @@ reproduction = ValuedProjectionNet([:brood, :nurse, :forager],
 colony_base = development ⊕ survival ⊕ reproduction
 ```
 
-The `:reproduction` transition represents egg-laying enabled by forager food
-collection.  We **nest** the foraging model into this transition: the base rate
-(2.0 eggs per forager-day) is multiplied by daily foraging efficiency.
+    ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+      S = 1:1
+      T = 1:3
+      Src = 1:3
+      Tgt = 1:3
+      Name = 1:0
+      src_t : Src → T = [1, 2, 3]
+      src_s : Src → S = [1, 1, 1]
+      tgt_t : Tgt → T = [1, 2, 3]
+      tgt_s : Tgt → S = [1, 1, 1]
+      sname : S → Name = [:stage]
+      tname : T → Name = [:survival, :development, :reproduction], [:brood, :nurse, :forager], Dict(:survival => [(:brood => :brood) => 0.92, (:nurse => :nurse) => 0.93, (:forager => :forager) => 0.9], :development => [(:brood => :nurse) => 0.045, (:nurse => :forager) => 0.05], :reproduction => [(:forager => :brood) => 2.0]))
 
-```{julia}
+The `:reproduction` transition represents egg-laying enabled by forager
+food collection. We **nest** the foraging model into this transition:
+the base rate (2.0 eggs per forager-day) is multiplied by daily foraging
+efficiency.
+
+``` julia
 foraging_emb = TimescaleEmbedding(make_foraging_vpn(20.0), 10, :lambda)
 colony_nested = colony_base ⋉ (:reproduction => foraging_emb)
 println(colony_nested)
 ```
 
-The returned object is a `NestableVPN` — a `ValuedProjectionNet` augmented
-with `TimescaleEmbedding`s. We can inspect the embedded summary directly
-without going through `to_matrix`:
+    NestableVPN{Float64}(3 stages, 3 transitions, 1 embeddings)
+      :reproduction ⋉ TimescaleEmbedding(steps=10, extract=lambda)
 
-```{julia}
+The returned object is a `NestableVPN` — a `ValuedProjectionNet`
+augmented with `TimescaleEmbedding`s. We can inspect the embedded
+summary directly without going through `to_matrix`:
+
+``` julia
 colony_nested isa NestableVPN
 ```
 
-```{julia}
+    true
+
+``` julia
 # extract_summary runs the inner model and returns the scalar that
 # scales the outer :reproduction transition.
 inner_A        = to_matrix(make_foraging_vpn(20.0))
@@ -181,7 +210,9 @@ foraging_yield = extract_summary(inner_A, 10, :lambda)
 round(foraging_yield, digits = 4)
 ```
 
-```{julia}
+    0.5987
+
+``` julia
 A_colony = to_matrix(colony_nested)
 λ_colony = lambda(A_colony)
 println("Colony matrix (20°C):")
@@ -192,6 +223,17 @@ println("Effective reproduction rate = ", round(A_colony[1,3], digits=4),
 println("Seasonal growth (λ^150) = ", round(λ_colony^150, sigdigits=3))
 ```
 
+    Colony matrix (20°C):
+
+    λ_colony = 1.0564
+    Effective reproduction rate = 1.1975 eggs/forager/day
+    Seasonal growth (λ^150) = 3730.0
+
+    3×3 Matrix{Float64}:
+     0.92   0.0   1.1975
+     0.045  0.93  0.0
+     0.0    0.05  0.9
+
 ## Level 3: Population Dynamics
 
 The population model operates on a **yearly** timescale with two stages:
@@ -199,7 +241,7 @@ The population model operates on a **yearly** timescale with two stages:
 - **Queen**: hibernating mated queens (overwinter in diapause)
 - **Colony**: established colonies producing gynes
 
-```{julia}
+``` julia
 founding  = ValuedProjectionNet([:queen, :colony],
     :founding => [(:queen => :colony) => 0.25])          # 25% founding success
 
@@ -212,17 +254,34 @@ overwinter = ValuedProjectionNet([:queen, :colony],
 population_base = founding ⊕ gyne_prod ⊕ overwinter
 ```
 
-The `:queen_production` transition is scaled by seasonal colony productivity.
-We nest the *entire colony model* (which itself contains the nested foraging
-model) into this transition, creating a **3-level recursive hierarchy**:
+    ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+      S = 1:1
+      T = 1:3
+      Src = 1:3
+      Tgt = 1:3
+      Name = 1:0
+      src_t : Src → T = [1, 2, 3]
+      src_s : Src → S = [1, 1, 1]
+      tgt_t : Tgt → T = [1, 2, 3]
+      tgt_s : Tgt → S = [1, 1, 1]
+      sname : S → Name = [:stage]
+      tname : T → Name = [:overwinter, :founding, :queen_production], [:queen, :colony], Dict(:overwinter => [(:queen => :queen) => 0.15], :founding => [(:queen => :colony) => 0.25], :queen_production => [(:colony => :queen) => 1.0]))
 
-```{julia}
+The `:queen_production` transition is scaled by seasonal colony
+productivity. We nest the *entire colony model* (which itself contains
+the nested foraging model) into this transition, creating a **3-level
+recursive hierarchy**:
+
+``` julia
 colony_emb = TimescaleEmbedding(colony_nested, 150, :lambda, scale=0.002)
 population = population_base ⋉ (:queen_production => colony_emb)
 println(population)
 ```
 
-```{julia}
+    NestableVPN{Float64}(2 stages, 3 transitions, 1 embeddings)
+      :queen_production ⋉ TimescaleEmbedding(steps=150, extract=lambda, scale=0.002)
+
+``` julia
 A_pop = to_matrix(population)
 λ_pop = lambda(A_pop)
 eff_queens = evaluate(colony_emb)
@@ -237,14 +296,25 @@ else
 end
 ```
 
+    Population matrix (20°C):
+
+    Effective queens per colony = 7.46
+    Population λ = 1.4431
+    → Population GROWING (44.3% per year)
+
+    2×2 Matrix{Float64}:
+     0.15  7.4644
+     0.25  0.0
+
 ## Temperature Sensitivity Analysis
 
 The key advantage of the nesting framework is that we can sweep an
 environmental driver at the *lowest* level and let changes propagate
-automatically through the entire hierarchy.  We rebuild the foraging model at
-each temperature and let `to_matrix` recursively evaluate all three levels.
+automatically through the entire hierarchy. We rebuild the foraging
+model at each temperature and let `to_matrix` recursively evaluate all
+three levels.
 
-```{julia}
+``` julia
 T_sweep = 2.0:0.5:44.0
 results = map(T_sweep) do T
     # Level 1: temperature-dependent foraging
@@ -273,7 +343,29 @@ forages = [r.forage_eff for r in results]
 queens  = [r.queens_per_colony for r in results]
 ```
 
-```{julia}
+    85-element Vector{Float64}:
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0020478387986383084
+     0.0036133966167389733
+     0.006170937300848725
+     ⋮
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+     0.0011109731081543285
+
+``` julia
 p1 = plot(Ts, forages,
     ylabel="Daily efficiency (λ¹⁰)", title="Level 1: Foraging",
     linewidth=2, color=:darkorange, legend=false)
@@ -300,18 +392,21 @@ plot(p1, p2, p3, p4, layout=(2,2), size=(800, 600),
     plot_title="Temperature cascade across timescales")
 ```
 
-The population is viable (λ > 1) only within the **15–28 °C optimal foraging
-window**.  Small changes in foraging efficiency at the hourly scale are
-amplified through colony growth (150 daily steps) and population dynamics
-(founding success × overwinter survival), creating a sharp thermal niche.
+![](20_bumblebee_nesting_files/figure-commonmark/cell-15-output-1.svg)
+
+The population is viable (λ \> 1) only within the **15–28 °C optimal
+foraging window**. Small changes in foraging efficiency at the hourly
+scale are amplified through colony growth (150 daily steps) and
+population dynamics (founding success × overwinter survival), creating a
+sharp thermal niche.
 
 ## Compositional Modifications with ⊘
 
-One advantage of the nested framework is that individual processes can be
-modified with `⊘` without rebuilding the entire hierarchy.  For example,
-simulating a pesticide that reduces forager survival:
+One advantage of the nested framework is that individual processes can
+be modified with `⊘` without rebuilding the entire hierarchy. For
+example, simulating a pesticide that reduces forager survival:
 
-```{julia}
+``` julia
 # Reduce forager survival by 10% — simulates chronic pesticide exposure
 colony_pesticide = colony_nested ⊘ (:survival => ((from, to), val) ->
     from == :forager && to == :forager ? val * 0.90 : val)
@@ -324,11 +419,15 @@ println("Colony λ (pesticide): ", round(λ_pest, digits=4))
 println("Change: $(round((λ_pest/λ_base - 1)*100, digits=2))%")
 ```
 
+    Colony λ (baseline):  1.0564
+    Colony λ (pesticide): 1.0346
+    Change: -2.06%
+
 ## Combining ⊕ and ⋉: Adding Parasitism
 
 We can merge additional processes with `⊕` alongside nested transitions:
 
-```{julia}
+``` julia
 # Add a parasitism pressure process (varroa-like load reduces nurse survival)
 parasitism = ValuedProjectionNet([:brood, :nurse, :forager],
     :parasitism => [(:nurse => :nurse) => -0.02])   # 2% additional nurse mortality
@@ -340,12 +439,14 @@ println("Colony λ (with parasite): ", round(λ_parasite, digits=4),
         " (baseline: ", round(lambda(to_matrix(colony_nested)), digits=4), ")")
 ```
 
+    Colony λ (with parasite): 1.0494 (baseline: 1.0564)
+
 ## Climate Scenario Comparison
 
 We compare three climate scenarios by rebuilding the nested hierarchy at
 different mean temperatures:
 
-```{julia}
+``` julia
 scenarios = [
     ("Current (18°C mean)", 18.0),
     ("+2°C warming (20°C)",  20.0),
@@ -373,20 +474,31 @@ for (name, T) in scenarios
 end
 ```
 
+    Climate Scenario Comparison
+    =================================================================
+    Scenario                    Queens/colony  λ_pop   Status
+    -----------------------------------------------------------------
+    Current (18°C mean)         7.46           1.4431  ✓ Growing
+    +2°C warming (20°C)         7.46           1.4431  ✓ Growing
+    +4°C warming (22°C)         7.46           1.4431  ✓ Growing
+    +6°C warming (24°C)         7.46           1.4431  ✓ Growing
+    Heat extreme (32°C)         0.35           0.382   ✗ Declining
+
 ## Summary
 
 This vignette demonstrated **timescale nesting** — the ability to embed
-fast-timescale models inside transitions of slow-timescale models using the
-`⋉` operator and `TimescaleEmbedding`:
+fast-timescale models inside transitions of slow-timescale models using
+the `⋉` operator and `TimescaleEmbedding`:
 
 | Operation | Symbol | Purpose |
-|-----------|--------|---------|
+|----|----|----|
 | `TimescaleEmbedding(model, steps, :lambda)` | — | Wrap inner model with extraction recipe |
 | `outer ⋉ (:trans => embedding)` | `⋉` | Nest inner model into outer transition |
 | `to_matrix(nested)` | — | Recursively evaluate entire hierarchy |
 | `⊕` | `⊕` | Merge additional processes into nested models |
 | `⊘` | `⊘` | Modify individual transitions without rebuilding |
 
-The three-level *Bombus terrestris* model shows how hourly foraging decisions
-cascade through daily colony growth to annual population viability, with
-temperature as the driving variable propagating bottom-up through the hierarchy.
+The three-level *Bombus terrestris* model shows how hourly foraging
+decisions cascade through daily colony growth to annual population
+viability, with temperature as the driving variable propagating
+bottom-up through the hierarchy.

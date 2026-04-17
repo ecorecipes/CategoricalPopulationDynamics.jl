@@ -66,7 +66,7 @@ function Open(pn::ProjectionNet, legs...)
 end
 
 function Open(pn::LabelledProjectionNet, legs...)
-    OpenLabelledProjectionNet{Symbol}(pn,
+    OpenLabelledProjectionNet(pn,
         map(l -> FinFunction(l, nparts(pn, :S)), legs)...)
 end
 
