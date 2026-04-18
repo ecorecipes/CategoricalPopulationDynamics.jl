@@ -31,6 +31,17 @@ const IPM = IntegralProjectionModels
 const MPM = MatrixProjectionModels
 ```
 
+    Precompiling packages...
+       3930.0 ms  ✓ IntegralProjectionModels
+       3999.4 ms  ✓ IntegralProjectionModels → IntegralProjectionModelsCatlabExt
+      2 dependencies successfully precompiled in 11 seconds. 280 already precompiled.
+    Precompiling packages...
+       3958.7 ms  ✓ CategoricalPopulationDynamics → CategoricalPopulationDynamicsIPMExt
+      1 dependency successfully precompiled in 7 seconds. 283 already precompiled.
+    Precompiling packages...
+       3925.8 ms  ✓ CategoricalPopulationDynamics → CategoricalPopulationDynamicsMPMExt
+      1 dependency successfully precompiled in 6 seconds. 294 already precompiled.
+
     MatrixProjectionModels
 
 ## Step 1: Abstract Model Specification
@@ -94,7 +105,7 @@ ipm_prob = lower(net, target_ipm, transition_kernels)
 println("IPM Problem type: ", typeof(ipm_prob))
 ```
 
-    IPM Problem type: IntegralProjectionModels.IPMProblem{IntegralProjectionModels.SimpleIPM, ProjectionModels.DensityIndependent, ProjectionModels.Deterministic, IntegralProjectionModels.CustomKernel{CategoricalPopulationDynamicsIPMExt.var"#composed_kernel#composed_kernel##0"{Dict{Symbol, Function}, Vector{Symbol}}, IntegralProjectionModels.ContinuousDomain{Float64}}, IntegralProjectionModels.ContinuousDomain{Float64}, Vector{Float64}, Nothing, Nothing}
+    IPM Problem type: IntegralProjectionModels.IPMProblem{StructuredPopulationCore.SimpleIPM, StructuredPopulationCore.DensityIndependent, StructuredPopulationCore.Deterministic, IntegralProjectionModels.CustomKernel{CategoricalPopulationDynamicsIPMExt.var"#composed_kernel#composed_kernel##0"{Dict{Symbol, Function}, Vector{Symbol}}, StructuredPopulationCore.ContinuousDomain{Float64}}, StructuredPopulationCore.ContinuousDomain{Float64}, Vector{Float64}, Nothing, Nothing}
 
 ### Solve and Analyse the IPM
 
@@ -340,6 +351,41 @@ println("Adjunction counit error: ", round(errs.counit, digits=4))
     Spatial λ (2 patches) = 1.7945
     Adjunction unit error: 0.0
     Adjunction counit error: 0.0629
+
+## Schemas and target type hierarchy
+
+For reference, the underlying Catlab schemas and lowering-target
+supertype are also exported, which is useful when building new ACSet
+types or custom lowering targets:
+
+``` julia
+println("SchProjectionNet         is a Catlab schema = ",
+        SchProjectionNet isa Catlab.Theories.Presentation)
+println("SchLabelledProjectionNet is a Catlab schema = ",
+        SchLabelledProjectionNet isa Catlab.Theories.Presentation)
+println("AbstractLoweringTarget   isabstract        = ",
+        isabstracttype(AbstractLoweringTarget))
+
+println("\nConcrete <: AbstractLoweringTarget:")
+for T in (IPMTarget, ContinuousIPMTarget, PSPMTarget,
+          FiniteStateDynamicsTarget, MPMTarget, StateDependentMPMTarget,
+          ProjectionNetTarget)
+    println("  ", rpad(string(T), 32), " <: AbstractLoweringTarget")
+end
+```
+
+    SchProjectionNet         is a Catlab schema = true
+    SchLabelledProjectionNet is a Catlab schema = true
+    AbstractLoweringTarget   isabstract        = true
+
+    Concrete <: AbstractLoweringTarget:
+      CategoricalPopulationDynamics.IPMTarget <: AbstractLoweringTarget
+      CategoricalPopulationDynamics.ContinuousIPMTarget <: AbstractLoweringTarget
+      CategoricalPopulationDynamics.PSPMTarget <: AbstractLoweringTarget
+      CategoricalPopulationDynamics.FiniteStateDynamicsTarget <: AbstractLoweringTarget
+      CategoricalPopulationDynamics.MPMTarget <: AbstractLoweringTarget
+      CategoricalPopulationDynamics.StateDependentMPMTarget <: AbstractLoweringTarget
+      CategoricalPopulationDynamics.ProjectionNetTarget <: AbstractLoweringTarget
 
 ## Summary
 

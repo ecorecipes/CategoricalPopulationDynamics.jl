@@ -277,6 +277,28 @@ println("Adjunction unit error: ", round(errs.unit, digits=12))
 println("Adjunction counit error: ", round(errs.counit, digits=4))
 ```
 
+## Schemas and target type hierarchy
+
+For reference, the underlying Catlab schemas and lowering-target supertype
+are also exported, which is useful when building new ACSet types or
+custom lowering targets:
+
+```{julia}
+println("SchProjectionNet         is a Catlab schema = ",
+        SchProjectionNet isa Catlab.Theories.Presentation)
+println("SchLabelledProjectionNet is a Catlab schema = ",
+        SchLabelledProjectionNet isa Catlab.Theories.Presentation)
+println("AbstractLoweringTarget   isabstract        = ",
+        isabstracttype(AbstractLoweringTarget))
+
+println("\nConcrete <: AbstractLoweringTarget:")
+for T in (IPMTarget, ContinuousIPMTarget, PSPMTarget,
+          FiniteStateDynamicsTarget, MPMTarget, StateDependentMPMTarget,
+          ProjectionNetTarget)
+    println("  ", rpad(string(T), 32), " <: AbstractLoweringTarget")
+end
+```
+
 ## Summary
 
 In this vignette we demonstrated the full lowering/lifting workflow:
