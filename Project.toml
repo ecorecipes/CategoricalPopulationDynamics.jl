@@ -7,6 +7,7 @@ authors = ["Simon Frost"]
 Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
 LinearAlgebra = "37e2e46d-f89d-539d-b4ee-838fcccc9c8e"
 Plots = "91a5bcdd-55d7-5caf-9e0b-520d859cae80"
+Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 StructuredPopulationCore = "33358fd2-7d60-4541-bded-caea801370e0"
 
 [weakdeps]
@@ -15,18 +16,18 @@ FiniteStatePopulationDynamics = "c910fb8b-fb88-47fe-a579-bc7a7e1444df"
 IntegralProjectionModels = "00376763-44f4-49c9-a075-cdcba60854bb"
 MatrixProjectionModels = "521f12cc-5854-454d-93a2-8be28ae7cee2"
 
-[extensions]
-CategoricalPopulationDynamicsContinuousStatePopulationDynamicsExt = "ContinuousStatePopulationDynamics"
-CategoricalPopulationDynamicsFiniteStatePopulationDynamicsExt = "FiniteStatePopulationDynamics"
-CategoricalPopulationDynamicsIPMExt = "IntegralProjectionModels"
-CategoricalPopulationDynamicsMPMExt = "MatrixProjectionModels"
-
 [sources]
 ContinuousStatePopulationDynamics = {path = "../ContinuousStatePopulationDynamics.jl"}
 FiniteStatePopulationDynamics = {path = "../FiniteStatePopulationDynamics.jl"}
 IntegralProjectionModels = {path = "../IntegralProjectionModels.jl"}
 MatrixProjectionModels = {path = "../MatrixProjectionModels.jl"}
 StructuredPopulationCore = {path = "../StructuredPopulationCore.jl"}
+
+[extensions]
+CategoricalPopulationDynamicsContinuousStatePopulationDynamicsExt = "ContinuousStatePopulationDynamics"
+CategoricalPopulationDynamicsFiniteStatePopulationDynamicsExt = "FiniteStatePopulationDynamics"
+CategoricalPopulationDynamicsIPMExt = "IntegralProjectionModels"
+CategoricalPopulationDynamicsMPMExt = "MatrixProjectionModels"
 
 [compat]
 Catlab = "0.17"
@@ -36,6 +37,7 @@ IntegralProjectionModels = "0.1.0"
 LinearAlgebra = "1"
 MatrixProjectionModels = "0.1.0"
 Plots = "1"
+Random = "1.11.0"
 julia = "1.10"
 
 [extras]

@@ -26,13 +26,15 @@ export ContinuousProjectionDomain, DiscreteProjectionDomain,
        TransitionSpec
 
 # Kan extensions
-export left_kan_extension, right_kan_extension
+export left_kan_extension, right_kan_extension,
+       QuadratureRule, Midpoint, Trapezoidal, Simpson,
+       theoretical_error_order, theoretical_error_coefficient
 
 # Stratification & coarsening
 export stratify, coarsen
 
 # Diagnostics
-export unit_error, counit_error, adjunction_errors
+export unit_error, counit_error, adjunction_errors, convergence_analysis
 
 # ProjectionSharer & composition
 export ProjectionSharer, oapply,
@@ -70,5 +72,12 @@ export lag_expand, lag_stratify
 # Timescale nesting
 include("nesting.jl")
 export TimescaleEmbedding, NestableVPN, nest, evaluate, extract_summary, ⋉
+
+# Environmental stochasticity (Rand(C) construction)
+include("rand_category.jl")
+export StochasticKernelSet, n_environments, state_dim,
+       dirac_embed, expected_kernel,
+       stochastic_growth_rate, tuljapurkar_bound, variance_decomposition,
+       ModelCubeVertex
 
 end # module
