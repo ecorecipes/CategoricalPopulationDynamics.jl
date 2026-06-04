@@ -17,7 +17,7 @@ jobs:
       fail-fast: false
       matrix:
         version:
-          - '1.10'
+          - '1.11'
           - '1'
         os:
           - ubuntu-latest
@@ -68,3 +68,59 @@ jobs:
       - uses: julia-actions/julia-runtest@v1
         with:
           project: CategoricalPopulationDynamics.jl
+  docs:
+    name: Documentation
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      statuses: write
+    steps:
+      - name: Checkout CategoricalPopulationDynamics.jl
+        uses: actions/checkout@v4
+        with:
+          path: CategoricalPopulationDynamics.jl
+      - name: Checkout StructuredPopulationCore.jl
+        uses: actions/checkout@v4
+        with:
+          repository: ecorecipes/ProjectionModels.jl
+          path: StructuredPopulationCore.jl
+      - name: Checkout IntegralProjectionModels.jl
+        uses: actions/checkout@v4
+        with:
+          repository: ecorecipes/IntegralProjectionModels.jl
+          path: IntegralProjectionModels.jl
+      - name: Checkout MatrixProjectionModels.jl
+        uses: actions/checkout@v4
+        with:
+          repository: ecorecipes/MatrixProjectionModels.jl
+          path: MatrixProjectionModels.jl
+      - name: Checkout FiniteStatePopulationDynamics.jl
+        uses: actions/checkout@v4
+        with:
+          repository: ecorecipes/FiniteStatePopulationDynamics.jl
+          path: FiniteStatePopulationDynamics.jl
+      - name: Checkout ContinuousStatePopulationDynamics.jl
+        uses: actions/checkout@v4
+        with:
+          repository: ecorecipes/ContinuousStatePopulationDynamics.jl
+          path: ContinuousStatePopulationDynamics.jl
+      - uses: julia-actions/setup-julia@v2
+        with:
+          version: '1'
+      - uses: julia-actions/cache@v2
+        with:
+          cache-compiled: 'true'
+      - name: Install dependencies
+        run: |
+          julia --project=CategoricalPopulationDynamics.jl/docs -e '
+            using Pkg
+            Pkg.develop([
+              PackageSpec(path="StructuredPopulationCore.jl"),
+              PackageSpec(path="CategoricalPopulationDynamics.jl"),
+            ])
+            Pkg.instantiate()'
+      - name: Build and deploy docs
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+        run: julia --project=CategoricalPopulationDynamics.jl/docs CategoricalPopulationDynamics.jl/docs/make.jl
