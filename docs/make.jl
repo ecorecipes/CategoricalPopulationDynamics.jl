@@ -29,4 +29,5 @@ makedocs(;
 
 deploydocs(;
     repo = "github.com/ecorecipes/CategoricalPopulationDynamics.jl.git",
+    push_preview = true,
 )
