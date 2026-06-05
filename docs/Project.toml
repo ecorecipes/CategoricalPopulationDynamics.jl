@@ -1,4 +1,5 @@
 [deps]
+Catlab = "134e5e36-593f-5add-ad60-77f754baafbe"
 CategoricalPopulationDynamics = "04a5e6ed-5bdd-4eeb-ad4c-515b60df3359"
 Documenter = "e30172f5-a6a5-5a46-863b-614d45cd2de4"
 StructuredPopulationCore = "33358fd2-7d60-4541-bded-caea801370e0"

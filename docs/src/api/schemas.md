@@ -9,11 +9,28 @@ SchProjectionNet
 SchLabelledProjectionNet
 ```
 
+```@example catpd
+using CategoricalPopulationDynamics
+
+net = LabelledProjectionNet(
+    [:juvenile, :adult],
+    :growth => (:juvenile => :adult),
+    :survival => (:adult => :adult),
+    :fecundity => (:adult => :juvenile),
+)
+
+typeof(net)
+```
+
 ## Net Types
 
 ```@docs
 ProjectionNet
 LabelledProjectionNet
+```
+
+```@example catpd
+(n_states(net), n_transitions(net), sname(net), tname(net))
 ```
 
 ## Open Nets
@@ -28,6 +45,11 @@ OpenLabelledProjectionNet
 Open
 ```
 
+```@example catpd
+open_net = Open(net, [1], [2])
+typeof(open_net)
+```
+
 ## Query Functions
 
 ```@docs
@@ -37,4 +59,13 @@ sources
 targets
 sname
 tname
+```
+
+```@example catpd
+(
+    growth_sources = sources(net, 1),
+    growth_targets = targets(net, 1),
+    adult_state = sname(net, 2),
+    first_transition = tname(net, 1),
+)
 ```

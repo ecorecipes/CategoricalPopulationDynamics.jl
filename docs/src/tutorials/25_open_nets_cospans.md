@@ -1,0 +1,233 @@
+# Open Projection Nets: Structured Cospans and Pushout Composition
+Simon Frost
+
+## Overview
+
+So far, every vignette has treated a projection net as a *closed*
+object: all of its states are internal. Real applications often want to
+**glue** nets along shared states — e.g., an SIR model built by wiring
+an SI net and an IR net together along their shared `:I` junction. The
+categorical device for this is the **structured cospan**: a net equipped
+with one or more “leg” maps exposing selected states to the outside.
+
+This vignette closes the coverage gap for four previously unexercised
+exports:
+
+- `ProjectionNet` (unlabelled ACSet, built part-by-part)
+- `TransitionSpec` (lightweight pairing of a name with kernel data)
+- `OpenProjectionNet` (structured cospan on `ProjectionNet`)
+- `OpenLabelledProjectionNet` (structured cospan on
+  `LabelledProjectionNet`)
+
+## Setup
+
+``` julia
+using CategoricalPopulationDynamics
+using Catlab
+using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
+using Catlab.Programs: @relation
+using LinearAlgebra
+```
+
+## The unlabelled schema
+
+`ProjectionNet` is the plain acset — states (`:S`), transitions (`:T`),
+and incidence tables (`:Src`, `:Tgt`). It has no symbol labels, so
+stages are identified purely by their integer id. This is what you want
+when a model is generated programmatically and labels are not
+meaningful.
+
+``` julia
+pn = ProjectionNet()
+add_parts!(pn, :S, 3)                       # three stages: 1, 2, 3
+add_part!(pn, :T)                           # one transition
+add_part!(pn, :Src; src_t = 1, src_s = 1)   # source = stage 1
+add_part!(pn, :Tgt; tgt_t = 1, tgt_s = 2)   # target = stage 2
+add_part!(pn, :T)                           # second transition
+add_part!(pn, :Src; src_t = 2, src_s = 2)
+add_part!(pn, :Tgt; tgt_t = 2, tgt_s = 3)
+
+(nparts(pn, :S), nparts(pn, :T))
+```
+
+    (3, 2)
+
+The labelled constructor used elsewhere in the package is just sugar
+over this schema plus a `:Name` attribute.
+
+## `TransitionSpec`: a lightweight kernel/parameter holder
+
+`TransitionSpec{T}` tags any `T`-valued object with the name of the
+transition it parameterises. It is deliberately minimal — just a
+`Symbol` and a payload — because different lowering targets need
+different payloads: a matrix, a kernel function, a rate, or a parameter
+tuple.
+
+``` julia
+infection_spec = TransitionSpec(:infection, (β = 0.3,))
+recovery_spec  = TransitionSpec(:recovery,  (γ = 0.1,))
+
+infection_spec.name, infection_spec.data
+```
+
+    (:infection, (β = 0.3,))
+
+``` julia
+# Payloads can be anything: functions, matrices, or scalars.
+kernel_spec = TransitionSpec(:growth, (z_new, z) -> exp(-(z_new - z)^2))
+kernel_spec.data(2.5, 2.0)
+```
+
+    0.7788007830714049
+
+`TransitionSpec` is not itself consumed by `lower` — each target has its
+own dispatch on a `Dict{Symbol, ...}` — but it serves as a typed,
+introspectable container in user-level pipelines that generate
+transitions programmatically.
+
+## Open nets
+
+An **open net** exposes one or more states as “legs” that can be glued
+to other open nets. `Open(pn, legs...)` returns a structured multicospan
+whose apex is `pn` and whose feet are the exposed states.
+
+``` julia
+opn = Open(pn, [1], [3])
+opn isa OpenProjectionNet
+```
+
+    true
+
+The leg integers select which states to expose; here we expose the first
+and last stages. The result is the standard `StructuredMulticospan`
+object in Catlab, so every downstream construction (composition,
+pushout, functorial transport) is available.
+
+### Labelled open nets
+
+For readable composition, use the labelled variant:
+
+``` julia
+si = LabelledProjectionNet([:S, :I],
+    :infection => (:S => :I))
+ir = LabelledProjectionNet([:I, :R],
+    :recovery  => (:I => :R))
+
+left  = Open(si, [2])     # expose :I
+right = Open(ir, [1])     # expose :I
+
+left isa OpenLabelledProjectionNet, right isa OpenLabelledProjectionNet
+```
+
+    (true, true)
+
+## Pushout composition via an undirected wiring diagram
+
+We glue the two open nets along their shared `:I` leg by declaring an
+undirected wiring diagram where both boxes share the same junction. The
+`oapply` operad action from Catlab performs the pushout.
+
+``` julia
+uwd = @relation (middle,) begin
+    si(middle)
+    ir(middle)
+end
+uwd
+```
+
+<div class="c-set">
+<span class="c-set-summary">Catlab.WiringDiagrams.RelationDiagrams.UntypedUnnamedRelationDiagram{Symbol, Symbol} {Box:2, Port:2, OuterPort:1, Junction:1, Name:0, VarName:0}</span>
+
+| Box | name |
+|----:|-----:|
+|   1 |   si |
+|   2 |   ir |
+
+| Port | box | junction |
+|-----:|----:|---------:|
+|    1 |   1 |        1 |
+|    2 |   2 |        1 |
+
+| OuterPort | outer_junction |
+|----------:|---------------:|
+|         1 |              1 |
+
+| Junction | variable |
+|---------:|---------:|
+|        1 |   middle |
+
+</div>
+
+``` julia
+composed = oapply(uwd, [left, right])
+composed isa OpenLabelledProjectionNet
+```
+
+    true
+
+Inspect the apex — this is the combined net after the pushout identifies
+the two `:I` legs:
+
+``` julia
+glued = apex(composed)
+(nparts(glued, :S), nparts(glued, :T),
+ subpart(glued, :sname), subpart(glued, :tname))
+```
+
+    (3, 2, [:S, :I, :R], [:infection, :recovery])
+
+Three states (`:S, :I, :R`) and two transitions
+(`:infection, :recovery`) — the SIR net, assembled from two local pieces
+with a single shared junction.
+
+## Reading out a Kan-extended kernel
+
+The glued net is a plain `LabelledProjectionNet`, so all of the usual
+downstream machinery applies. In particular, transitions inherit a
+source/target structure that the `ValuedProjectionNet` interface
+understands:
+
+``` julia
+glued_stages  = sname(glued)
+glued_transitions = tname(glued)
+(glued_stages, glued_transitions)
+```
+
+    ([:S, :I, :R], [:infection, :recovery])
+
+For a concrete matrix we pair the glued net with a labelled rate table
+and convert, mirroring how every other vignette in the collection moves
+from structure to semantics:
+
+``` julia
+vnet = ValuedProjectionNet(glued_stages,
+    :infection => [(:S => :I) => 0.3],
+    :recovery  => [(:I => :R) => 0.1])
+
+A = to_matrix(vnet)
+```
+
+    3×3 Matrix{Float64}:
+     0.0  0.0  0.0
+     0.3  0.0  0.0
+     0.0  0.1  0.0
+
+`A` is a 3×3 right-Kan-extended projection matrix on the **composed**
+state space — there is no SI- or IR-only matrix. The composition is
+performed categorically first, and semantics are applied to the result.
+
+## Summary
+
+| Export | Role |
+|----|----|
+| `ProjectionNet` | Unlabelled acset, built via `add_part!` |
+| `TransitionSpec` | Tag a transition name with an arbitrary payload |
+| `OpenProjectionNet` | Structured multicospan on `ProjectionNet` |
+| `OpenLabelledProjectionNet` | Structured multicospan on `LabelledProjectionNet` |
+
+Open nets give the library a compositional front-end: users construct
+local fragments, expose the states that participate in gluing, and let
+`oapply` build the combined net. All semantic operations (Kan
+extensions, lowering, coarsening) transparently extend to the glued net
+because the glued object lives in the **same** category as its pieces.
