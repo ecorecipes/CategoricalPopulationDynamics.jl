@@ -1,0 +1,333 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Genotype Stratification: Bt Cotton Resistance Evolution · CategoricalPopulationDynamics.jl</title><meta name="title" content="Genotype Stratification: Bt Cotton Resistance Evolution · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Genotype Stratification: Bt Cotton Resistance Evolution · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Genotype Stratification: Bt Cotton Resistance Evolution · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/11_bt_resistance_stratification/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/11_bt_resistance_stratification/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/11_bt_resistance_stratification/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li class="is-active"><a class="tocitem" href>Genotype Stratification: Bt Cotton Resistance Evolution</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Base-Bollworm-Lifecycle"><span>Base Bollworm Lifecycle</span></a></li><li><a class="tocitem" href="#Genotype-Specific-Matrices"><span>Genotype-Specific Matrices</span></a></li><li><a class="tocitem" href="#Compositional-Construction"><span>Compositional Construction</span></a></li><li><a class="tocitem" href="#Genotype-Stratification"><span>Genotype Stratification</span></a></li><li><a class="tocitem" href="#Resistance-Evolution-Analysis"><span>Resistance Evolution Analysis</span></a></li><li><a class="tocitem" href="#Refuge-Strategy"><span>Refuge Strategy</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Genotype Stratification: Bt Cotton Resistance Evolution</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Genotype Stratification: Bt Cotton Resistance Evolution</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/11_bt_resistance_stratification.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Genotype-Stratification:-Bt-Cotton-Resistance-Evolution"><a class="docs-heading-anchor" href="#Genotype-Stratification:-Bt-Cotton-Resistance-Evolution">Genotype Stratification: Bt Cotton Resistance Evolution</a><a id="Genotype-Stratification:-Bt-Cotton-Resistance-Evolution-1"></a><a class="docs-heading-anchor-permalink" href="#Genotype-Stratification:-Bt-Cotton-Resistance-Evolution" title="Permalink"></a></h1><p>Author</p><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Insect resistance to Bt (<em>Bacillus thuringiensis</em>) toxins in transgenic crops is a classic problem in evolutionary ecology. The cotton bollworm (<em>Helicoverpa armigera</em>) has a 4-stage lifecycle (egg → larva → pupa → adult), and a single diallelic gene controls Bt resistance with 3 genotypes (SS, SR, RR).</p><p>This vignette shows how <strong>genotype stratification</strong> — a discrete categorical stratum over a base lifecycle — enables modular analysis of resistance evolution. We:</p><ol><li>Build the base bollworm lifecycle as a <code>ValuedProjectionNet</code></li><li>Construct genotype-specific matrices with differential Bt mortality</li><li>Show the compositional (P + F = A) structure via <code>compose_transitions</code></li><li>Assemble a 12×12 genotype-stratified model with Hardy-Weinberg mating</li><li>Sweep allele frequency to track how resistance affects population growth</li><li>Add spatial structure (Bt field + non-Bt refuge) as nested stratification</li></ol><p>The categorical toolkit makes each layer — lifecycle, genotype, space — independently specified and composable.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘
+using Catlab
+using Catlab.CategoricalAlgebra
+using LinearAlgebra
+using ProjectionModels: lambda
+using Plots</code></pre><h2 id="Base-Bollworm-Lifecycle"><a class="docs-heading-anchor" href="#Base-Bollworm-Lifecycle">Base Bollworm Lifecycle</a><a id="Base-Bollworm-Lifecycle-1"></a><a class="docs-heading-anchor-permalink" href="#Base-Bollworm-Lifecycle" title="Permalink"></a></h2><p>We model <em>H. armigera</em> at a reference temperature of 27 °C, near optimal for development. Daily transition probabilities follow a stage-structured framework where individuals either remain in their current stage (stasis) or advance to the next (progression), subject to stage-specific mortality.</p><pre><code class="language-julia hljs"># Daily development rates at 27°C (Brière-type approximation)
+dev_egg   = 0.25   # ~4 day egg stage
+dev_larva = 0.07   # ~14 day larval stage
+dev_pupa  = 0.10   # ~10 day pupal stage
+dev_adult = 0.05   # ~20 day adult longevity
+
+# Base daily mortality (no Bt)
+μ_egg   = 0.05
+μ_larva = 0.04
+μ_pupa  = 0.03
+μ_adult = 0.06
+
+# Fecundity: ~150 eggs per female over lifetime, sex ratio 0.5
+fecundity = 0.5 * 150 * dev_adult   # daily per-capita egg production by adults</code></pre><pre><code class="nohighlight hljs">3.75</code></pre><p>Each stage has two survival fates — stasis (remain) and advancement (progress to next stage) — both conditional on surviving daily mortality. Using the <code>⊕</code> operator (<code>\oplus&lt;TAB&gt;</code>), we compose the lifecycle from two small, independently readable pieces:</p><pre><code class="language-julia hljs">bollworm_survival = ValuedProjectionNet(
+    [:egg, :larva, :pupa, :adult],
+    :survival =&gt; [
+        (:egg   =&gt; :egg)   =&gt; (1 - dev_egg)   * (1 - μ_egg),
+        (:egg   =&gt; :larva) =&gt; dev_egg          * (1 - μ_egg),
+        (:larva =&gt; :larva) =&gt; (1 - dev_larva)  * (1 - μ_larva),
+        (:larva =&gt; :pupa)  =&gt; dev_larva        * (1 - μ_larva),
+        (:pupa  =&gt; :pupa)  =&gt; (1 - dev_pupa)   * (1 - μ_pupa),
+        (:pupa  =&gt; :adult) =&gt; dev_pupa         * (1 - μ_pupa),
+        (:adult =&gt; :adult) =&gt; (1 - dev_adult)  * (1 - μ_adult)])
+
+bollworm_fecundity = ValuedProjectionNet(
+    [:egg, :larva, :pupa, :adult],
+    :fecundity =&gt; [
+        (:adult =&gt; :egg) =&gt; fecundity])
+
+bollworm_base = bollworm_survival ⊕ bollworm_fecundity</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:2
+  Src = 1:2
+  Tgt = 1:2
+  Name = 1:0
+  src_t : Src → T = [1, 2]
+  src_s : Src → S = [1, 1]
+  tgt_t : Tgt → T = [1, 2]
+  tgt_s : Tgt → S = [1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:survival, :fecundity], [:egg, :larva, :pupa, :adult], Dict(:survival =&gt; [(:egg =&gt; :egg) =&gt; 0.7124999999999999, (:egg =&gt; :larva) =&gt; 0.2375, (:larva =&gt; :larva) =&gt; 0.8927999999999999, (:larva =&gt; :pupa) =&gt; 0.06720000000000001, (:pupa =&gt; :pupa) =&gt; 0.873, (:pupa =&gt; :adult) =&gt; 0.097, (:adult =&gt; :adult) =&gt; 0.8929999999999999], :fecundity =&gt; [(:adult =&gt; :egg) =&gt; 3.75]))</code></pre><p>Materialize the full projection matrix and compute the dominant eigenvalue:</p><pre><code class="language-julia hljs">A_base = to_matrix(bollworm_base)
+λ_base = lambda(A_base)
+println(&quot;Base bollworm lifecycle (no Bt):&quot;)
+println(&quot;  Matrix size: &quot;, size(A_base))
+println(&quot;  λ = &quot;, round(λ_base, digits=4))
+println(&quot;  Population &quot;, λ_base &gt; 1 ? &quot;GROWING&quot; : &quot;DECLINING&quot;)</code></pre><pre><code class="nohighlight hljs">Base bollworm lifecycle (no Bt):
+  Matrix size: (4, 4)
+  λ = 1.1274
+  Population GROWING</code></pre><pre><code class="language-julia hljs">stage_labels = String.(stage_names(bollworm_base))
+heatmap(stage_labels, stage_labels, A_base,
+    title=&quot;Base bollworm projection matrix (27°C, no Bt)&quot;,
+    xlabel=&quot;From stage&quot;, ylabel=&quot;To stage&quot;,
+    color=:viridis, size=(450, 400))</code></pre><p><img src="../11_bt_resistance_stratification_files/embedded-1.png" alt/></p><h2 id="Genotype-Specific-Matrices"><a class="docs-heading-anchor" href="#Genotype-Specific-Matrices">Genotype-Specific Matrices</a><a id="Genotype-Specific-Matrices-1"></a><a class="docs-heading-anchor-permalink" href="#Genotype-Specific-Matrices" title="Permalink"></a></h2><p>On Bt cotton, larvae experience additional genotype-dependent mortality from the Cry toxin. We convert per-period Bt mortality to daily rates:</p><pre><code class="language-julia hljs"># Per-larval-period Bt mortality by genotype
+bt_period_SS = 0.90
+bt_period_SR = 0.50
+bt_period_RR = 0.05
+
+larval_period = 1.0 / dev_larva   # ~14 days
+
+# Daily Bt mortality: 1 - (1 - period_mort)^(1/period)
+μ_bt_SS = 1 - (1 - bt_period_SS)^(1 / larval_period)
+μ_bt_SR = 1 - (1 - bt_period_SR)^(1 / larval_period)
+μ_bt_RR = 1 - (1 - bt_period_RR)^(1 / larval_period)
+
+println(&quot;Daily Bt mortality:&quot;)
+println(&quot;  SS: &quot;, round(μ_bt_SS, digits=4))
+println(&quot;  SR: &quot;, round(μ_bt_SR, digits=4))
+println(&quot;  RR: &quot;, round(μ_bt_RR, digits=4))</code></pre><pre><code class="nohighlight hljs">Daily Bt mortality:
+  SS: 0.1489
+  SR: 0.0474
+  RR: 0.0036</code></pre><p>The RR genotype also pays a fitness cost on non-Bt cotton: 5% reduced fecundity. Instead of rebuilding each lifecycle from scratch, we use the <code>⊘</code> operator (<code>\oslash&lt;TAB&gt;</code>) to selectively modify only the affected transitions — Bt mortality hits larval survival, and fitness cost hits fecundity:</p><pre><code class="language-julia hljs">function make_bollworm_bt(base; μ_bt_larva, fecundity_multiplier=1.0)
+    # ⊘ applies a function to a named transition&#39;s entries
+    vnet = base ⊘ (:survival =&gt; ((from, _), val) -&gt;
+        from == :larva ? val * (1 - μ_bt_larva) : val)
+    if fecundity_multiplier != 1.0
+        vnet = vnet ⊘ (:fecundity =&gt; ((_, __), val) -&gt; val * fecundity_multiplier)
+    end
+    return vnet
+end
+
+vnet_SS = make_bollworm_bt(bollworm_base, μ_bt_larva=μ_bt_SS)
+vnet_SR = make_bollworm_bt(bollworm_base, μ_bt_larva=μ_bt_SR)
+vnet_RR = make_bollworm_bt(bollworm_base, μ_bt_larva=μ_bt_RR, fecundity_multiplier=0.95)
+
+A_SS = to_matrix(vnet_SS)
+A_SR = to_matrix(vnet_SR)
+A_RR = to_matrix(vnet_RR)
+
+println(&quot;λ by genotype on Bt cotton:&quot;)
+println(&quot;  SS: &quot;, round(lambda(A_SS), digits=4), &quot;  (highly susceptible)&quot;)
+println(&quot;  SR: &quot;, round(lambda(A_SR), digits=4), &quot;  (heterozygote)&quot;)
+println(&quot;  RR: &quot;, round(lambda(A_RR), digits=4), &quot;  (resistant)&quot;)
+println(&quot;  Base (no Bt): &quot;, round(λ_base, digits=4))</code></pre><pre><code class="nohighlight hljs">λ by genotype on Bt cotton:
+  SS: 1.0852  (highly susceptible)
+  SR: 1.1128  (heterozygote)
+  RR: 1.1228  (resistant)
+  Base (no Bt): 1.1274</code></pre><pre><code class="language-julia hljs">p1 = heatmap(stage_labels, stage_labels, A_SS,
+    title=&quot;SS (susceptible)&quot;, color=:viridis, clims=(0, maximum(A_base)),
+    xlabel=&quot;From&quot;, ylabel=&quot;To&quot;)
+p2 = heatmap(stage_labels, stage_labels, A_SR,
+    title=&quot;SR (heterozygote)&quot;, color=:viridis, clims=(0, maximum(A_base)),
+    xlabel=&quot;From&quot;, ylabel=&quot;To&quot;)
+p3 = heatmap(stage_labels, stage_labels, A_RR,
+    title=&quot;RR (resistant)&quot;, color=:viridis, clims=(0, maximum(A_base)),
+    xlabel=&quot;From&quot;, ylabel=&quot;To&quot;)
+plot(p1, p2, p3, layout=(1, 3), size=(900, 300))</code></pre><p><img src="../11_bt_resistance_stratification_files/embedded-2.png" alt/></p><h2 id="Compositional-Construction"><a class="docs-heading-anchor" href="#Compositional-Construction">Compositional Construction</a><a id="Compositional-Construction-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Construction" title="Permalink"></a></h2><p>Each genotype’s matrix is the additive composition of survival and fecundity sub-kernels. We verify this using <code>compose_transitions</code>:</p><pre><code class="language-julia hljs">for (label, vnet) in [(&quot;SS&quot;, vnet_SS), (&quot;SR&quot;, vnet_SR), (&quot;RR&quot;, vnet_RR)]
+    U = transition_matrix(vnet, :survival)
+    F = transition_matrix(vnet, :fecundity)
+    A_composed = compose_transitions(Dict(:survival =&gt; U, :fecundity =&gt; F))
+    A_direct = to_matrix(vnet)
+    println(&quot;$label: compose_transitions(P, F) ≈ to_matrix? &quot;, A_composed ≈ A_direct)
+end</code></pre><pre><code class="nohighlight hljs">SS: compose_transitions(P, F) ≈ to_matrix? true
+SR: compose_transitions(P, F) ≈ to_matrix? true
+RR: compose_transitions(P, F) ≈ to_matrix? true</code></pre><p>This decomposition is essential for management analysis: Bt toxin affects only the survival sub-kernel (larval mortality), while fitness costs affect only the fecundity sub-kernel.</p><h2 id="Genotype-Stratification"><a class="docs-heading-anchor" href="#Genotype-Stratification">Genotype Stratification</a><a id="Genotype-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Genotype-Stratification" title="Permalink"></a></h2><h3 id="Hardy-Weinberg-Mating-Matrix"><a class="docs-heading-anchor" href="#Hardy-Weinberg-Mating-Matrix">Hardy-Weinberg Mating Matrix</a><a id="Hardy-Weinberg-Mating-Matrix-1"></a><a class="docs-heading-anchor-permalink" href="#Hardy-Weinberg-Mating-Matrix" title="Permalink"></a></h3><p>Under random mating with resistance allele frequency &lt;span class=&quot;math inline&quot;&gt;\p\&lt;/span&gt; and &lt;span class=&quot;math inline&quot;&gt;\q = 1 - p\&lt;/span&gt;, offspring genotype frequencies depend on parental genotype through Mendelian segregation. The <strong>mating matrix</strong> &lt;span class=&quot;math inline&quot;&gt;\M\&lt;/span&gt; has entries &lt;span class=&quot;math inline&quot;&gt;\M[\text{offspring}, \text{parent}]\&lt;/span&gt; giving the probability that an offspring of a given genotype arises from a parent of a given genotype (weighted by allele contributions under random mating at the population level).</p><p>For a single diallelic locus:</p><p>&lt;span class=&quot;math display&quot;&gt;\ M = \begin{pmatrix} q &amp; q/2 &amp; 0 \ p &amp; 1/2 &amp; q \ 0 &amp; p/2 &amp; p \end{pmatrix} \&lt;/span&gt;</p><h3 id="Heterogeneous-Stratification"><a class="docs-heading-anchor" href="#Heterogeneous-Stratification">Heterogeneous Stratification</a><a id="Heterogeneous-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Heterogeneous-Stratification" title="Permalink"></a></h3><p>Each genotype has a <em>different</em> local transition matrix (different Bt mortality, fitness costs). CategoricalPopulationDynamics.jl provides a <strong>heterogeneous</strong> variant of <code>stratify</code> that accepts a vector of stratum-specific matrices:</p><p>&lt;span class=&quot;math display&quot;&gt;\A_{\text{strat}}[(s_{\text{to}}, i),\ (s_{\text{from}}, j)] = D[s_{\text{to}}, s_{\text{from}}] \cdot A_{s_{\text{from}}}[i, j]\&lt;/span&gt;</p><p>The two demographic processes require <em>different</em> coupling structures:</p><ul><li><strong>Survival</strong> — genotype is preserved during the lifecycle → identity coupling (block-diagonal)</li><li><strong>Fecundity</strong> — offspring genotype depends on parental genotype via mating → Hardy-Weinberg coupling</li></ul><p>We combine these using <code>compose_transitions</code>, giving a clean separation of demography from genetics:</p><pre><code class="language-julia hljs">function hw_mating_matrix(p)
+    q = 1 - p
+    return [q    q/2  0.0;     # offspring SS
+            p    0.5  q;       # offspring SR
+            0.0  p/2  p]       # offspring RR
+end
+
+function build_genotype_stratified(vnets, p)
+    Us = [transition_matrix(v, :survival) for v in vnets]
+    Fs = [transition_matrix(v, :fecundity) for v in vnets]
+
+    # Survival: block-diagonal (identity coupling — genotype preserved)
+    A_surv = stratify(Us, Matrix(1.0I, 3, 3))
+    # Fecundity: cross-genotype coupling via Hardy-Weinberg mating
+    A_fec  = stratify(Fs, hw_mating_matrix(p))
+
+    return compose_transitions(Dict(:survival =&gt; A_surv, :fecundity =&gt; A_fec))
+end</code></pre><pre><code class="nohighlight hljs">build_genotype_stratified (generic function with 1 method)</code></pre><h3 id="Stratified-Model-at-Initial-Resistance-Frequency"><a class="docs-heading-anchor" href="#Stratified-Model-at-Initial-Resistance-Frequency">Stratified Model at Initial Resistance Frequency</a><a id="Stratified-Model-at-Initial-Resistance-Frequency-1"></a><a class="docs-heading-anchor-permalink" href="#Stratified-Model-at-Initial-Resistance-Frequency" title="Permalink"></a></h3><pre><code class="language-julia hljs">vnets_bt = [vnet_SS, vnet_SR, vnet_RR]
+p0 = 0.01   # initial resistance allele frequency
+A_strat = build_genotype_stratified(vnets_bt, p0)
+
+println(&quot;Genotype-stratified model (p = $p0):&quot;)
+println(&quot;  Matrix size: &quot;, size(A_strat))
+println(&quot;  λ = &quot;, round(lambda(A_strat), digits=4))</code></pre><pre><code class="nohighlight hljs">Genotype-stratified model (p = 0.01):
+  Matrix size: (12, 12)
+  λ = 1.0866</code></pre><pre><code class="language-julia hljs"># Visualise block structure
+geno_labels = [&quot;SS&quot;, &quot;SR&quot;, &quot;RR&quot;]
+full_labels = [string(g, &quot;-&quot;, s) for g in geno_labels for s in stage_labels]
+
+heatmap(full_labels, full_labels, A_strat,
+    title=&quot;Genotype-stratified bollworm (p = $p0)&quot;,
+    xlabel=&quot;From (genotype-stage)&quot;, ylabel=&quot;To (genotype-stage)&quot;,
+    color=:viridis, size=(600, 550), xrotation=45)
+n = 4
+vline!([n + 0.5, 2n + 0.5], color=:white, linewidth=2, label=false)
+hline!([n + 0.5, 2n + 0.5], color=:white, linewidth=2, label=false)</code></pre><p><img src="../11_bt_resistance_stratification_files/embedded-3.png" alt/></p><p>The off-diagonal blocks represent cross-genotype transitions through the Hardy-Weinberg mating system — only fecundity connects different genotypes.</p><h3 id="Comparison:-Stratified-vs-Isolated-Genotypes"><a class="docs-heading-anchor" href="#Comparison:-Stratified-vs-Isolated-Genotypes">Comparison: Stratified vs Isolated Genotypes</a><a id="Comparison:-Stratified-vs-Isolated-Genotypes-1"></a><a class="docs-heading-anchor-permalink" href="#Comparison:-Stratified-vs-Isolated-Genotypes" title="Permalink"></a></h3><pre><code class="language-julia hljs">println(&quot;Growth rates:&quot;)
+println(&quot;  λ (stratified, p=$p0): &quot;, round(lambda(A_strat), digits=4))
+println(&quot;  λ (SS alone):          &quot;, round(lambda(A_SS), digits=4))
+println(&quot;  λ (SR alone):          &quot;, round(lambda(A_SR), digits=4))
+println(&quot;  λ (RR alone):          &quot;, round(lambda(A_RR), digits=4))
+println(&quot;  λ (no Bt):             &quot;, round(λ_base, digits=4))</code></pre><pre><code class="nohighlight hljs">Growth rates:
+  λ (stratified, p=0.01): 1.0866
+  λ (SS alone):          1.0852
+  λ (SR alone):          1.1128
+  λ (RR alone):          1.1228
+  λ (no Bt):             1.1274</code></pre><h2 id="Resistance-Evolution-Analysis"><a class="docs-heading-anchor" href="#Resistance-Evolution-Analysis">Resistance Evolution Analysis</a><a id="Resistance-Evolution-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Resistance-Evolution-Analysis" title="Permalink"></a></h2><p>As resistance allele frequency increases (through selection by Bt), the population growth rate changes. We sweep &lt;span class=&quot;math inline&quot;&gt;\p\&lt;/span&gt; from 0.01 to 0.99:</p><pre><code class="language-julia hljs">p_range = 0.01:0.01:0.99
+λ_sweep = [lambda(build_genotype_stratified(vnets_bt, p)) for p in p_range]</code></pre><pre><code class="nohighlight hljs">99-element Vector{Float64}:
+ 1.086592648105586
+ 1.0878375914999452
+ 1.0889503600291084
+ 1.0899651463308422
+ 1.090903366947175
+ 1.091779507052286
+ 1.0926039164077168
+ 1.0933843015310616
+ 1.0941265885472464
+ 1.0948354538219116
+ ⋮
+ 1.1213103937295104
+ 1.1214874987881782
+ 1.121662625740985
+ 1.121835795417962
+ 1.1220070279624215
+ 1.1221763428507459
+ 1.122343758911246
+ 1.1225092943419304
+ 1.1226729667274842</code></pre><pre><code class="language-julia hljs">plot(Base.collect(p_range), λ_sweep,
+    xlabel=&quot;Resistance allele frequency (p)&quot;,
+    ylabel=&quot;λ (population growth rate)&quot;,
+    title=&quot;Bollworm growth rate vs Bt resistance frequency&quot;,
+    label=&quot;Stratified model&quot;,
+    linewidth=2, color=:steelblue,
+    size=(600, 400))
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1 (replacement)&quot;)
+hline!([lambda(A_SS)], linestyle=:dot, color=:gray, label=&quot;λ (SS only)&quot;)
+hline!([lambda(A_RR)], linestyle=:dot, color=:orange, label=&quot;λ (RR only)&quot;)</code></pre><p><img src="../11_bt_resistance_stratification_files/embedded-4.png" alt/></p><p>At low resistance frequency the population is dominated by susceptible individuals and Bt is effective (low λ). As the resistance allele spreads, λ rises toward the RR value — the population recovers and Bt loses efficacy.</p><h3 id="Genotype-Composition-at-Stable-Structure"><a class="docs-heading-anchor" href="#Genotype-Composition-at-Stable-Structure">Genotype Composition at Stable Structure</a><a id="Genotype-Composition-at-Stable-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Genotype-Composition-at-Stable-Structure" title="Permalink"></a></h3><p>The right eigenvector of the stratified matrix gives the stable genotype-stage distribution:</p><pre><code class="language-julia hljs">function stable_genotype_freq(A_strat, n_stages)
+    ev = eigen(A_strat)
+    idx_max = argmax(real.(ev.values))
+    w = real.(ev.vectors[:, idx_max])
+    w = w ./ sum(w)
+
+    # Sum across stages within each genotype
+    n_geno = size(A_strat, 1) ÷ n_stages
+    geno_freq = [sum(w[((g-1)*n_stages+1):(g*n_stages)]) for g in 1:n_geno]
+    return geno_freq
+end
+
+p_sample = [0.01, 0.05, 0.10, 0.30, 0.50, 0.90]
+println(&quot;Stable genotype frequencies:&quot;)
+println(rpad(&quot;p&quot;, 8), rpad(&quot;SS&quot;, 10), rpad(&quot;SR&quot;, 10), &quot;RR&quot;)
+println(&quot;-&quot;^38)
+for p in p_sample
+    A_p = build_genotype_stratified(vnets_bt, p)
+    gf = stable_genotype_freq(A_p, 4)
+    println(rpad(p, 8),
+        rpad(round(gf[1], digits=4), 10),
+        rpad(round(gf[2], digits=4), 10),
+        round(gf[3], digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Stable genotype frequencies:
+p       SS        SR        RR
+--------------------------------------
+0.01    0.9502    0.0494    0.0004
+0.05    0.8019    0.1899    0.0082
+0.1     0.669     0.3043    0.0267
+0.3     0.3431    0.5015    0.1554
+0.5     0.1603    0.4984    0.3413
+0.9     0.0059    0.148     0.8461</code></pre><pre><code class="language-julia hljs">geno_SS = Float64[]
+geno_SR = Float64[]
+geno_RR = Float64[]
+for p in p_range
+    A_p = build_genotype_stratified(vnets_bt, p)
+    gf = stable_genotype_freq(A_p, 4)
+    push!(geno_SS, gf[1])
+    push!(geno_SR, gf[2])
+    push!(geno_RR, gf[3])
+end
+
+plot(Base.collect(p_range), geno_SS, label=&quot;SS&quot;, linewidth=2, color=:blue)
+plot!(Base.collect(p_range), geno_SR, label=&quot;SR&quot;, linewidth=2, color=:green)
+plot!(Base.collect(p_range), geno_RR, label=&quot;RR&quot;, linewidth=2, color=:red,
+    xlabel=&quot;Resistance allele frequency (p)&quot;,
+    ylabel=&quot;Stable genotype proportion&quot;,
+    title=&quot;Stable genotype distribution vs allele frequency&quot;,
+    size=(600, 400))</code></pre><p><img src="../11_bt_resistance_stratification_files/embedded-5.png" alt/></p><h2 id="Refuge-Strategy"><a class="docs-heading-anchor" href="#Refuge-Strategy">Refuge Strategy</a><a id="Refuge-Strategy-1"></a><a class="docs-heading-anchor-permalink" href="#Refuge-Strategy" title="Permalink"></a></h2><p>The insect resistance management (IRM) strategy mandates planting a proportion of non-Bt cotton as a <strong>refuge</strong> to maintain susceptible alleles in the population. This is naturally modeled as <strong>nested stratification</strong>: genotype stratification within each spatial patch.</p><h3 id="Two-Patch-Model:-Bt-Field-Refuge"><a class="docs-heading-anchor" href="#Two-Patch-Model:-Bt-Field-Refuge">Two-Patch Model: Bt Field + Refuge</a><a id="Two-Patch-Model:-Bt-Field-Refuge-1"></a><a class="docs-heading-anchor-permalink" href="#Two-Patch-Model:-Bt-Field-Refuge" title="Permalink"></a></h3><p>In the Bt field, larvae experience genotype-specific Bt mortality. In the refuge (non-Bt cotton), there is no Bt mortality, but the RR genotype still pays its fitness cost. Using <code>map_values</code> on the base lifecycle makes this clean:</p><pre><code class="language-julia hljs"># Refuge genotype matrices (no Bt mortality, but RR still pays fitness cost)
+vnet_SS_ref = make_bollworm_bt(bollworm_base, μ_bt_larva=0.0)
+vnet_SR_ref = make_bollworm_bt(bollworm_base, μ_bt_larva=0.0)
+vnet_RR_ref = make_bollworm_bt(bollworm_base, μ_bt_larva=0.0, fecundity_multiplier=0.95)
+
+A_SS_ref = to_matrix(vnet_SS_ref)
+A_SR_ref = to_matrix(vnet_SR_ref)
+A_RR_ref = to_matrix(vnet_RR_ref)
+
+println(&quot;λ in refuge:&quot;)
+println(&quot;  SS: &quot;, round(lambda(A_SS_ref), digits=4))
+println(&quot;  SR: &quot;, round(lambda(A_SR_ref), digits=4))
+println(&quot;  RR: &quot;, round(lambda(A_RR_ref), digits=4))</code></pre><pre><code class="nohighlight hljs">λ in refuge:
+  SS: 1.1274
+  SR: 1.1274
+  RR: 1.124</code></pre><h3 id="Building-the-Nested-Stratification"><a class="docs-heading-anchor" href="#Building-the-Nested-Stratification">Building the Nested Stratification</a><a id="Building-the-Nested-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Building-the-Nested-Stratification" title="Permalink"></a></h3><p>The full model has 24 states: 4 stages × 3 genotypes × 2 patches. Using heterogeneous <code>stratify</code> at both levels, the construction is clean:</p><ol><li><strong>Inner level</strong> — genotype stratification within each patch via <code>stratify([U_SS, U_SR, U_RR], I₃) + stratify([F_SS, F_SR, F_RR], M)</code></li><li><strong>Outer level</strong> — spatial stratification across patches via <code>stratify([A_bt, A_ref], D_spatial)</code></li></ol><pre><code class="language-julia hljs">vnets_ref = [vnet_SS_ref, vnet_SR_ref, vnet_RR_ref]
+
+function build_field_refuge_model(p, refuge_frac, dispersal_rate)
+    # Genotype-stratified matrices for each patch
+    A_bt  = build_genotype_stratified(vnets_bt,  p)
+    A_ref = build_genotype_stratified(vnets_ref, p)
+
+    # Spatial dispersal between Bt field (patch 1) and refuge (patch 2)
+    bt_frac = 1 - refuge_frac
+    d = dispersal_rate
+    D = [(1-d)           d*bt_frac;
+         d*refuge_frac   (1-d)]
+
+    # Heterogeneous spatial stratification: different matrices per patch
+    return stratify([A_bt, A_ref], D)
+end</code></pre><pre><code class="nohighlight hljs">build_field_refuge_model (generic function with 1 method)</code></pre><h3 id="Effect-of-Refuge-Proportion"><a class="docs-heading-anchor" href="#Effect-of-Refuge-Proportion">Effect of Refuge Proportion</a><a id="Effect-of-Refuge-Proportion-1"></a><a class="docs-heading-anchor-permalink" href="#Effect-of-Refuge-Proportion" title="Permalink"></a></h3><pre><code class="language-julia hljs">p_test = 0.01
+d_rate = 0.1   # 10% daily dispersal rate
+
+refuge_fracs = 0.0:0.05:0.50
+λ_refuge = [lambda(build_field_refuge_model(p_test, r, d_rate)) for r in refuge_fracs]
+
+plot(Base.collect(refuge_fracs) .* 100, λ_refuge,
+    xlabel=&quot;Refuge proportion (%)&quot;,
+    ylabel=&quot;λ&quot;,
+    title=&quot;Growth rate vs refuge proportion (p = $p_test)&quot;,
+    linewidth=2, color=:darkgreen, label=&quot;Field + Refuge&quot;,
+    size=(600, 400))
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1&quot;)</code></pre><p><img src="../11_bt_resistance_stratification_files/embedded-6.png" alt/></p><h3 id="Refuge-Effect-Across-Resistance-Frequencies"><a class="docs-heading-anchor" href="#Refuge-Effect-Across-Resistance-Frequencies">Refuge Effect Across Resistance Frequencies</a><a id="Refuge-Effect-Across-Resistance-Frequencies-1"></a><a class="docs-heading-anchor-permalink" href="#Refuge-Effect-Across-Resistance-Frequencies" title="Permalink"></a></h3><p>The crucial question: does a refuge keep λ below replacement across a range of allele frequencies?</p><pre><code class="language-julia hljs">p_range_coarse = 0.01:0.02:0.50
+refuge_levels = [0.0, 0.05, 0.10, 0.20, 0.40]
+
+plot(title=&quot;Growth rate vs resistance frequency by refuge size&quot;,
+    xlabel=&quot;Resistance allele frequency (p)&quot;,
+    ylabel=&quot;λ&quot;, size=(650, 400), legend=:topleft)
+
+colors = [:red, :orange, :gold, :green, :blue]
+for (i, r) in enumerate(refuge_levels)
+    λ_vals = [lambda(build_field_refuge_model(p, r, d_rate)) for p in p_range_coarse]
+    plot!(Base.collect(p_range_coarse), λ_vals,
+        label=&quot;Refuge = $(Int(r*100))%&quot;,
+        linewidth=2, color=colors[i])
+end
+hline!([1.0], linestyle=:dash, color=:black, label=&quot;λ = 1&quot;, linewidth=1)</code></pre><p><img src="../11_bt_resistance_stratification_files/embedded-7.png" alt/></p><p>With no refuge, even moderate resistance allele frequencies allow the population to recover. A 20% refuge substantially delays the point at which λ exceeds 1, extending the useful life of Bt technology.</p><h3 id="Dominant-Genotype-by-Patch"><a class="docs-heading-anchor" href="#Dominant-Genotype-by-Patch">Dominant Genotype by Patch</a><a id="Dominant-Genotype-by-Patch-1"></a><a class="docs-heading-anchor-permalink" href="#Dominant-Genotype-by-Patch" title="Permalink"></a></h3><pre><code class="language-julia hljs">function patch_genotype_freqs(A_full, n_stages, n_geno)
+    ev = eigen(A_full)
+    idx_max = argmax(real.(ev.values))
+    w = real.(ev.vectors[:, idx_max])
+    w = w ./ sum(w)
+
+    n_per_patch = n_stages * n_geno
+    n_patches = size(A_full, 1) ÷ n_per_patch
+
+    result = zeros(n_patches, n_geno)
+    for patch in 1:n_patches
+        for g in 1:n_geno
+            start_idx = (patch-1)*n_per_patch + (g-1)*n_stages + 1
+            end_idx = start_idx + n_stages - 1
+            result[patch, g] = sum(w[start_idx:end_idx])
+        end
+        result[patch, :] ./= sum(result[patch, :])
+    end
+    return result
+end
+
+println(&quot;Stable genotype distribution by patch (p=$p_test, 20% refuge):&quot;)
+A_fr = build_field_refuge_model(p_test, 0.20, d_rate)
+freqs = patch_genotype_freqs(A_fr, 4, 3)
+println(rpad(&quot;&quot;, 12), rpad(&quot;SS&quot;, 10), rpad(&quot;SR&quot;, 10), &quot;RR&quot;)
+for (i, patch) in enumerate([&quot;Bt field&quot;, &quot;Refuge&quot;])
+    println(rpad(patch, 12),
+        rpad(round(freqs[i, 1], digits=4), 10),
+        rpad(round(freqs[i, 2], digits=4), 10),
+        round(freqs[i, 3], digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Stable genotype distribution by patch (p=0.01, 20% refuge):
+            SS        SR        RR
+Bt field    0.9715    0.0283    0.0002
+Refuge      0.9762    0.0236    0.0001</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated how categorical composition and stratification enable modular analysis of Bt resistance evolution:</p><ol><li><strong><code>⊕</code> (merge)</strong> — the base bollworm lifecycle is composed from separate survival and fecundity <code>ValuedProjectionNet</code> objects via <code>survival ⊕ fecundity</code>, keeping each sub-kernel readable and independently verifiable</li><li><strong><code>⊘</code> (map_values)</strong> — genotype-specific Bt mortality and fitness costs are applied as targeted modifications via <code>base ⊘ (:survival =&gt; f)</code>, avoiding redundant specification of unchanged transitions</li><li><strong><code>compose_transitions</code></strong> — verifies the additive decomposition A = P + F, clarifying that Bt affects only the survival sub-kernel</li><li><strong>Heterogeneous stratification</strong> — <code>stratify([U_SS, U_SR, U_RR], I₃)</code> for genotype-preserving survival + <code>stratify([F_SS, F_SR, F_RR], M)</code> for Hardy-Weinberg mating coupling, combined via <code>compose_transitions</code></li><li><strong>Nested stratification</strong> — spatial dispersal between Bt field and refuge via <code>stratify([A_bt, A_ref], D)</code> yields a 24×24 model from composable building blocks</li><li><strong>Management insight</strong> — sweeping allele frequency and refuge proportion reveals that a 20% non-Bt refuge substantially delays resistance evolution by maintaining susceptible genotypes in the population</li></ol><p>The categorical framework makes each modelling layer — lifecycle topology, genotype-specific rates, mating system, and spatial structure — independently specified and composable. Adding a new genotype, a fitness cost, or a third patch requires modifying only the relevant layer without rewriting the full model.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../10_time_lag/">« Time-Lagged Categorical Projection Models</a><a class="docs-footer-nextpage" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

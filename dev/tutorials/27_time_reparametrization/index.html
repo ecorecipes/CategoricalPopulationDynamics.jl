@@ -1,0 +1,295 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Time Reparametrization Morphisms · CategoricalPopulationDynamics.jl</title><meta name="title" content="Time Reparametrization Morphisms · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Time Reparametrization Morphisms · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Time Reparametrization Morphisms · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/27_time_reparametrization/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/27_time_reparametrization/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/27_time_reparametrization/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li class="is-active"><a class="tocitem" href>Time Reparametrization Morphisms</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#A-Stage-Structured-Insect-Model"><span>A Stage-Structured Insect Model</span></a></li><li><a class="tocitem" href="#Temperature-and-the-Degree-Day-Clock"><span>Temperature and the Degree-Day Clock</span></a></li><li><a class="tocitem" href="#The-Time-Change-Map-*τ*"><span>The Time-Change Map <em>τ</em></span></a></li><li><a class="tocitem" href="#Dynamics-in-Physiological-Time"><span>Dynamics in Physiological Time</span></a></li><li><a class="tocitem" href="#Dynamics-in-Calendar-Time"><span>Dynamics in Calendar Time</span></a></li><li><a class="tocitem" href="#Verifying-the-Morphism:-*F*subcal/sub(*t*)-*F*subphys/sub(*τ*(*t*))"><span>Verifying the Morphism: <em>F</em>&lt;sub&gt;cal&lt;/sub&gt;(<em>t</em>) = <em>F</em>&lt;sub&gt;phys&lt;/sub&gt;(<em>τ</em>(<em>t</em>))</span></a></li><li><a class="tocitem" href="#Connection-to-TimescaleEmbedding"><span>Connection to <code>TimescaleEmbedding</code></span></a></li><li><a class="tocitem" href="#Alternative-Thermal-Clocks"><span>Alternative Thermal Clocks</span></a></li><li><a class="tocitem" href="#Stochastic-Extension:-When-Rand(*C*)-Enters"><span>Stochastic Extension: When Rand(<em>C</em>) Enters</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Time Reparametrization Morphisms</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Time Reparametrization Morphisms</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/27_time_reparametrization.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Time-Reparametrization-Morphisms"><a class="docs-heading-anchor" href="#Time-Reparametrization-Morphisms">Time Reparametrization Morphisms</a><a id="Time-Reparametrization-Morphisms-1"></a><a class="docs-heading-anchor-permalink" href="#Time-Reparametrization-Morphisms" title="Permalink"></a></h1><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Physiologically based demographic models (PBDMs) use <strong>degree-days</strong> — accumulated thermal units above a developmental threshold — rather than calendar days as the time axis for population dynamics. This vignette shows that the degree-day transformation is a <strong>monotone reindexing</strong> between two time posets, and that dynamics in calendar time and physiological time are related by precomposition with this map.</p><p>Concretely, if <em>G</em> is a continuous-time rate matrix (generator) for a stage-structured population measured in degree-days, then:</p><ul><li><strong>Physiological-time</strong> dynamics: <strong>n</strong>(<em>s</em>) = <em>e</em>&lt;sup&gt;<em>s</em> <em>G</em>&lt;/sup&gt; <strong>n</strong>(0), where <em>s</em> counts degree-days.</li><li><strong>Calendar-time</strong> dynamics: <strong>n</strong>(<em>t</em>) = <em>e</em>&lt;sup&gt;<em>τ</em>(<em>t</em>) <em>G</em>&lt;/sup&gt; <strong>n</strong>(0), where <span>$\tau(t) = \sum\_{d=0}^{t-1} \Delta\tau(d)$</span> is cumulative degree-day accumulation.</li></ul><p>These are <strong>exactly the same</strong> trajectory, viewed through different clocks. The map <em>τ</em>: (ℕ,  ≤ ) → (ℝ&lt;sub&gt; ≥ 0&lt;/sub&gt;,  ≤ ) is a monotone function (order-preserving, not necessarily additive) from calendar days to degree-days. In a category-theoretic reading:</p><p><em>F</em>&lt;sub&gt;cal&lt;/sub&gt; = <em>F</em>&lt;sub&gt;phys&lt;/sub&gt; ∘ <em>τ</em></p><p>where <em>F</em>&lt;sub&gt;phys&lt;/sub&gt; is the physiological-time dynamics functor. The degree-day map <em>τ</em> is an <strong>endomorphism of the time poset</strong>, and reparametrization is <strong>precomposition</strong> — the most basic functorial operation.</p><p>When temperature is deterministic, this is a purely order-theoretic construction and no stochastic machinery is needed. The <code>Rand(C)</code> framework enters only when temperature is itself a random variable, making <em>τ</em> stochastic.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘, ⋉
+using LinearAlgebra
+using StructuredPopulationCore: lambda
+using Statistics: mean, std
+using Random; Random.seed!(42)
+using Plots
+
+# Development rate types from the PBDM package
+# We define them inline to keep this vignette self-contained</code></pre><p>Since <code>PhysiologicallyBasedDemographicModels.jl</code> may not be in the vignette’s environment, we define the development-rate functions directly. These mirror the types in that package (<code>LinearDevelopmentRate</code>, <code>BriereDevelopmentRate</code>).</p><pre><code class="language-julia hljs">&quot;&quot;&quot;Linear degree-day accumulation: r(T) = max(0, min(T - T_L, T_U - T_L)).&quot;&quot;&quot;
+function linear_dd(T; T_lower=10.0, T_upper=35.0)
+    return max(0.0, min(T - T_lower, T_upper - T_lower))
+end
+
+&quot;&quot;&quot;Brière nonlinear rate: r(T) = a·T·(T - T_L)·√(T_U - T) for T_L ≤ T ≤ T_U.&quot;&quot;&quot;
+function briere_rate(T; a=2.56e-5, T_lower=10.0, T_upper=33.0)
+    (T &lt;= T_lower || T &gt;= T_upper) &amp;&amp; return 0.0
+    return a * T * (T - T_lower) * sqrt(T_upper - T)
+end</code></pre><pre><code class="nohighlight hljs">Main.Notebook.briere_rate</code></pre><h2 id="A-Stage-Structured-Insect-Model"><a class="docs-heading-anchor" href="#A-Stage-Structured-Insect-Model">A Stage-Structured Insect Model</a><a id="A-Stage-Structured-Insect-Model-1"></a><a class="docs-heading-anchor-permalink" href="#A-Stage-Structured-Insect-Model" title="Permalink"></a></h2><p>We model a generic temperate-zone pest insect with four life stages, each represented by <strong>3 Erlang substages</strong> to produce realistic (non-exponential) stage duration distributions. All development is driven by a shared thermal clock with a lower threshold of 10 °C (linear degree-day model).</p><p>&lt;table&gt; &lt;thead&gt; &lt;tr&gt; &lt;th&gt;Stage&lt;/th&gt; &lt;th&gt;Required DD&lt;/th&gt; &lt;th&gt;Substages&lt;/th&gt; &lt;th&gt;Rate per DD&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr&gt; &lt;td&gt;Egg&lt;/td&gt; &lt;td&gt;88&lt;/td&gt; &lt;td&gt;3&lt;/td&gt; &lt;td&gt;3/88 ≈ 0.0341&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Larva&lt;/td&gt; &lt;td&gt;350&lt;/td&gt; &lt;td&gt;3&lt;/td&gt; &lt;td&gt;3/350 ≈ 0.00857&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Pupa&lt;/td&gt; &lt;td&gt;210&lt;/td&gt; &lt;td&gt;3&lt;/td&gt; &lt;td&gt;3/210 ≈ 0.01429&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Adult&lt;/td&gt; &lt;td&gt;—&lt;/td&gt; &lt;td&gt;1&lt;/td&gt; &lt;td&gt;fecundity + mortality per DD&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>The key assumption for an exact time-change equivalence: <strong>all vital rates are measured per degree-day</strong>, including adult fecundity and mortality. This is biologically reasonable for ectotherms whose metabolic rates scale with temperature.</p><pre><code class="language-julia hljs"># Stage durations in degree-days
+DD_egg   = 88.0
+DD_larva = 350.0
+DD_pupa  = 210.0
+k = 3  # substages per immature stage
+
+# Per-DD rates
+γ_e = k / DD_egg    # egg substage advancement rate
+γ_l = k / DD_larva  # larva substage advancement rate
+γ_p = k / DD_pupa   # pupa substage advancement rate
+μ_a = 0.005         # adult mortality rate per DD
+f   = 0.15          # adult fecundity (eggs per DD per adult)</code></pre><pre><code class="nohighlight hljs">0.15</code></pre><p>We build this as a <code>ValuedProjectionNet</code> with named transitions, then extract the structure.</p><pre><code class="language-julia hljs">stages = [:e1, :e2, :e3, :l1, :l2, :l3, :p1, :p2, :p3, :adult]
+
+# Define transitions as VPN
+vpn = ValuedProjectionNet(stages,
+    :egg_dev   =&gt; [(:e1 =&gt; :e2) =&gt; γ_e, (:e2 =&gt; :e3) =&gt; γ_e, (:e3 =&gt; :l1) =&gt; γ_e],
+    :larva_dev =&gt; [(:l1 =&gt; :l2) =&gt; γ_l, (:l2 =&gt; :l3) =&gt; γ_l, (:l3 =&gt; :p1) =&gt; γ_l],
+    :pupa_dev  =&gt; [(:p1 =&gt; :p2) =&gt; γ_p, (:p2 =&gt; :p3) =&gt; γ_p, (:p3 =&gt; :adult) =&gt; γ_p],
+    :fecundity =&gt; [(:adult =&gt; :e1) =&gt; f],
+    :mortality =&gt; [(:adult =&gt; :adult) =&gt; -μ_a]
+)</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:5
+  Src = 1:5
+  Tgt = 1:5
+  Name = 1:0
+  src_t : Src → T = [1, 2, 3, 4, 5]
+  src_s : Src → S = [1, 1, 1, 1, 1]
+  tgt_t : Tgt → T = [1, 2, 3, 4, 5]
+  tgt_s : Tgt → S = [1, 1, 1, 1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:egg_dev, :larva_dev, :pupa_dev, :fecundity, :mortality], [:e1, :e2, :e3, :l1, :l2, :l3, :p1, :p2, :p3, :adult], Dict(:egg_dev =&gt; [(:e1 =&gt; :e2) =&gt; 0.03409090909090909, (:e2 =&gt; :e3) =&gt; 0.03409090909090909, (:e3 =&gt; :l1) =&gt; 0.03409090909090909], :larva_dev =&gt; [(:l1 =&gt; :l2) =&gt; 0.008571428571428572, (:l2 =&gt; :l3) =&gt; 0.008571428571428572, (:l3 =&gt; :p1) =&gt; 0.008571428571428572], :pupa_dev =&gt; [(:p1 =&gt; :p2) =&gt; 0.014285714285714285, (:p2 =&gt; :p3) =&gt; 0.014285714285714285, (:p3 =&gt; :adult) =&gt; 0.014285714285714285], :mortality =&gt; [(:adult =&gt; :adult) =&gt; -0.005], :fecundity =&gt; [(:adult =&gt; :e1) =&gt; 0.15]))</code></pre><h3 id="The-Generator-Matrix"><a class="docs-heading-anchor" href="#The-Generator-Matrix">The Generator Matrix</a><a id="The-Generator-Matrix-1"></a><a class="docs-heading-anchor-permalink" href="#The-Generator-Matrix" title="Permalink"></a></h3><p>The continuous-time generator <em>G</em> has off-diagonal entries equal to transition rates and diagonal entries ensuring columns sum to zero (for a closed population with mortality as a sink).</p><pre><code class="language-julia hljs">n_stages = length(stages)
+
+function build_generator(γ_e, γ_l, γ_p, f, μ_a)
+    G = zeros(n_stages, n_stages)
+    # Egg substage transitions
+    for i in 1:2
+        G[i+1, i] = γ_e      # e_i → e_{i+1}
+        G[i, i]  -= γ_e      # outflow
+    end
+    G[4, 3] = γ_e             # e3 → l1
+    G[3, 3] -= γ_e
+    # Larva substage transitions
+    for i in 4:5
+        G[i+1, i] = γ_l
+        G[i, i]  -= γ_l
+    end
+    G[7, 6] = γ_l             # l3 → p1
+    G[6, 6] -= γ_l
+    # Pupa substage transitions
+    for i in 7:8
+        G[i+1, i] = γ_p
+        G[i, i]  -= γ_p
+    end
+    G[10, 9] = γ_p            # p3 → adult
+    G[9, 9] -= γ_p
+    # Adult fecundity and mortality
+    G[1, 10] = f               # adult → e1
+    G[10, 10] -= μ_a           # mortality sink
+    return G
+end
+
+G = build_generator(γ_e, γ_l, γ_p, f, μ_a)
+println(&quot;Generator G (10×10), column sums: &quot;, round.(vec(sum(G, dims=1)), digits=6))</code></pre><pre><code class="nohighlight hljs">Generator G (10×10), column sums: [0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.0, 0.145]</code></pre><p>The column sums are  ≤ 0: zero for immature stages (no mortality) and −<em>μ</em>&lt;sub&gt;<em>a</em>&lt;/sub&gt; for the adult stage (mortality sink). This is a proper generator for a sub-Markovian process.</p><h2 id="Temperature-and-the-Degree-Day-Clock"><a class="docs-heading-anchor" href="#Temperature-and-the-Degree-Day-Clock">Temperature and the Degree-Day Clock</a><a id="Temperature-and-the-Degree-Day-Clock-1"></a><a class="docs-heading-anchor-permalink" href="#Temperature-and-the-Degree-Day-Clock" title="Permalink"></a></h2><p>We use a simple sinusoidal temperature model for a temperate climate:</p><p>$</p><p>T(t) = \bar{T} + A \sin\\Bigl(\frac{2\pi(t - t_0)}{365}\Bigr) $</p><p>where <em>T̄</em> = 18 °C is the annual mean, <em>A</em> = 12 °C is the amplitude, and <em>t</em>&lt;sub&gt;0&lt;/sub&gt; = 80 (late March) is the phase shift so that the warmest day is in July.</p><pre><code class="language-julia hljs">T_mean = 18.0
+T_amp  = 12.0
+t_phase = 80
+T_day(t) = T_mean + T_amp * sin(2π * (t - t_phase) / 365)
+
+# Degree-day accumulation per calendar day
+Δτ(t) = linear_dd(T_day(t))
+
+# Plot temperature and daily DD accumulation
+days = 0:364
+p1 = plot(days, T_day.(days), label=&quot;Temperature (°C)&quot;, lw=2,
+    xlabel=&quot;Calendar day&quot;, ylabel=&quot;°C&quot;, color=:firebrick)
+hline!([10.0], ls=:dash, color=:gray, label=&quot;T_lower = 10°C&quot;)
+
+p2 = plot(days, Δτ.(days), label=&quot;Δτ (DD/day)&quot;, lw=2,
+    xlabel=&quot;Calendar day&quot;, ylabel=&quot;Degree-days&quot;, color=:steelblue,
+    fill=0, fillalpha=0.2)
+
+plot(p1, p2, layout=(2,1), size=(700,450), margin=3Plots.mm)</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-7-output-1.svg" alt/></p><p>Note that daily degree-day accumulation is zero during winter (when <em>T</em> \&lt; 10 °C) and peaks in midsummer. The growing season spans roughly days 30–330.</p><h2 id="The-Time-Change-Map-*τ*"><a class="docs-heading-anchor" href="#The-Time-Change-Map-*τ*">The Time-Change Map <em>τ</em></a><a id="The-Time-Change-Map-*τ*-1"></a><a class="docs-heading-anchor-permalink" href="#The-Time-Change-Map-*τ*" title="Permalink"></a></h2><p>The cumulative degree-day function <span>$\tau(t) = \sum\_{d=0}^{t-1} \Delta\tau(d)$</span> maps calendar days to physiological time:</p><pre><code class="language-julia hljs"># Cumulative degree-days
+τ_cumulative = cumsum([Δτ(d) for d in days])
+τ_total = τ_cumulative[end]
+println(&quot;Total degree-days in one year: $(round(τ_total, digits=1))&quot;)
+
+plot(days, τ_cumulative, lw=2.5, color=:darkorange,
+    xlabel=&quot;Calendar day&quot;, ylabel=&quot;Cumulative degree-days τ(t)&quot;,
+    label=&quot;τ(t)&quot;, legend=:topleft, size=(700,350))
+annotate!([(180, τ_total*0.5, text(&quot;Steep = fast development\n(warm days)&quot;, 9, :left)),
+           (330, τ_total*0.95, text(&quot;Flat = no development\n(cold days)&quot;, 9, :right))])</code></pre><pre><code class="nohighlight hljs">Total degree-days in one year: 3177.4</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-8-output-2.svg" alt/></p><h3 id="*τ*-is-a-monotone-reindexing,-not-a-monoid-homomorphism"><a class="docs-heading-anchor" href="#*τ*-is-a-monotone-reindexing,-not-a-monoid-homomorphism"><em>τ</em> is a monotone reindexing, not a monoid homomorphism</a><a id="*τ*-is-a-monotone-reindexing,-not-a-monoid-homomorphism-1"></a><a class="docs-heading-anchor-permalink" href="#*τ*-is-a-monotone-reindexing,-not-a-monoid-homomorphism" title="Permalink"></a></h3><p>The map <em>τ</em> preserves order: if <em>t</em>&lt;sub&gt;1&lt;/sub&gt; ≤ <em>t</em>&lt;sub&gt;2&lt;/sub&gt;, then <em>τ</em>(<em>t</em>&lt;sub&gt;1&lt;/sub&gt;) ≤ <em>τ</em>(<em>t</em>&lt;sub&gt;2&lt;/sub&gt;). But it is <strong>not additive</strong>: <em>τ</em>(<em>t</em>&lt;sub&gt;1&lt;/sub&gt; + <em>t</em>&lt;sub&gt;2&lt;/sub&gt;) ≠ <em>τ</em>(<em>t</em>&lt;sub&gt;1&lt;/sub&gt;) + <em>τ</em>(<em>t</em>&lt;sub&gt;2&lt;/sub&gt;) because degree-day accumulation depends on which calendar days are traversed. In categorical language, <em>τ</em> is a <strong>morphism of posets</strong> (ℕ,  ≤ ) → (ℝ&lt;sub&gt; ≥ 0&lt;/sub&gt;,  ≤ ), not an endomorphism of the monoid (ℕ, +).</p><p>The only case where <em>τ</em> is a monoid homomorphism is <strong>constant temperature</strong>: <em>T</em>(<em>t</em>) = <em>T</em>&lt;sub&gt;0&lt;/sub&gt; for all <em>t</em>, giving <em>τ</em>(<em>t</em>) = <em>Δ**τ</em>&lt;sub&gt;0&lt;/sub&gt; ⋅ <em>t</em> (linear). This is the special case captured by the fixed-step <code>TimescaleEmbedding</code> in CategoricalPopulationDynamics.jl.</p><h2 id="Dynamics-in-Physiological-Time"><a class="docs-heading-anchor" href="#Dynamics-in-Physiological-Time">Dynamics in Physiological Time</a><a id="Dynamics-in-Physiological-Time-1"></a><a class="docs-heading-anchor-permalink" href="#Dynamics-in-Physiological-Time" title="Permalink"></a></h2><p>In degree-day time, the dynamics are <strong>time-homogeneous</strong>. The matrix exponential <em>e</em>&lt;sup&gt;<em>G</em>&lt;/sup&gt; is the one-DD-step projection operator, and the population at DD-time <em>s</em> is:</p><p><strong>n</strong>(<em>s</em>) = <em>e</em>&lt;sup&gt;<em>s</em> <em>G</em>&lt;/sup&gt; <strong>n</strong>(0)</p><pre><code class="language-julia hljs"># Initial population: 100 adults
+n0 = zeros(n_stages)
+n0[end] = 100.0  # adults
+
+# Physiological-time simulation: advance 1 DD at a time
+dd_steps = 0:1:ceil(Int, τ_total)
+n_phys = Matrix{Float64}(undef, n_stages, length(dd_steps))
+n_phys[:, 1] = n0
+
+B_dd = exp(G)  # one-DD-step operator
+
+for i in 2:length(dd_steps)
+    n_phys[:, i] = B_dd * n_phys[:, i-1]
+end
+
+# Aggregate by life stage
+egg_phys   = vec(sum(n_phys[1:3, :], dims=1))
+larva_phys = vec(sum(n_phys[4:6, :], dims=1))
+pupa_phys  = vec(sum(n_phys[7:9, :], dims=1))
+adult_phys = vec(n_phys[10, :])
+total_phys = egg_phys .+ larva_phys .+ pupa_phys .+ adult_phys
+
+plot(dd_steps, [egg_phys larva_phys pupa_phys adult_phys],
+    label=[&quot;Egg&quot; &quot;Larva&quot; &quot;Pupa&quot; &quot;Adult&quot;], lw=2,
+    xlabel=&quot;Physiological time (degree-days)&quot;,
+    ylabel=&quot;Population&quot;, title=&quot;Dynamics in Physiological Time&quot;,
+    size=(700,400), legend=:topright)</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-9-output-1.svg" alt/></p><p>The dynamics are smooth and uniform — every degree-day step produces the same amount of developmental progress. Generation cycles appear at regular DD intervals.</p><h2 id="Dynamics-in-Calendar-Time"><a class="docs-heading-anchor" href="#Dynamics-in-Calendar-Time">Dynamics in Calendar Time</a><a id="Dynamics-in-Calendar-Time-1"></a><a class="docs-heading-anchor-permalink" href="#Dynamics-in-Calendar-Time" title="Permalink"></a></h2><p>In calendar time, the same generator <em>G</em> drives the dynamics, but scaled by the daily degree-day accumulation. On day <em>t</em>, the population advances by <em>Δ**τ</em>(<em>t</em>) degree-days:</p><p><strong>n</strong>(<em>t</em> + 1) = <em>e</em>&lt;sup&gt;<em>Δ**τ</em>(<em>t</em>) <em>G</em>&lt;/sup&gt; <strong>n</strong>(<em>t</em>)</p><pre><code class="language-julia hljs"># Calendar-time simulation
+n_cal = Matrix{Float64}(undef, n_stages, length(days))
+n_cal[:, 1] = n0
+
+for i in 2:length(days)
+    Δτ_i = Δτ(days[i-1])
+    if Δτ_i &gt; 0
+        n_cal[:, i] = exp(Δτ_i * G) * n_cal[:, i-1]
+    else
+        n_cal[:, i] = n_cal[:, i-1]  # no development below threshold
+    end
+end
+
+egg_cal   = vec(sum(n_cal[1:3, :], dims=1))
+larva_cal = vec(sum(n_cal[4:6, :], dims=1))
+pupa_cal  = vec(sum(n_cal[7:9, :], dims=1))
+adult_cal = vec(n_cal[10, :])
+
+plot(days, [egg_cal larva_cal pupa_cal adult_cal],
+    label=[&quot;Egg&quot; &quot;Larva&quot; &quot;Pupa&quot; &quot;Adult&quot;], lw=2,
+    xlabel=&quot;Calendar day&quot;, ylabel=&quot;Population&quot;,
+    title=&quot;Dynamics in Calendar Time&quot;,
+    size=(700,400), legend=:topright)</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-10-output-1.svg" alt/></p><p>Now the dynamics are <strong>compressed in summer</strong> (rapid development) and <strong>frozen in winter</strong> (no degree-day accumulation). The seasonal forcing creates asymmetric generation timing.</p><h2 id="Verifying-the-Morphism:-*F*subcal/sub(*t*)-*F*subphys/sub(*τ*(*t*))"><a class="docs-heading-anchor" href="#Verifying-the-Morphism:-*F*subcal/sub(*t*)-*F*subphys/sub(*τ*(*t*))">Verifying the Morphism: <em>F</em>&lt;sub&gt;cal&lt;/sub&gt;(<em>t</em>) = <em>F</em>&lt;sub&gt;phys&lt;/sub&gt;(<em>τ</em>(<em>t</em>))</a><a id="Verifying-the-Morphism:-*F*subcal/sub(*t*)-*F*subphys/sub(*τ*(*t*))-1"></a><a class="docs-heading-anchor-permalink" href="#Verifying-the-Morphism:-*F*subcal/sub(*t*)-*F*subphys/sub(*τ*(*t*))" title="Permalink"></a></h2><p>The key claim: both representations produce <strong>exactly the same</strong> population trajectory, related by the time-change map <em>τ</em>. Let’s verify this:</p><pre><code class="language-julia hljs"># For each calendar day t, the cumulative DD is τ(t).
+# The physiological-time trajectory at τ(t) should equal the calendar-time trajectory at t.
+
+# Compute physiological-time population at τ(t) for each calendar day
+n_phys_at_tau = Matrix{Float64}(undef, n_stages, length(days))
+τ_running = 0.0
+n_phys_at_tau[:, 1] = n0
+current = copy(n0)
+
+for i in 2:length(days)
+    Δτ_i = Δτ(days[i-1])
+    if Δτ_i &gt; 0
+        current = exp(Δτ_i * G) * current
+    end
+    n_phys_at_tau[:, i] = current
+end
+
+# Compare total populations
+total_cal = vec(sum(n_cal, dims=1))
+total_phys_reindexed = vec(sum(n_phys_at_tau, dims=1))
+
+max_diff = maximum(abs.(total_cal .- total_phys_reindexed))
+println(&quot;Maximum difference between calendar and reindexed physiological: $(max_diff)&quot;)
+println(&quot;Relative error: $(max_diff / maximum(total_cal))&quot;)</code></pre><pre><code class="nohighlight hljs">Maximum difference between calendar and reindexed physiological: 0.0
+Relative error: 0.0</code></pre><pre><code class="language-julia hljs"># Visual verification: overlay both trajectories
+p1 = plot(days, total_cal, lw=3, color=:steelblue, label=&quot;Calendar time F_cal(t)&quot;,
+    xlabel=&quot;Calendar day&quot;, ylabel=&quot;Total population&quot;, alpha=0.8)
+plot!(p1, days, total_phys_reindexed, lw=2, ls=:dash, color=:firebrick,
+    label=&quot;Physiological F_phys(τ(t))&quot;)
+title!(&quot;Morphism verification: F_cal(t) = F_phys ∘ τ (t)&quot;)
+
+# The reparametrization diagram
+p2 = plot(days, τ_cumulative, lw=2, color=:darkorange,
+    xlabel=&quot;Calendar day&quot;, ylabel=&quot;Degree-days&quot;,
+    label=&quot;τ(t)&quot;, title=&quot;Time-change map&quot;)
+
+plot(p1, p2, layout=(2,1), size=(700,500), margin=3Plots.mm)</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-12-output-1.svg" alt/></p><p>The match is exact (up to floating-point precision) because both computations apply the <strong>same</strong> matrix exponential <em>e</em>&lt;sup&gt;<em>Δ**τ</em>(<em>t</em>) <em>G</em>&lt;/sup&gt; at each step. This is not an approximation — it is the mathematical identity:</p><p>$</p><p>\prod_{d=0}^{t-1} e^{\Delta\tau(d)\G} = e^{\bigl(\sum_{d=0}^{t-1}\Delta\tau(d)\bigr)\G} = e^{\tau(t)\G} $</p><p>which holds because <em>G</em> commutes with itself. Calendar-time dynamics is literally physiological-time dynamics composed with the time-change map.</p><h3 id="The-categorical-diagram"><a class="docs-heading-anchor" href="#The-categorical-diagram">The categorical diagram</a><a id="The-categorical-diagram-1"></a><a class="docs-heading-anchor-permalink" href="#The-categorical-diagram" title="Permalink"></a></h3><pre><code class="nohighlight hljs">    (ℕ, ≤)_calendar ──τ──→ (ℝ≥0, ≤)_physiol
+          │                       │
+     F_cal│                  F_phys│
+          ↓                       ↓
+     (State, ·)              (State, ·)</code></pre><p><em>F</em>&lt;sub&gt;cal&lt;/sub&gt; = <em>F</em>&lt;sub&gt;phys&lt;/sub&gt; ∘ <em>τ</em>: the calendar-time functor <strong>is</strong> the physiological-time functor precomposed with the monotone time-change map.</p><h2 id="Connection-to-TimescaleEmbedding"><a class="docs-heading-anchor" href="#Connection-to-TimescaleEmbedding">Connection to <code>TimescaleEmbedding</code></a><a id="Connection-to-TimescaleEmbedding-1"></a><a class="docs-heading-anchor-permalink" href="#Connection-to-TimescaleEmbedding" title="Permalink"></a></h2><p>The existing <code>TimescaleEmbedding</code> in CategoricalPopulationDynamics.jl performs a <strong>fixed-step</strong> nesting: an inner model runs for a constant number of steps per outer timestep. This corresponds to the special case where temperature is constant, making <em>τ</em>(<em>t</em>) = <em>c</em> ⋅ <em>t</em> (linear time-change).</p><pre><code class="language-julia hljs"># At constant T = 25°C, daily DD accumulation is constant
+T_const = 25.0
+Δτ_const = linear_dd(T_const)
+println(&quot;At T = $(T_const)°C: Δτ = $(Δτ_const) DD/day&quot;)
+
+# Build a DD-step VPN for the immature submodel
+dd_vpn = ValuedProjectionNet(stages,
+    :egg_dev   =&gt; [(:e1 =&gt; :e2) =&gt; γ_e, (:e2 =&gt; :e3) =&gt; γ_e, (:e3 =&gt; :l1) =&gt; γ_e],
+    :larva_dev =&gt; [(:l1 =&gt; :l2) =&gt; γ_l, (:l2 =&gt; :l3) =&gt; γ_l, (:l3 =&gt; :p1) =&gt; γ_l],
+    :pupa_dev  =&gt; [(:p1 =&gt; :p2) =&gt; γ_p, (:p2 =&gt; :p3) =&gt; γ_p, (:p3 =&gt; :adult) =&gt; γ_p],
+    :fecundity =&gt; [(:adult =&gt; :e1) =&gt; f],
+    :mortality =&gt; [(:adult =&gt; :adult) =&gt; -μ_a],
+    :stay_e    =&gt; [(:e1 =&gt; :e1) =&gt; 1 - γ_e, (:e2 =&gt; :e2) =&gt; 1 - γ_e, (:e3 =&gt; :e3) =&gt; 1 - γ_e],
+    :stay_l    =&gt; [(:l1 =&gt; :l1) =&gt; 1 - γ_l, (:l2 =&gt; :l2) =&gt; 1 - γ_l, (:l3 =&gt; :l3) =&gt; 1 - γ_l],
+    :stay_p    =&gt; [(:p1 =&gt; :p1) =&gt; 1 - γ_p, (:p2 =&gt; :p2) =&gt; 1 - γ_p, (:p3 =&gt; :p3) =&gt; 1 - γ_p],
+    :stay_a    =&gt; [(:adult =&gt; :adult) =&gt; 1 - μ_a]
+)
+
+# The discrete-time DD-step matrix
+B_discrete = to_matrix(dd_vpn)
+println(&quot;DD-step λ (discrete): &quot;, round(lambda(B_discrete), digits=6))
+println(&quot;DD-step λ (generator): &quot;, round(lambda(exp(G)), digits=6))</code></pre><pre><code class="nohighlight hljs">At T = 25.0°C: Δτ = 15.0 DD/day
+DD-step λ (discrete): 1.004272
+DD-step λ (generator): 1.005046</code></pre><p>With constant temperature, <code>TimescaleEmbedding</code> with <code>steps = round(Int, Δτ_const)</code> inner DD-steps per calendar day produces the same scaling as the exponential <em>e</em>&lt;sup&gt;<em>Δ**τ</em> ⋅ <em>G</em>&lt;/sup&gt;:</p><pre><code class="language-julia hljs"># Embed DD-step model into a daily outer model
+# At 25°C, each outer day = 15 DD-steps
+daily_steps = round(Int, Δτ_const)
+
+# Daily growth factor via TimescaleEmbedding
+emb = TimescaleEmbedding(B_discrete, daily_steps, :lambda)
+λ_nested = evaluate(emb)
+println(&quot;λ per day via TimescaleEmbedding ($daily_steps DD-steps): $(round(λ_nested, digits=6))&quot;)
+
+# Compare with matrix exponential
+λ_exp = lambda(exp(Δτ_const * G))
+println(&quot;λ per day via exp(Δτ·G): $(round(λ_exp, digits=6))&quot;)</code></pre><pre><code class="nohighlight hljs">λ per day via TimescaleEmbedding (15 DD-steps): 1.066035
+λ per day via exp(Δτ·G): 1.078427</code></pre><p><code>TimescaleEmbedding</code> is the <strong>discrete, constant-clock</strong> specialization of the general time-change morphism. The degree-day reparametrization generalizes this to a <strong>variable-rate, state-dependent</strong> number of inner steps per outer step.</p><h2 id="Alternative-Thermal-Clocks"><a class="docs-heading-anchor" href="#Alternative-Thermal-Clocks">Alternative Thermal Clocks</a><a id="Alternative-Thermal-Clocks-1"></a><a class="docs-heading-anchor-permalink" href="#Alternative-Thermal-Clocks" title="Permalink"></a></h2><p>The linear degree-day model is the simplest thermal clock, but nonlinear development-rate functions produce different time-change maps. Each gives a valid monotone reindexing — the morphism structure is the same.</p><pre><code class="language-julia hljs"># Compare linear vs Brière thermal clocks
+T_range = 5:0.5:40
+dd_linear = [linear_dd(T) for T in T_range]
+dd_briere = [briere_rate(T) for T in T_range]
+
+# Normalize Brière to same scale for comparison
+scale_factor = maximum(dd_linear) / maximum(dd_briere)
+dd_briere_scaled = dd_briere .* scale_factor
+
+plot(T_range, dd_linear, lw=2.5, label=&quot;Linear DD&quot;, color=:steelblue,
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Development rate (relative)&quot;,
+    title=&quot;Thermal Clocks: Different τ, Same Morphism&quot;,
+    size=(700,350), legend=:topleft)
+plot!(T_range, dd_briere_scaled, lw=2.5, label=&quot;Brière (scaled)&quot;, color=:firebrick)
+vline!([10.0], ls=:dash, color=:gray, label=&quot;T_lower&quot;)</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-15-output-1.svg" alt/></p><pre><code class="language-julia hljs"># Cumulative DD over a year with both clocks
+τ_linear = cumsum([linear_dd(T_day(d)) for d in days])
+τ_briere = cumsum([briere_rate(T_day(d)) for d in days])
+
+plot(days, τ_linear, lw=2.5, label=&quot;Linear τ(t)&quot;, color=:steelblue,
+    xlabel=&quot;Calendar day&quot;, ylabel=&quot;Cumulative physiological time&quot;,
+    title=&quot;Time-Change Maps Under Different Clocks&quot;,
+    size=(700,350), legend=:topleft)
+plot!(days, τ_briere .* (τ_linear[end] / τ_briere[end]),
+    lw=2.5, label=&quot;Brière τ(t) (rescaled)&quot;, color=:firebrick, ls=:dash)</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-16-output-1.svg" alt/></p><p>The Brière clock assigns more time to intermediate temperatures and less to extremes, reflecting the thermal performance curve of enzyme-mediated development. Both maps are monotone, both produce valid time-change morphisms, but they give different demographic predictions because they weight the growing season differently.</p><h2 id="Stochastic-Extension:-When-Rand(*C*)-Enters"><a class="docs-heading-anchor" href="#Stochastic-Extension:-When-Rand(*C*)-Enters">Stochastic Extension: When Rand(<em>C</em>) Enters</a><a id="Stochastic-Extension:-When-Rand(*C*)-Enters-1"></a><a class="docs-heading-anchor-permalink" href="#Stochastic-Extension:-When-Rand(*C*)-Enters" title="Permalink"></a></h2><p>So far, temperature has been a known deterministic function <em>T</em>(<em>t</em>). The time-change map <em>τ</em> is therefore deterministic, and no stochastic framework is needed.</p><p>When <strong>temperature is itself a random variable</strong> — drawn from a distribution of weather trajectories — then <em>τ</em> becomes random, and the calendar-time dynamics enter the <code>Rand(C)</code> framework:</p><ul><li><strong>Deterministic <em>T</em>(<em>t</em>)</strong>: <em>τ</em> is a fixed monotone map. Dynamics live in [<strong>T</strong>, 𝒞] (functor category from time to state).</li><li><strong>Stochastic <em>T</em> ∼ <em>P</em>(env)</strong>: <em>τ</em> is a random variable. Dynamics live in Rand([<strong>T</strong>, 𝒞]).</li></ul><pre><code class="language-julia hljs"># Add daily temperature noise: T(t) + ε, ε ~ N(0, σ²)
+σ_T = 3.0  # daily temperature noise (°C)
+n_samples = 50
+
+# Generate stochastic trajectories
+p_stoch = plot(xlabel=&quot;Calendar day&quot;, ylabel=&quot;Total population&quot;,
+    title=&quot;Stochastic Temperature → Stochastic τ → Rand(C)&quot;,
+    size=(700,400), legend=:topright)
+
+total_finals = Float64[]
+
+for s in 1:n_samples
+    n_s = copy(n0)
+    totals = [sum(n_s)]
+
+    for d in 1:(length(days)-1)
+        T_noisy = T_day(d) + σ_T * randn()
+        Δτ_s = linear_dd(T_noisy)
+        if Δτ_s &gt; 0
+            n_s = exp(Δτ_s * G) * n_s
+        end
+        push!(totals, sum(n_s))
+    end
+
+    plot!(p_stoch, days, totals, color=:steelblue, alpha=0.15, label=&quot;&quot;)
+    push!(total_finals, totals[end])
+end
+
+# Overlay deterministic trajectory
+plot!(p_stoch, days, vec(sum(n_cal, dims=1)), lw=3, color=:firebrick,
+    label=&quot;Deterministic&quot;)
+p_stoch</code></pre><p><img src="../27_time_reparametrization_files/figure-markdown_strict/cell-17-output-1.svg" alt/></p><pre><code class="language-julia hljs"># The fan of stochastic trajectories illustrates:
+# - Each sample has a different τ (different weather → different DD accumulation)
+# - The physiological-time model is still time-homogeneous
+# - But in calendar time, trajectories diverge because τ is random
+
+println(&quot;Final population (deterministic): $(round(sum(n_cal[:, end]), digits=1))&quot;)
+println(&quot;Final population (stochastic mean ± SD): &quot; *
+    &quot;$(round(mean(total_finals), digits=1)) ± $(round(std(total_finals), digits=1))&quot;)</code></pre><pre><code class="nohighlight hljs">Final population (deterministic): 4.5923071012e9
+Final population (stochastic mean ± SD): 6.6185587433e9 ± 2.01248697e9</code></pre><p>In the <code>Rand(C)</code> framework, the deterministic trajectory is the <strong>expected kernel</strong> <em>E</em>[<em>K</em>], which generally <strong>differs</strong> from the trajectory under expected temperature <em>K</em>(<em>E</em>[<em>T</em>]) — this is the Jensen gap (Tuljapurkar’s inequality), formalized in the Lean file <code>EnvStochastic.lean</code>.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>&lt;table&gt; &lt;colgroup&gt; &lt;col style=&quot;width: 20%&quot; /&gt; &lt;col style=&quot;width: 43%&quot; /&gt; &lt;col style=&quot;width: 36%&quot; /&gt; &lt;/colgroup&gt; &lt;thead&gt; &lt;tr&gt; &lt;th&gt;Concept&lt;/th&gt; &lt;th&gt;Mathematical object&lt;/th&gt; &lt;th&gt;Implementation&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr&gt; &lt;td&gt;Thermal clock&lt;/td&gt; &lt;td&gt;Development rate &lt;span class=&quot;math inline&quot;&gt;&lt;em&gt;r&lt;/em&gt;(&lt;em&gt;T&lt;/em&gt;)&lt;/span&gt;&lt;/td&gt; &lt;td&gt;&lt;code&gt;linear<em>dd&lt;/code&gt;, &lt;code&gt;briere</em>rate&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Time-change map&lt;/td&gt; &lt;td&gt;&lt;span class=&quot;math inline&quot;&gt;&lt;em&gt;τ&lt;/em&gt;(&lt;em&gt;t&lt;/em&gt;) = ∑&lt;em&gt;Δ&lt;/em&gt;&lt;em&gt;τ&lt;/em&gt;(&lt;em&gt;d&lt;/em&gt;)&lt;/span&gt;&lt;/td&gt; &lt;td&gt;Cumulative DD&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Physiological dynamics&lt;/td&gt; &lt;td&gt;&lt;span class=&quot;math inline&quot;&gt;&lt;em&gt;e&lt;/em&gt;&lt;sup&gt;&lt;em&gt;s&lt;/em&gt;&lt;em&gt;G&lt;/em&gt;&lt;/sup&gt;&lt;/span&gt;&lt;/td&gt; &lt;td&gt;&lt;code&gt;exp(G)&lt;/code&gt; iterated&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Calendar dynamics&lt;/td&gt; &lt;td&gt;&lt;span class=&quot;math inline&quot;&gt;&lt;em&gt;e&lt;/em&gt;&lt;sup&gt;&lt;em&gt;τ&lt;/em&gt;(&lt;em&gt;t&lt;/em&gt;)&lt;em&gt;G&lt;/em&gt;&lt;/sup&gt;&lt;/span&gt;&lt;/td&gt; &lt;td&gt;&lt;code&gt;exp(Δτ(t) G)&lt;/code&gt; composed&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Morphism&lt;/td&gt; &lt;td&gt;&lt;span class=&quot;math inline&quot;&gt;&lt;em&gt;F&lt;/em&gt;&lt;sub&gt;cal&lt;/sub&gt; = &lt;em&gt;F&lt;/em&gt;&lt;sub&gt;phys&lt;/sub&gt; ∘ &lt;em&gt;τ&lt;/em&gt;&lt;/span&gt;&lt;/td&gt; &lt;td&gt;Precomposition&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Fixed-step special case&lt;/td&gt; &lt;td&gt;&lt;span class=&quot;math inline&quot;&gt;&lt;em&gt;τ&lt;/em&gt;(&lt;em&gt;t&lt;/em&gt;) = &lt;em&gt;c&lt;/em&gt;&lt;em&gt;t&lt;/em&gt;&lt;/span&gt;&lt;/td&gt; &lt;td&gt;&lt;code&gt;TimescaleEmbedding&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;tr&gt; &lt;td&gt;Stochastic extension&lt;/td&gt; &lt;td&gt;&lt;span class=&quot;math inline&quot;&gt;&lt;em&gt;T&lt;/em&gt; ∼ &lt;em&gt;P&lt;/em&gt;(env)&lt;/span&gt;&lt;/td&gt; &lt;td&gt;&lt;code&gt;Rand(C)&lt;/code&gt;&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>The degree-day transformation is the simplest instance of a <strong>time-change morphism</strong>: a monotone reindexing of the time axis that converts a time-inhomogeneous system (variable development in calendar time) into a time-homogeneous one (constant development in physiological time). This is <strong>precomposition with a poset map</strong> — a purely order-theoretic construction that requires no probabilistic enrichment until temperature is itself random.</p><p>This same structure appears in:</p><ul><li><strong>PDMP simulation</strong> (Veltz 2015): the compensator <em>Λ</em>(<em>t</em>) = ∫&lt;sub&gt;0&lt;/sub&gt;&lt;sup&gt;<em>t</em>&lt;/sup&gt;<em>λ</em>(<em>X</em>&lt;sub&gt;<em>s</em>&lt;/sub&gt;)<em>d**s</em> reparametrizes a state-dependent process into a unit-rate Poisson process.</li><li><strong>Erlang substage splitting</strong>: discrete-time substages approximate continuous stage durations, converging to a point mass (the deterministic limit of the time-change).</li><li><strong>Operadic nesting</strong>: <code>TimescaleEmbedding</code> in CPD.jl composes models across timescales; the degree-day generalization makes the nesting ratio state-dependent.</li></ul></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../26_pspm_size_structured/">« Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

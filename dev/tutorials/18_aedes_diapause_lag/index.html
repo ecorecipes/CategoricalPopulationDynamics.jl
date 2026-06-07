@@ -1,0 +1,460 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Time-Lag Expansion and Diapause Stratification · CategoricalPopulationDynamics.jl</title><meta name="title" content="Time-Lag Expansion and Diapause Stratification · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Time-Lag Expansion and Diapause Stratification · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Time-Lag Expansion and Diapause Stratification · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/18_aedes_diapause_lag/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/18_aedes_diapause_lag/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/18_aedes_diapause_lag/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li class="is-active"><a class="tocitem" href>Time-Lag Expansion and Diapause Stratification</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Base-Lifecycle"><span>Base Lifecycle</span></a></li><li><a class="tocitem" href="#Compositional-Verification"><span>Compositional Verification</span></a></li><li><a class="tocitem" href="#Time-Lag-Expansion"><span>Time-Lag Expansion</span></a></li><li><a class="tocitem" href="#Time-Lag-Expansion-with-lag2"><span>Time-Lag Expansion with lag=2</span></a></li><li><a class="tocitem" href="#Diapause-Model"><span>Diapause Model</span></a></li><li><a class="tocitem" href="#Photoperiod-Sweep"><span>Photoperiod Sweep</span></a></li><li><a class="tocitem" href="#Seasonal-Analysis"><span>Seasonal Analysis</span></a></li><li><a class="tocitem" href="#Combined:-Lag-Diapause"><span>Combined: Lag + Diapause</span></a></li><li><a class="tocitem" href="#Latitudinal-Stratification"><span>Latitudinal Stratification</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Time-Lag Expansion and Diapause Stratification</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Time-Lag Expansion and Diapause Stratification</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/18_aedes_diapause_lag.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Time-Lag-Expansion-and-Diapause-Stratification"><a class="docs-heading-anchor" href="#Time-Lag-Expansion-and-Diapause-Stratification">Time-Lag Expansion and Diapause Stratification</a><a id="Time-Lag-Expansion-and-Diapause-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Time-Lag-Expansion-and-Diapause-Stratification" title="Permalink"></a></h1><p>Categorical Construction of Mosquito Overwintering Models</p><p>Author</p><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p><em>Aedes albopictus</em> (the Asian tiger mosquito) has a 5-stage lifecycle — egg, larva, pupa, immature adult, reproductive adult — where eggs can enter <strong>diapause</strong> (dormancy) triggered by short photoperiod. Diapause eggs survive winter and hatch in spring, enabling overwintering at temperate latitudes.</p><p>This vignette demonstrates how modular categorical operations compose to build complex mosquito population models:</p><ol><li><strong><code>⊕</code> (merge)</strong> — assembles a lifecycle from independent sub-kernels (survival and fecundity), keeping the additive decomposition explicit</li><li><strong><code>⊘</code> (map<em>values) and `map</em>values`</strong> — reparameterize a reference model for new environmental conditions (temperature, photoperiod) without rebuilding its structure</li><li><strong><code>lag_expand</code></strong> — reproductive delay: females must develop through the “immature adult” stage before producing eggs, creating a time lag between eclosion and reproduction</li><li><strong><code>stratify</code></strong> with diapause coupling — eggs exist in two states (active vs diapausing), coupled by photoperiod-dependent switching</li></ol><p>These operations are <strong>independent and composable</strong>: <code>⊕</code> assembles sub-kernels, <code>⊘</code>/<code>map_values</code> reparameterize them, <code>lag_expand</code> restructures temporal dependence, and <code>stratify</code> restructures the state space. All can be applied in any order.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘
+using Catlab
+using Catlab.CategoricalAlgebra
+using LinearAlgebra
+using ProjectionModels: lambda, expand_lag_matrix, TimeLagStructure
+using Plots</code></pre><h2 id="Base-Lifecycle"><a class="docs-heading-anchor" href="#Base-Lifecycle">Base Lifecycle</a><a id="Base-Lifecycle-1"></a><a class="docs-heading-anchor-permalink" href="#Base-Lifecycle" title="Permalink"></a></h2><p>We model <em>Ae. albopictus</em> at summer conditions (25 °C). Daily transition probabilities follow a stage-structured framework where individuals either remain in their current stage (stasis) or advance to the next (progression), subject to stage-specific mortality.</p><pre><code class="language-julia hljs"># Development rates (daily) at 25°C
+dev_egg   = 0.20    # ~5 day egg stage
+dev_larva = 0.07    # ~14 day larval stage
+dev_pupa  = 0.33    # ~3 day pupal stage
+dev_immad = 0.14    # ~7 day sexual maturation
+dev_adult = 0.015   # ~67 day reproductive adult lifespan
+
+# Daily mortality
+μ_egg   = 0.02
+μ_larva = 0.04
+μ_pupa  = 0.02
+μ_immad = 0.03
+μ_adult = 0.05
+
+# Fecundity: sex ratio × eggs/batch × oviposition rate
+fecundity = 0.5 * 8.0 * dev_adult</code></pre><pre><code class="nohighlight hljs">0.06</code></pre><p>Build the 5-stage lifecycle by assembling survival and fecundity sub-kernels with <code>⊕</code>:</p><pre><code class="language-julia hljs">stages = [:egg, :larva, :pupa, :immature_adult, :reproductive_adult]
+
+aedes_survival = ValuedProjectionNet(stages,
+    :survival =&gt; [
+        (:egg   =&gt; :egg)   =&gt; (1 - dev_egg)   * (1 - μ_egg),
+        (:egg   =&gt; :larva) =&gt; dev_egg          * (1 - μ_egg),
+        (:larva =&gt; :larva) =&gt; (1 - dev_larva)  * (1 - μ_larva),
+        (:larva =&gt; :pupa)  =&gt; dev_larva        * (1 - μ_larva),
+        (:pupa  =&gt; :pupa)  =&gt; (1 - dev_pupa)   * (1 - μ_pupa),
+        (:pupa  =&gt; :immature_adult) =&gt; dev_pupa * (1 - μ_pupa),
+        (:immature_adult =&gt; :immature_adult) =&gt; (1 - dev_immad) * (1 - μ_immad),
+        (:immature_adult =&gt; :reproductive_adult) =&gt; dev_immad   * (1 - μ_immad),
+        (:reproductive_adult =&gt; :reproductive_adult) =&gt; (1 - dev_adult) * (1 - μ_adult)])
+
+aedes_fecundity = ValuedProjectionNet(stages,
+    :fecundity =&gt; [
+        (:reproductive_adult =&gt; :egg) =&gt; fecundity])
+
+aedes_base = aedes_survival ⊕ aedes_fecundity</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:2
+  Src = 1:2
+  Tgt = 1:2
+  Name = 1:0
+  src_t : Src → T = [1, 2]
+  src_s : Src → S = [1, 1]
+  tgt_t : Tgt → T = [1, 2]
+  tgt_s : Tgt → S = [1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:survival, :fecundity], [:egg, :larva, :pupa, :immature_adult, :reproductive_adult], Dict(:survival =&gt; [(:egg =&gt; :egg) =&gt; 0.784, (:egg =&gt; :larva) =&gt; 0.196, (:larva =&gt; :larva) =&gt; 0.8927999999999999, (:larva =&gt; :pupa) =&gt; 0.06720000000000001, (:pupa =&gt; :pupa) =&gt; 0.6566, (:pupa =&gt; :immature_adult) =&gt; 0.3234, (:immature_adult =&gt; :immature_adult) =&gt; 0.8341999999999999, (:immature_adult =&gt; :reproductive_adult) =&gt; 0.1358, (:reproductive_adult =&gt; :reproductive_adult) =&gt; 0.93575], :fecundity =&gt; [(:reproductive_adult =&gt; :egg) =&gt; 0.06]))</code></pre><p>Materialize the full projection matrix and compute the dominant eigenvalue:</p><pre><code class="language-julia hljs">A_base = to_matrix(aedes_base)
+λ_base = lambda(A_base)
+println(&quot;Base Ae. albopictus lifecycle (25°C, summer):&quot;)
+println(&quot;  Stages: &quot;, stage_names(aedes_base))
+println(&quot;  Matrix size: &quot;, size(A_base))
+println(&quot;  λ = &quot;, round(λ_base, digits=4))
+println(&quot;  Population &quot;, λ_base &gt; 1 ? &quot;GROWING&quot; : &quot;DECLINING&quot;)</code></pre><pre><code class="nohighlight hljs">Base Ae. albopictus lifecycle (25°C, summer):
+  Stages: [:egg, :larva, :pupa, :immature_adult, :reproductive_adult]
+  Matrix size: (5, 5)
+  λ = 0.9795
+  Population DECLINING</code></pre><pre><code class="language-julia hljs">stage_labels = String.(stage_names(aedes_base))
+heatmap(stage_labels, stage_labels, A_base,
+    title=&quot;Base Ae. albopictus projection matrix (25°C)&quot;,
+    xlabel=&quot;From stage&quot;, ylabel=&quot;To stage&quot;,
+    color=:viridis, size=(550, 500), xrotation=45)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-1.png" alt/></p><h2 id="Compositional-Verification"><a class="docs-heading-anchor" href="#Compositional-Verification">Compositional Verification</a><a id="Compositional-Verification-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Verification" title="Permalink"></a></h2><p>Each lifecycle matrix is the additive composition of survival and fecundity sub-kernels. We verify this using <code>compose_transitions</code>:</p><pre><code class="language-julia hljs">U_base = transition_matrix(aedes_base, :survival)
+F_base = transition_matrix(aedes_base, :fecundity)
+A_composed = compose_transitions(Dict(:survival =&gt; U_base, :fecundity =&gt; F_base))
+println(&quot;compose_transitions(U, F) ≈ to_matrix? &quot;, A_composed ≈ A_base)</code></pre><pre><code class="nohighlight hljs">compose_transitions(U, F) ≈ to_matrix? true</code></pre><p>This decomposition is essential: <code>lag_expand</code> acts on the fecundity sub-kernel by shifting it to a lagged state, while <code>stratify</code> acts on the survival sub-kernel by splitting egg dynamics.</p><h2 id="Time-Lag-Expansion"><a class="docs-heading-anchor" href="#Time-Lag-Expansion">Time-Lag Expansion</a><a id="Time-Lag-Expansion-1"></a><a class="docs-heading-anchor-permalink" href="#Time-Lag-Expansion" title="Permalink"></a></h2><p>The maturation delay through the immature adult stage means that fecundity effectively depends on the population state from ~7 days earlier. We model this as a lag-1 expansion of the fecundity transition:</p><pre><code class="language-julia hljs">aedes_lag1 = lag_expand(aedes_base, Dict(:fecundity =&gt; 1))
+println(&quot;Lag-1 expanded model:&quot;)
+println(&quot;  Stages: &quot;, stage_names(aedes_lag1))
+println(&quot;  Matrix size: &quot;, size(to_matrix(aedes_lag1)))</code></pre><pre><code class="nohighlight hljs">Lag-1 expanded model:
+  Stages: [:egg_lag0, :larva_lag0, :pupa_lag0, :immature_adult_lag0, :reproductive_adult_lag0, :egg_lag1, :larva_lag1, :pupa_lag1, :immature_adult_lag1, :reproductive_adult_lag1]
+  Matrix size: (10, 10)</code></pre><p>The expansion produces 10 states (5 current + 5 lag-1 history), with fecundity drawing from the lag-1 copy and identity shift transitions on the sub-diagonal:</p><pre><code class="language-julia hljs">A_lag1 = to_matrix(aedes_lag1)
+λ_lag1 = lambda(A_lag1)
+println(&quot;Standard model:  λ = &quot;, round(λ_base, digits=4))
+println(&quot;Lag-1 model:     λ = &quot;, round(λ_lag1, digits=4))
+println(&quot;Reduction:       Δλ = &quot;, round(λ_base - λ_lag1, digits=4))</code></pre><pre><code class="nohighlight hljs">Standard model:  λ = 0.9795
+Lag-1 model:     λ = 0.9799
+Reduction:       Δλ = -0.0004</code></pre><h3 id="Verifying-Block-Structure"><a class="docs-heading-anchor" href="#Verifying-Block-Structure">Verifying Block Structure</a><a id="Verifying-Block-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Verifying-Block-Structure" title="Permalink"></a></h3><p>The augmented matrix has the expected block form:</p><p>&lt;span class=&quot;math display&quot;&gt;\ \mathbf{A}_{\text{aug}} = \begin{bmatrix} \mathbf{U} &amp; \mathbf{F} \ \mathbf{I} &amp; \mathbf{0} \end{bmatrix} \&lt;/span&gt;</p><pre><code class="language-julia hljs">n = 5  # number of original stages
+println(&quot;Top-left = U:     &quot;, A_lag1[1:n, 1:n] ≈ U_base)
+println(&quot;Top-right = F:    &quot;, A_lag1[1:n, n+1:2n] ≈ F_base)
+println(&quot;Bottom-left = I:  &quot;, A_lag1[n+1:2n, 1:n] ≈ Matrix{Float64}(I, n, n))
+println(&quot;Bottom-right = 0: &quot;, A_lag1[n+1:2n, n+1:2n] ≈ zeros(n, n))</code></pre><pre><code class="nohighlight hljs">Top-left = U:     true
+Top-right = F:    true
+Bottom-left = I:  true
+Bottom-right = 0: true</code></pre><h3 id="Categorical–Numerical-Agreement"><a class="docs-heading-anchor" href="#Categorical–Numerical-Agreement">Categorical–Numerical Agreement</a><a id="Categorical–Numerical-Agreement-1"></a><a class="docs-heading-anchor-permalink" href="#Categorical–Numerical-Agreement" title="Permalink"></a></h3><p>The categorical expansion via <code>lag_expand</code> + <code>to_matrix</code> produces the same augmented matrix as the direct numerical <code>expand_lag_matrix</code> function:</p><pre><code class="language-julia hljs">A_direct = expand_lag_matrix([U_base, F_base], TimeLagStructure(1))
+println(&quot;Categorical == Numerical: &quot;, A_lag1 ≈ A_direct)</code></pre><pre><code class="nohighlight hljs">Categorical == Numerical: true</code></pre><pre><code class="language-julia hljs">lag1_labels = String.(stage_names(aedes_lag1))
+heatmap(lag1_labels, lag1_labels, A_lag1,
+    title=&quot;Lag-1 augmented matrix (10 × 10)&quot;,
+    xlabel=&quot;From&quot;, ylabel=&quot;To&quot;,
+    color=:viridis, size=(600, 550), xrotation=45)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-2.png" alt/></p><h2 id="Time-Lag-Expansion-with-lag2"><a class="docs-heading-anchor" href="#Time-Lag-Expansion-with-lag2">Time-Lag Expansion with lag=2</a><a id="Time-Lag-Expansion-with-lag2-1"></a><a class="docs-heading-anchor-permalink" href="#Time-Lag-Expansion-with-lag2" title="Permalink"></a></h2><p>Increasing the lag further delays reproduction. We compare lag-0 (standard), lag-1, and lag-2 models:</p><pre><code class="language-julia hljs">aedes_lag2 = lag_expand(aedes_base, Dict(:fecundity =&gt; 2))
+A_lag2 = to_matrix(aedes_lag2)
+λ_lag2 = lambda(A_lag2)
+
+println(&quot;Lag comparison:&quot;)
+println(&quot;  lag=0: λ = &quot;, round(λ_base, digits=4), &quot;  (&quot;, size(A_base, 1), &quot; states)&quot;)
+println(&quot;  lag=1: λ = &quot;, round(λ_lag1, digits=4), &quot;  (&quot;, size(A_lag1, 1), &quot; states)&quot;)
+println(&quot;  lag=2: λ = &quot;, round(λ_lag2, digits=4), &quot;  (&quot;, size(A_lag2, 1), &quot; states)&quot;)
+println()
+println(&quot;Increasing delay reduces growth rate: &quot;,
+    λ_base &gt; λ_lag1 &gt; λ_lag2 ? &quot;✓ CONFIRMED&quot; : &quot;✗ UNEXPECTED&quot;)</code></pre><pre><code class="nohighlight hljs">Lag comparison:
+  lag=0: λ = 0.9795  (5 states)
+  lag=1: λ = 0.9799  (10 states)
+  lag=2: λ = 0.9803  (15 states)
+
+Increasing delay reduces growth rate: ✗ UNEXPECTED</code></pre><pre><code class="language-julia hljs">lags = [0, 1, 2]
+λ_vals = [λ_base, λ_lag1, λ_lag2]
+dims = [size(A_base, 1), size(A_lag1, 1), size(A_lag2, 1)]
+
+plot(lags, λ_vals,
+    xlabel=&quot;Fecundity lag (time steps)&quot;,
+    ylabel=&quot;λ (dominant eigenvalue)&quot;,
+    title=&quot;Effect of reproductive delay on growth rate&quot;,
+    marker=:circle, markersize=6, linewidth=2,
+    color=:steelblue, label=&quot;λ&quot;,
+    size=(500, 350))
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1 (replacement)&quot;)
+annotate!([(l, v + 0.003, text(&quot;$(dims[i]) states&quot;, 8, :center))
+    for (i, (l, v)) in enumerate(zip(lags, λ_vals))])</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-3.png" alt/></p><h2 id="Diapause-Model"><a class="docs-heading-anchor" href="#Diapause-Model">Diapause Model</a><a id="Diapause-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Diapause-Model" title="Permalink"></a></h2><p>Under short photoperiod, <em>Ae. albopictus</em> females produce diapausing eggs with a thick chorion that withstands desiccation and cold. We expand the egg stage into <strong>active</strong> and <strong>diapausing</strong> sub-states, giving a 6-stage model.</p><h3 id="Photoperiod-Dependent-Diapause-Fraction"><a class="docs-heading-anchor" href="#Photoperiod-Dependent-Diapause-Fraction">Photoperiod-Dependent Diapause Fraction</a><a id="Photoperiod-Dependent-Diapause-Fraction-1"></a><a class="docs-heading-anchor-permalink" href="#Photoperiod-Dependent-Diapause-Fraction" title="Permalink"></a></h3><pre><code class="language-julia hljs">function diapause_fraction(photoperiod)
+    # Sigmoid switch: 50% diapause at 13.5 hours
+    return 1.0 / (1.0 + exp(5.0 * (photoperiod - 13.5)))
+end
+
+photoperiods = 10.0:0.1:17.0
+plot(Base.collect(photoperiods), diapause_fraction.(photoperiods),
+    xlabel=&quot;Photoperiod (hours)&quot;,
+    ylabel=&quot;Diapause fraction&quot;,
+    title=&quot;Photoperiod-dependent diapause induction&quot;,
+    linewidth=2, color=:darkblue, label=false,
+    size=(500, 350))
+vline!([13.5], linestyle=:dash, color=:gray, label=&quot;Critical photoperiod (13.5 h)&quot;)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-4.png" alt/></p><h3 id="Building-the-6-Stage-Model"><a class="docs-heading-anchor" href="#Building-the-6-Stage-Model">Building the 6-Stage Model</a><a id="Building-the-6-Stage-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Building-the-6-Stage-Model" title="Permalink"></a></h3><p>Since diapause only affects eggs, we expand the egg stage into <code>active_egg</code> and <code>diapause_egg</code>, giving 6 stages. We define the <em>structure</em> of the 6-stage model once at reference conditions (25 °C), merging survival and fecundity sub-kernels with <code>⊕</code>. The <code>make_aedes_diapause</code> function then reparameterizes this reference VPN for any <code>(photoperiod, temperature)</code> combination using <code>map_values</code> for survival and <code>⊘</code> for fecundity — without rebuilding the transition structure from scratch.</p><pre><code class="language-julia hljs"># Diapause-specific parameters
+dev_dia_egg = 0.01    # diapause egg development rate (reference at 25°C)
+μ_dia_egg   = 0.005   # winter-hardy: low mortality
+resume_ref  = 0.2     # diapause resumption rate (reference at 25°C)
+
+diapause_stages = [:active_egg, :diapause_egg, :larva, :pupa, :immature_adult, :reproductive_adult]
+
+# Reference survival sub-kernel (at 25°C, temp_scale = 1.0)
+aedes_dia_survival_ref = ValuedProjectionNet(diapause_stages,
+    :survival =&gt; [
+        (:active_egg =&gt; :active_egg)   =&gt; (1 - dev_egg) * (1 - μ_egg),
+        (:active_egg =&gt; :larva)        =&gt; dev_egg       * (1 - μ_egg),
+        (:diapause_egg =&gt; :diapause_egg) =&gt; (1 - dev_dia_egg - resume_ref) * (1 - μ_dia_egg),
+        (:diapause_egg =&gt; :active_egg)   =&gt; resume_ref * (1 - μ_dia_egg),
+        (:larva =&gt; :larva) =&gt; (1 - dev_larva) * (1 - μ_larva),
+        (:larva =&gt; :pupa)  =&gt; dev_larva       * (1 - μ_larva),
+        (:pupa  =&gt; :pupa)  =&gt; (1 - dev_pupa)  * (1 - μ_pupa),
+        (:pupa  =&gt; :immature_adult) =&gt; dev_pupa * (1 - μ_pupa),
+        (:immature_adult =&gt; :immature_adult) =&gt; (1 - dev_immad) * (1 - μ_immad),
+        (:immature_adult =&gt; :reproductive_adult) =&gt; dev_immad   * (1 - μ_immad),
+        (:reproductive_adult =&gt; :reproductive_adult) =&gt; (1 - dev_adult) * (1 - μ_adult)])
+
+# Reference fecundity sub-kernel (total fecundity to active_egg; diapause_egg placeholder)
+aedes_dia_fecundity_ref = ValuedProjectionNet(diapause_stages,
+    :fecundity =&gt; [
+        (:reproductive_adult =&gt; :active_egg)   =&gt; fecundity,
+        (:reproductive_adult =&gt; :diapause_egg) =&gt; 0.0])
+
+# Merge with ⊕ — structure is defined once
+aedes_dia_ref = aedes_dia_survival_ref ⊕ aedes_dia_fecundity_ref</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:2
+  Src = 1:2
+  Tgt = 1:2
+  Name = 1:0
+  src_t : Src → T = [1, 2]
+  src_s : Src → S = [1, 1]
+  tgt_t : Tgt → T = [1, 2]
+  tgt_s : Tgt → S = [1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:survival, :fecundity], [:active_egg, :diapause_egg, :larva, :pupa, :immature_adult, :reproductive_adult], Dict(:survival =&gt; [(:active_egg =&gt; :active_egg) =&gt; 0.784, (:active_egg =&gt; :larva) =&gt; 0.196, (:diapause_egg =&gt; :diapause_egg) =&gt; 0.78605, (:diapause_egg =&gt; :active_egg) =&gt; 0.199, (:larva =&gt; :larva) =&gt; 0.8927999999999999, (:larva =&gt; :pupa) =&gt; 0.06720000000000001, (:pupa =&gt; :pupa) =&gt; 0.6566, (:pupa =&gt; :immature_adult) =&gt; 0.3234, (:immature_adult =&gt; :immature_adult) =&gt; 0.8341999999999999, (:immature_adult =&gt; :reproductive_adult) =&gt; 0.1358, (:reproductive_adult =&gt; :reproductive_adult) =&gt; 0.93575], :fecundity =&gt; [(:reproductive_adult =&gt; :active_egg) =&gt; 0.06, (:reproductive_adult =&gt; :diapause_egg) =&gt; 0.0]))</code></pre><pre><code class="language-julia hljs">function make_aedes_diapause(; photoperiod=15.0, temperature=25.0)
+    p_dia = diapause_fraction(photoperiod)
+
+    # Temperature-dependent scaling (linear approximation around 25°C)
+    temp_scale = clamp((temperature - 10.0) / 15.0, 0.0, 1.5)
+
+    # Temperature-scaled development rates
+    d_egg   = dev_egg   * temp_scale
+    d_larva = dev_larva * temp_scale
+    d_pupa  = dev_pupa  * temp_scale
+    d_immad = dev_immad * temp_scale
+    d_adult = dev_adult * temp_scale
+    d_dia   = dev_dia_egg * temp_scale
+    resume  = resume_ref  * temp_scale
+    fec     = 0.5 * 8.0 * d_adult * temp_scale
+
+    # Rescale survival via map_values (each transition recomputed for temperature)
+    surv = Dict(
+        (:active_egg, :active_egg) =&gt; (1 - d_egg) * (1 - μ_egg),
+        (:active_egg, :larva)      =&gt; d_egg       * (1 - μ_egg),
+        (:diapause_egg, :diapause_egg) =&gt; (1 - d_dia - resume) * (1 - μ_dia_egg),
+        (:diapause_egg, :active_egg)   =&gt; resume * (1 - μ_dia_egg),
+        (:larva, :larva) =&gt; (1 - d_larva) * (1 - μ_larva),
+        (:larva, :pupa)  =&gt; d_larva       * (1 - μ_larva),
+        (:pupa, :pupa)   =&gt; (1 - d_pupa)  * (1 - μ_pupa),
+        (:pupa, :immature_adult) =&gt; d_pupa * (1 - μ_pupa),
+        (:immature_adult, :immature_adult) =&gt; (1 - d_immad) * (1 - μ_immad),
+        (:immature_adult, :reproductive_adult) =&gt; d_immad   * (1 - μ_immad),
+        (:reproductive_adult, :reproductive_adult) =&gt; (1 - d_adult) * (1 - μ_adult))
+
+    scaled = map_values(aedes_dia_ref, :survival) do (from, to), _
+        surv[(from, to)]
+    end
+
+    # Apply photoperiod-dependent diapause fraction to fecundity via ⊘
+    scaled ⊘ (:fecundity =&gt; ((from, to), _) -&gt;
+        to == :active_egg ? fec * (1 - p_dia) : fec * p_dia)
+end</code></pre><pre><code class="nohighlight hljs">make_aedes_diapause (generic function with 1 method)</code></pre><p>Under summer conditions (long days, warm) most eggs are active:</p><pre><code class="language-julia hljs">aedes_summer = make_aedes_diapause(photoperiod=15.0, temperature=25.0)
+A_summer = to_matrix(aedes_summer)
+λ_summer = lambda(A_summer)
+
+println(&quot;6-stage diapause model (summer: 15h, 25°C):&quot;)
+println(&quot;  Stages: &quot;, stage_names(aedes_summer))
+println(&quot;  λ = &quot;, round(λ_summer, digits=4))
+println(&quot;  Base 5-stage λ = &quot;, round(λ_base, digits=4))
+println(&quot;  Diapause fraction: &quot;, round(diapause_fraction(15.0), digits=4), &quot; (minimal)&quot;)</code></pre><pre><code class="nohighlight hljs">6-stage diapause model (summer: 15h, 25°C):
+  Stages: [:active_egg, :diapause_egg, :larva, :pupa, :immature_adult, :reproductive_adult]
+  λ = 0.9795
+  Base 5-stage λ = 0.9795
+  Diapause fraction: 0.0006 (minimal)</code></pre><pre><code class="language-julia hljs">dia_labels = String.(stage_names(aedes_summer))
+heatmap(dia_labels, dia_labels, A_summer,
+    title=&quot;Diapause model — summer (15h, 25°C)&quot;,
+    xlabel=&quot;From stage&quot;, ylabel=&quot;To stage&quot;,
+    color=:viridis, size=(550, 500), xrotation=45)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-5.png" alt/></p><h2 id="Photoperiod-Sweep"><a class="docs-heading-anchor" href="#Photoperiod-Sweep">Photoperiod Sweep</a><a id="Photoperiod-Sweep-1"></a><a class="docs-heading-anchor-permalink" href="#Photoperiod-Sweep" title="Permalink"></a></h2><p>As day length decreases from summer to autumn, the diapause fraction increases and population dynamics shift. We sweep photoperiod from 10 to 16 hours at constant 25 °C:</p><pre><code class="language-julia hljs">photo_range = 10.0:0.25:16.0
+λ_photo = [lambda(to_matrix(make_aedes_diapause(photoperiod=ph, temperature=25.0)))
+           for ph in photo_range]</code></pre><pre><code class="nohighlight hljs">25-element Vector{Float64}:
+ 0.9799743932856834
+ 0.979974393256307
+ 0.9799743931537785
+ 0.979974392795913
+ 0.9799743915468513
+ 0.9799743871872413
+ 0.9799743719712753
+ 0.9799743188692759
+ 0.9799741336095324
+ 0.9799734880165865
+ ⋮
+ 0.9794945977512561
+ 0.9794640373618347
+ 0.9794545500135411
+ 0.9794517664115753
+ 0.9794509633874318
+ 0.9794507328616436
+ 0.9794506667774279
+ 0.9794506478409054
+ 0.9794506424152475</code></pre><pre><code class="language-julia hljs">plot(Base.collect(photo_range), λ_photo,
+    xlabel=&quot;Photoperiod (hours of daylight)&quot;,
+    ylabel=&quot;λ (population growth rate)&quot;,
+    title=&quot;Ae. albopictus growth rate vs photoperiod (25°C)&quot;,
+    linewidth=2, color=:darkblue, label=&quot;Diapause model&quot;,
+    size=(600, 400))
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1 (replacement)&quot;)
+hline!([λ_base], linestyle=:dot, color=:gray, label=&quot;λ base (no diapause)&quot;)
+vline!([13.5], linestyle=:dot, color=:orange, label=&quot;Critical photoperiod&quot;)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-6.png" alt/></p><p>Under long days (\&gt;14 h), very few eggs enter diapause and growth rate tracks the base model. As photoperiod drops below 13 hours, an increasing fraction of eggs are shunted into the slow-developing diapause pool, reducing λ.</p><h2 id="Seasonal-Analysis"><a class="docs-heading-anchor" href="#Seasonal-Analysis">Seasonal Analysis</a><a id="Seasonal-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Seasonal-Analysis" title="Permalink"></a></h2><p>Real populations experience both photoperiod and temperature changes across seasons. We define four representative seasonal conditions for a temperate European site (~45°N):</p><pre><code class="language-julia hljs">seasons = [
+    (name=&quot;Spring&quot;,  photoperiod=13.0, temperature=15.0),
+    (name=&quot;Summer&quot;,  photoperiod=15.5, temperature=25.0),
+    (name=&quot;Autumn&quot;,  photoperiod=11.5, temperature=15.0),
+    (name=&quot;Winter&quot;,  photoperiod=9.5,  temperature=5.0)]
+
+println(rpad(&quot;Season&quot;, 10), rpad(&quot;Photo(h)&quot;, 12), rpad(&quot;Temp(°C)&quot;, 12),
+    rpad(&quot;Diap.frac&quot;, 12), &quot;λ&quot;)
+println(&quot;-&quot;^56)
+for s in seasons
+    vnet = make_aedes_diapause(photoperiod=s.photoperiod, temperature=s.temperature)
+    A = to_matrix(vnet)
+    λ = lambda(A)
+    dp = diapause_fraction(s.photoperiod)
+    println(rpad(s.name, 10), rpad(round(s.photoperiod, digits=1), 12),
+        rpad(round(s.temperature, digits=1), 12),
+        rpad(round(dp, digits=3), 12),
+        round(λ, digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Season    Photo(h)    Temp(°C)    Diap.frac   λ
+--------------------------------------------------------
+Spring    13.0        15.0        0.924       0.9634
+Summer    15.5        25.0        0.0         0.9795
+Autumn    11.5        15.0        1.0         0.9636
+Winter    9.5         5.0         1.0         0.995</code></pre><pre><code class="language-julia hljs">season_names = [s.name for s in seasons]
+λ_seasons = Float64[]
+for s in seasons
+    A = to_matrix(make_aedes_diapause(photoperiod=s.photoperiod, temperature=s.temperature))
+    push!(λ_seasons, lambda(A))
+end
+
+bar(season_names, λ_seasons,
+    ylabel=&quot;λ (growth rate)&quot;,
+    title=&quot;Seasonal population growth of Ae. albopictus&quot;,
+    color=[:green, :orange, :brown, :steelblue],
+    label=false, size=(500, 350))
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1&quot;, linewidth=2)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-7.png" alt/></p><p>The population grows in summer, barely maintains in spring/autumn, and declines in winter — but diapause eggs persist through winter with very low mortality, enabling spring recovery.</p><h2 id="Combined:-Lag-Diapause"><a class="docs-heading-anchor" href="#Combined:-Lag-Diapause">Combined: Lag + Diapause</a><a id="Combined:-Lag-Diapause-1"></a><a class="docs-heading-anchor-permalink" href="#Combined:-Lag-Diapause" title="Permalink"></a></h2><p>We now combine both categorical operations. The <code>lag_expand</code> function applies to the 6-stage diapause model, expanding it to 12 states (6 current + 6 lag-1 history):</p><pre><code class="language-julia hljs">aedes_dia_lag1 = lag_expand(aedes_summer, Dict(:fecundity =&gt; 1))
+A_dia_lag1 = to_matrix(aedes_dia_lag1)
+λ_dia_lag1 = lambda(A_dia_lag1)
+
+println(&quot;Combined lag + diapause model:&quot;)
+println(&quot;  Stages: &quot;, stage_names(aedes_dia_lag1))
+println(&quot;  Matrix size: &quot;, size(A_dia_lag1))
+println(&quot;  λ = &quot;, round(λ_dia_lag1, digits=4))
+println()
+println(&quot;Comparison:&quot;)
+println(&quot;  Base 5-stage:           λ = &quot;, round(λ_base, digits=4))
+println(&quot;  Lag-1 only (5-stage):   λ = &quot;, round(λ_lag1, digits=4))
+println(&quot;  Diapause only (6-stage): λ = &quot;, round(λ_summer, digits=4))
+println(&quot;  Diapause + Lag-1:       λ = &quot;, round(λ_dia_lag1, digits=4))</code></pre><pre><code class="nohighlight hljs">Combined lag + diapause model:
+  Stages: [:active_egg_lag0, :diapause_egg_lag0, :larva_lag0, :pupa_lag0, :immature_adult_lag0, :reproductive_adult_lag0, :active_egg_lag1, :diapause_egg_lag1, :larva_lag1, :pupa_lag1, :immature_adult_lag1, :reproductive_adult_lag1]
+  Matrix size: (12, 12)
+  λ = 0.9799
+
+Comparison:
+  Base 5-stage:           λ = 0.9795
+  Lag-1 only (5-stage):   λ = 0.9799
+  Diapause only (6-stage): λ = 0.9795
+  Diapause + Lag-1:       λ = 0.9799</code></pre><h3 id="Block-Structure-Verification"><a class="docs-heading-anchor" href="#Block-Structure-Verification">Block Structure Verification</a><a id="Block-Structure-Verification-1"></a><a class="docs-heading-anchor-permalink" href="#Block-Structure-Verification" title="Permalink"></a></h3><pre><code class="language-julia hljs">n6 = 6
+U_dia = transition_matrix(aedes_summer, :survival)
+F_dia = transition_matrix(aedes_summer, :fecundity)
+
+println(&quot;Top-left = U:     &quot;, A_dia_lag1[1:n6, 1:n6] ≈ U_dia)
+println(&quot;Top-right = F:    &quot;, A_dia_lag1[1:n6, n6+1:2n6] ≈ F_dia)
+println(&quot;Bottom-left = I:  &quot;, A_dia_lag1[n6+1:2n6, 1:n6] ≈ Matrix{Float64}(I, n6, n6))
+println(&quot;Bottom-right = 0: &quot;, A_dia_lag1[n6+1:2n6, n6+1:2n6] ≈ zeros(n6, n6))</code></pre><pre><code class="nohighlight hljs">Top-left = U:     true
+Top-right = F:    true
+Bottom-left = I:  true
+Bottom-right = 0: true</code></pre><h3 id="Categorical–Numerical-Agreement-(Combined)"><a class="docs-heading-anchor" href="#Categorical–Numerical-Agreement-(Combined)">Categorical–Numerical Agreement (Combined)</a><a id="Categorical–Numerical-Agreement-(Combined)-1"></a><a class="docs-heading-anchor-permalink" href="#Categorical–Numerical-Agreement-(Combined)" title="Permalink"></a></h3><pre><code class="language-julia hljs">A_dia_direct = expand_lag_matrix([U_dia, F_dia], TimeLagStructure(1))
+println(&quot;Categorical == Numerical (diapause + lag): &quot;, A_dia_lag1 ≈ A_dia_direct)</code></pre><pre><code class="nohighlight hljs">Categorical == Numerical (diapause + lag): true</code></pre><pre><code class="language-julia hljs">combo_labels = String.(stage_names(aedes_dia_lag1))
+heatmap(combo_labels, combo_labels, A_dia_lag1,
+    title=&quot;Combined: diapause + lag-1 (12 × 12)&quot;,
+    xlabel=&quot;From&quot;, ylabel=&quot;To&quot;,
+    color=:viridis, size=(650, 600), xrotation=45)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-8.png" alt/></p><h3 id="Seasonal-Comparison-with-Lag"><a class="docs-heading-anchor" href="#Seasonal-Comparison-with-Lag">Seasonal Comparison with Lag</a><a id="Seasonal-Comparison-with-Lag-1"></a><a class="docs-heading-anchor-permalink" href="#Seasonal-Comparison-with-Lag" title="Permalink"></a></h3><pre><code class="language-julia hljs">println(rpad(&quot;Season&quot;, 10), rpad(&quot;λ (no lag)&quot;, 14), rpad(&quot;λ (lag=1)&quot;, 14), &quot;Δλ&quot;)
+println(&quot;-&quot;^48)
+for s in seasons
+    vnet = make_aedes_diapause(photoperiod=s.photoperiod, temperature=s.temperature)
+    A_nolag = to_matrix(vnet)
+    vnet_lag = lag_expand(vnet, Dict(:fecundity =&gt; 1))
+    A_wlag = to_matrix(vnet_lag)
+    λ_nl = lambda(A_nolag)
+    λ_wl = lambda(A_wlag)
+    println(rpad(s.name, 10),
+        rpad(round(λ_nl, digits=4), 14),
+        rpad(round(λ_wl, digits=4), 14),
+        round(λ_nl - λ_wl, digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Season    λ (no lag)    λ (lag=1)     Δλ
+------------------------------------------------
+Spring    0.9634        0.9636        -0.0002
+Summer    0.9795        0.9799        -0.0004
+Autumn    0.9636        0.9638        -0.0002
+Winter    0.995         0.995         0.0</code></pre><h2 id="Latitudinal-Stratification"><a class="docs-heading-anchor" href="#Latitudinal-Stratification">Latitudinal Stratification</a><a id="Latitudinal-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Latitudinal-Stratification" title="Permalink"></a></h2><p><em>Ae. albopictus</em> has expanded across southern Europe. We model three latitudes with distinct temperature and photoperiod regimes, connected by dispersal:</p><pre><code class="language-julia hljs"># Representative summer conditions by latitude
+latitudes = [
+    (name=&quot;Rome (42°N)&quot;,      photoperiod=15.0, temperature=28.0),
+    (name=&quot;Paris (49°N)&quot;,     photoperiod=16.0, temperature=22.0),
+    (name=&quot;Stockholm (59°N)&quot;, photoperiod=18.5, temperature=18.0)]
+
+println(&quot;Latitude-specific conditions (summer):&quot;)
+println(rpad(&quot;Location&quot;, 22), rpad(&quot;Photo(h)&quot;, 12), rpad(&quot;Temp(°C)&quot;, 12),
+    rpad(&quot;Diap.frac&quot;, 12), &quot;λ_local&quot;)
+println(&quot;-&quot;^68)
+for loc in latitudes
+    vnet = make_aedes_diapause(photoperiod=loc.photoperiod, temperature=loc.temperature)
+    A = to_matrix(vnet)
+    λ = lambda(A)
+    dp = diapause_fraction(loc.photoperiod)
+    println(rpad(loc.name, 22), rpad(round(loc.photoperiod, digits=1), 12),
+        rpad(round(loc.temperature, digits=1), 12),
+        rpad(round(dp, digits=4), 12),
+        round(λ, digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Latitude-specific conditions (summer):
+Location              Photo(h)    Temp(°C)    Diap.frac   λ_local
+--------------------------------------------------------------------
+Rome (42°N)           15.0        28.0        0.0006      0.9878
+Paris (49°N)          16.0        22.0        0.0         0.9721
+Stockholm (59°N)      18.5        18.0        0.0         0.9641</code></pre><h3 id="Dispersal-Connected-Metapopulation"><a class="docs-heading-anchor" href="#Dispersal-Connected-Metapopulation">Dispersal-Connected Metapopulation</a><a id="Dispersal-Connected-Metapopulation-1"></a><a class="docs-heading-anchor-permalink" href="#Dispersal-Connected-Metapopulation" title="Permalink"></a></h3><p>We use <code>stratify</code> with a stepping-stone dispersal matrix (south → north gradient) to model range expansion:</p><pre><code class="language-julia hljs"># Local matrices for each latitude
+A_locals = [to_matrix(make_aedes_diapause(photoperiod=loc.photoperiod,
+                                           temperature=loc.temperature))
+            for loc in latitudes]
+
+# Stepping-stone dispersal: small probability of northward/southward movement
+d = 0.02   # daily dispersal probability
+D_spatial = [(1-d)  d/2   0.0;
+              d/2  (1-d)  d/2;
+              0.0   d/2  (1-d)]
+
+# Heterogeneous spatial stratification
+A_meta = stratify(A_locals, D_spatial)
+λ_meta = lambda(A_meta)
+
+println(&quot;Metapopulation model (3 latitudes × 6 stages):&quot;)
+println(&quot;  Matrix size: &quot;, size(A_meta))
+println(&quot;  λ_metapopulation = &quot;, round(λ_meta, digits=4))
+println()
+println(&quot;Local growth rates:&quot;)
+for (i, loc) in enumerate(latitudes)
+    println(&quot;  &quot;, loc.name, &quot;: λ = &quot;, round(lambda(A_locals[i]), digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Metapopulation model (3 latitudes × 6 stages):
+  Matrix size: (18, 18)
+  λ_metapopulation = 0.9736
+
+Local growth rates:
+  Rome (42°N): λ = 0.9878
+  Paris (49°N): λ = 0.9721
+  Stockholm (59°N): λ = 0.9641</code></pre><h3 id="Dispersal-Rate-Sweep"><a class="docs-heading-anchor" href="#Dispersal-Rate-Sweep">Dispersal Rate Sweep</a><a id="Dispersal-Rate-Sweep-1"></a><a class="docs-heading-anchor-permalink" href="#Dispersal-Rate-Sweep" title="Permalink"></a></h3><p>How does dispersal rate affect the metapopulation growth rate? We sweep from isolated (d=0) to well-mixed:</p><pre><code class="language-julia hljs">d_range = 0.0:0.005:0.15
+λ_dispersal = Float64[]
+for d_val in d_range
+    D = [(1-d_val)   d_val/2   0.0;
+          d_val/2   (1-d_val)  d_val/2;
+          0.0        d_val/2   (1-d_val)]
+    A = stratify(A_locals, D)
+    push!(λ_dispersal, lambda(A))
+end</code></pre><pre><code class="language-julia hljs">plot(Base.collect(d_range), λ_dispersal,
+    xlabel=&quot;Daily dispersal rate&quot;,
+    ylabel=&quot;λ (metapopulation growth rate)&quot;,
+    title=&quot;Range expansion: effect of dispersal on Ae. albopictus&quot;,
+    linewidth=2, color=:darkred, label=&quot;Metapopulation λ&quot;,
+    size=(600, 400))
+for (i, loc) in enumerate(latitudes)
+    hline!([lambda(A_locals[i])], linestyle=:dot, label=&quot;λ $(loc.name)&quot;,
+        color=[:orange, :green, :blue][i])
+end
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1&quot;, linewidth=1)</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-9.png" alt/></p><p>At zero dispersal, the metapopulation λ equals the maximum local λ (Rome). As dispersal increases, productive southern populations subsidize northern sinks, slightly reducing the overall growth rate but enabling persistence at higher latitudes.</p><h3 id="Stable-Latitude-Distribution"><a class="docs-heading-anchor" href="#Stable-Latitude-Distribution">Stable Latitude Distribution</a><a id="Stable-Latitude-Distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Stable-Latitude-Distribution" title="Permalink"></a></h3><p>The right eigenvector reveals where population density concentrates:</p><pre><code class="language-julia hljs">function stable_stratum_freq(A_strat, n_stages)
+    ev = eigen(A_strat)
+    idx_max = argmax(real.(ev.values))
+    w = real.(ev.vectors[:, idx_max])
+    w = w ./ sum(w)
+    n_strata = size(A_strat, 1) ÷ n_stages
+    return [sum(w[((s-1)*n_stages+1):(s*n_stages)]) for s in 1:n_strata]
+end
+
+freq = stable_stratum_freq(A_meta, 6)
+loc_names = [l.name for l in latitudes]
+bar(loc_names, freq,
+    ylabel=&quot;Stable population proportion&quot;,
+    title=&quot;Latitudinal distribution at equilibrium (d = $(d))&quot;,
+    color=[:orange, :green, :steelblue],
+    label=false, size=(500, 350))</code></pre><p><img src="../18_aedes_diapause_lag_files/embedded-10.png" alt/></p><h3 id="Combined:-Lag-Diapause-Latitude"><a class="docs-heading-anchor" href="#Combined:-Lag-Diapause-Latitude">Combined: Lag + Diapause + Latitude</a><a id="Combined:-Lag-Diapause-Latitude-1"></a><a class="docs-heading-anchor-permalink" href="#Combined:-Lag-Diapause-Latitude" title="Permalink"></a></h3><p>All three operations compose. We apply <code>lag_expand</code> to each latitude’s diapause model before spatial stratification:</p><pre><code class="language-julia hljs">A_locals_lag = Float64[]
+vnets_lag = []
+for loc in latitudes
+    vnet = make_aedes_diapause(photoperiod=loc.photoperiod, temperature=loc.temperature)
+    vnet_l = lag_expand(vnet, Dict(:fecundity =&gt; 1))
+    push!(vnets_lag, vnet_l)
+end
+A_locals_lag_mat = [to_matrix(v) for v in vnets_lag]
+
+n_lag = size(A_locals_lag_mat[1], 1)  # 12 per location
+D_spatial_lag = [(1-d)  d/2   0.0;
+                  d/2  (1-d)  d/2;
+                  0.0   d/2  (1-d)]
+
+A_full = stratify(A_locals_lag_mat, D_spatial_lag)
+λ_full = lambda(A_full)
+
+println(&quot;Full model: lag + diapause + 3 latitudes&quot;)
+println(&quot;  Matrix size: &quot;, size(A_full), &quot; (12 states × 3 locations = 36)&quot;)
+println(&quot;  λ = &quot;, round(λ_full, digits=4))
+println()
+println(&quot;Comparison:&quot;)
+println(&quot;  Diapause + latitude (no lag): λ = &quot;, round(λ_meta, digits=4))
+println(&quot;  Diapause + lag + latitude:    λ = &quot;, round(λ_full, digits=4))</code></pre><pre><code class="nohighlight hljs">Full model: lag + diapause + 3 latitudes
+  Matrix size: (36, 36) (12 states × 3 locations = 36)
+  λ = 0.9739
+
+Comparison:
+  Diapause + latitude (no lag): λ = 0.9736
+  Diapause + lag + latitude:    λ = 0.9739</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated a suite of composable categorical operations applied to the <em>Ae. albopictus</em> lifecycle:</p><ol><li><strong><code>⊕</code> (merge)</strong> — assembles a lifecycle from independent sub-kernels (e.g., <code>aedes_survival ⊕ aedes_fecundity</code>), making the additive decomposition A = U + F explicit at construction time</li><li><strong><code>⊘</code> / <code>map_values</code></strong> — reparameterizes a reference VPN for new environmental conditions; <code>⊘</code> concisely applies photoperiod-dependent diapause fractions to fecundity, while <code>map_values</code> do-blocks handle complex per-transition survival recomputation</li><li><strong><code>lag_expand</code></strong> — models reproductive delay by expanding the state space with time-lagged copies; fecundity draws from history rather than the current state, reducing λ proportional to lag depth</li><li><strong><code>stratify</code></strong> — models diapause as egg-state duplication with photoperiod-dependent coupling, and spatial structure as latitude-specific heterogeneous stratification with stepping-stone dispersal</li><li><strong><code>compose_transitions</code></strong> — verifies the additive decomposition A = U + F, enabling targeted modification of sub-kernels</li></ol><p>The key categorical insight is that these operations are <strong>independent and composable</strong>: <code>⊕</code> assembles sub-kernels, <code>⊘</code>/<code>map_values</code> reparameterize them for different conditions, <code>lag_expand</code> restructures temporal dependence, and <code>stratify</code> restructures the state space. Applying them in sequence (assemble → reparameterize → lag → spatial) builds a 36-state metapopulation model from modular, interpretable building blocks — each layer can be modified without rewriting the full model.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../17_tritrophic_aphid_parasitoid/">« Tritrophic Composition via Wiring Diagrams</a><a class="docs-footer-nextpage" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

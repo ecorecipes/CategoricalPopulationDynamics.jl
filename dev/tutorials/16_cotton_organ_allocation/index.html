@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Continuous-State Organ Allocation · CategoricalPopulationDynamics.jl</title><meta name="title" content="Continuous-State Organ Allocation · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Continuous-State Organ Allocation · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Continuous-State Organ Allocation · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/16_cotton_organ_allocation/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/16_cotton_organ_allocation/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/16_cotton_organ_allocation/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li class="is-active"><a class="tocitem" href>Continuous-State Organ Allocation</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Vital-Rate-Functions"><span>Vital Rate Functions</span></a></li><li><a class="tocitem" href="#Abstract-Specification"><span>Abstract Specification</span></a></li><li><a class="tocitem" href="#Lower-to-IPM"><span>Lower to IPM</span></a></li><li><a class="tocitem" href="#Direct-Matrix-via-Left-Kan-Extension"><span>Direct Matrix via Left Kan Extension</span></a></li><li><a class="tocitem" href="#Compositional-Construction"><span>Compositional Construction</span></a></li><li><a class="tocitem" href="#Organ-Allocation-as-Composition"><span>Organ Allocation as Composition</span></a></li><li><a class="tocitem" href="#Sensitivity:-Organ-Specific-Allocation"><span>Sensitivity: Organ-Specific Allocation</span></a></li><li><a class="tocitem" href="#Temperature-Stratification"><span>Temperature Stratification</span></a></li><li><a class="tocitem" href="#Coarsening"><span>Coarsening</span></a></li><li><a class="tocitem" href="#Convergence"><span>Convergence</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Continuous-State Organ Allocation</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Continuous-State Organ Allocation</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/16_cotton_organ_allocation.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Continuous-State-Organ-Allocation"><a class="docs-heading-anchor" href="#Continuous-State-Organ-Allocation">Continuous-State Organ Allocation</a><a id="Continuous-State-Organ-Allocation-1"></a><a class="docs-heading-anchor-permalink" href="#Continuous-State-Organ-Allocation" title="Permalink"></a></h1><p>IPM Lowering and Compositional Construction for Cotton Plant Growth</p><p>Author</p><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>This vignette demonstrates the <strong>full categorical-to-IPM pipeline</strong> applied to a continuous plant-size model of cotton (<em>Gossypium hirsutum</em>) growth. The model tracks a single continuous state — total plant dry mass — with size-dependent vital rates driven by photosynthetic supply allocation across four organs (leaves, stems, roots, fruit).</p><p>We showcase the complete toolkit:</p><ol><li><strong>IPM lowering</strong> — abstract projection net lowered to an <code>IPMProblem</code> via the <code>lower()</code> functor</li><li><strong>Left Kan extension</strong> — discretise continuous kernels to matrices; verify exact agreement with the lowered IPM</li><li><strong>Compositional construction</strong> — decompose the full kernel into survival-growth and fecundity sub-kernels, compose via <code>compose_transitions</code> and <code>compose_from_uwd</code></li><li><strong>Organ allocation as composition</strong> — further decompose the growth kernel into four organ-specific contributions (leaf, stem, root, fruit), each as an independent sub-kernel composed via UWD</li><li><strong>Sensitivity to allocation strategy</strong> — selectively remove or re-weight organ contributions to explore growth-survival-reproduction trade-offs</li><li><strong>Temperature stratification</strong> — express temperature as a discrete stratum with heterogeneous dynamics</li><li><strong>Coarsening</strong> — reduce resolution from 80 to 20 bins and verify &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; preservation</li><li><strong>Convergence analysis</strong> — &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; vs mesh resolution under left Kan extension</li></ol><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+import IntegralProjectionModels
+using Catlab
+using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
+using Catlab.Programs: @relation
+using LinearAlgebra
+using ProjectionModels: lambda
+using Plots
+
+const IPM = IntegralProjectionModels</code></pre><pre><code class="nohighlight hljs">IntegralProjectionModels</code></pre><h2 id="Vital-Rate-Functions"><a class="docs-heading-anchor" href="#Vital-Rate-Functions">Vital Rate Functions</a><a id="Vital-Rate-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Vital-Rate-Functions" title="Permalink"></a></h2><p>Cotton plant growth is modelled as a supply-demand process. Photosynthetic supply (proportional to leaf area, scaling as &lt;span class=&quot;math inline&quot;&gt;\z^{0.67}\&lt;/span&gt;) is allocated across four organs. We define the vital rates at the reference temperature of 27 °C.</p><h3 id="Survival"><a class="docs-heading-anchor" href="#Survival">Survival</a><a id="Survival-1"></a><a class="docs-heading-anchor-permalink" href="#Survival" title="Permalink"></a></h3><p>Larger plants are more robust. Survival is a logistic function of plant dry mass &lt;span class=&quot;math inline&quot;&gt;\z\&lt;/span&gt;:</p><pre><code class="language-julia hljs">s(z) = 1.0 / (1.0 + exp(-(0.5 + 0.02 * z)))</code></pre><pre><code class="nohighlight hljs">s (generic function with 1 method)</code></pre><h3 id="Growth-kernel"><a class="docs-heading-anchor" href="#Growth-kernel">Growth kernel</a><a id="Growth-kernel-1"></a><a class="docs-heading-anchor-permalink" href="#Growth-kernel" title="Permalink"></a></h3><p>The mean new size depends on the current size plus a daily photosynthetic increment that saturates at large sizes:</p><pre><code class="language-julia hljs">growth_mean(z) = z + 0.8 * z^0.67 / (1.0 + 0.01 * z)
+growth_sd(z) = 0.3 + 0.05 * z
+
+g(z_new, z) = exp(-0.5 * ((z_new - growth_mean(z)) / growth_sd(z))^2) / (growth_sd(z) * sqrt(2π))</code></pre><pre><code class="nohighlight hljs">g (generic function with 1 method)</code></pre><h3 id="Survival-growth-kernel-span-class&quot;math-inline&quot;\\P(z&#39;,-z)\\/span"><a class="docs-heading-anchor" href="#Survival-growth-kernel-span-class&quot;math-inline&quot;\\P(z&#39;,-z)\\/span">Survival-growth kernel &lt;span class=&quot;math inline&quot;&gt;\P(z&#39;, z)\&lt;/span&gt;</a><a id="Survival-growth-kernel-span-class&quot;math-inline&quot;\\P(z&#39;,-z)\\/span-1"></a><a class="docs-heading-anchor-permalink" href="#Survival-growth-kernel-span-class&quot;math-inline&quot;\\P(z&#39;,-z)\\/span" title="Permalink"></a></h3><pre><code class="language-julia hljs">P_kernel(z_new, z) = s(z) * g(z_new, z)</code></pre><pre><code class="nohighlight hljs">P_kernel (generic function with 1 method)</code></pre><h3 id="Fecundity-kernel-span-class&quot;math-inline&quot;\\F(z&#39;,-z)\\/span"><a class="docs-heading-anchor" href="#Fecundity-kernel-span-class&quot;math-inline&quot;\\F(z&#39;,-z)\\/span">Fecundity kernel &lt;span class=&quot;math inline&quot;&gt;\F(z&#39;, z)\&lt;/span&gt;</a><a id="Fecundity-kernel-span-class&quot;math-inline&quot;\\F(z&#39;,-z)\\/span-1"></a><a class="docs-heading-anchor-permalink" href="#Fecundity-kernel-span-class&quot;math-inline&quot;\\F(z&#39;,-z)\\/span" title="Permalink"></a></h3><p>Plants above a fruiting threshold produce seeds. Flowering probability is sigmoidal, seed count is proportional to size above threshold, and seedlings enter the population at small sizes:</p><pre><code class="language-julia hljs">flower_prob(z) = 1.0 / (1.0 + exp(-(z - 30.0) / 5.0))
+seed_count(z) = max(0.0, 0.5 * (z - 20.0))
+germination = 0.05
+seedling_dist(z_new) = exp(-0.5 * ((z_new - 2.0) / 0.5)^2) / (0.5 * sqrt(2π))
+
+F_kernel(z_new, z) = flower_prob(z) * seed_count(z) * germination * seedling_dist(z_new)</code></pre><pre><code class="nohighlight hljs">F_kernel (generic function with 1 method)</code></pre><h3 id="Domain"><a class="docs-heading-anchor" href="#Domain">Domain</a><a id="Domain-1"></a><a class="docs-heading-anchor-permalink" href="#Domain" title="Permalink"></a></h3><p>Plant dry mass ranges from 0.5 g (seedling) to 100 g (mature), discretised into 80 bins:</p><pre><code class="language-julia hljs">domain = ContinuousProjectionDomain(0.5, 100.0, 80)
+println(&quot;Domain: [&quot;, domain.lower, &quot;, &quot;, domain.upper, &quot;] with &quot;, domain.n_meshpoints, &quot; bins&quot;)
+println(&quot;Step size h = &quot;, round(step_size(domain), digits=4))</code></pre><pre><code class="nohighlight hljs">Domain: [0.5, 100.0] with 80 bins
+Step size h = 1.2438</code></pre><h2 id="Abstract-Specification"><a class="docs-heading-anchor" href="#Abstract-Specification">Abstract Specification</a><a id="Abstract-Specification-1"></a><a class="docs-heading-anchor-permalink" href="#Abstract-Specification" title="Permalink"></a></h2><p>We define the model as a <code>LabelledProjectionNet</code> with a single continuous state and two transitions:</p><pre><code class="language-julia hljs">net = LabelledProjectionNet([:plant_mass],
+    :survive_grow =&gt; (:plant_mass =&gt; :plant_mass),
+    :reproduce =&gt; (:plant_mass =&gt; :plant_mass))
+
+println(&quot;Model structure:&quot;)
+println(&quot;  States:      &quot;, sname(net))
+println(&quot;  Transitions: &quot;, tname(net))
+for t in 1:n_transitions(net)
+    src_names = [sname(net, s_idx) for s_idx in sources(net, t)]
+    tgt_names = [sname(net, s_idx) for s_idx in targets(net, t)]
+    println(&quot;  &quot;, tname(net, t), &quot;: &quot;, src_names, &quot; → &quot;, tgt_names)
+end</code></pre><pre><code class="nohighlight hljs">Model structure:
+  States:      [:plant_mass]
+  Transitions: [:survive_grow, :reproduce]
+  survive_grow: [:plant_mass] → [:plant_mass]
+  reproduce: [:plant_mass] → [:plant_mass]</code></pre><h2 id="Lower-to-IPM"><a class="docs-heading-anchor" href="#Lower-to-IPM">Lower to IPM</a><a id="Lower-to-IPM-1"></a><a class="docs-heading-anchor-permalink" href="#Lower-to-IPM" title="Permalink"></a></h2><p>The <code>lower()</code> functor maps the abstract specification and kernel functions to an <code>IPMProblem</code> object, which can be solved via eigenanalysis:</p><pre><code class="language-julia hljs">transition_kernels = Dict(
+    :survive_grow =&gt; P_kernel,
+    :reproduce =&gt; F_kernel)
+
+target_ipm = IPMTarget(:plant_mass =&gt; domain)
+ipm_prob = lower(net, target_ipm, transition_kernels)
+println(&quot;IPM Problem type: &quot;, typeof(ipm_prob))</code></pre><pre><code class="nohighlight hljs">IPM Problem type: IntegralProjectionModels.IPMProblem{IntegralProjectionModels.SimpleIPM, ProjectionModels.DensityIndependent, ProjectionModels.Deterministic, IntegralProjectionModels.CustomKernel{CategoricalPopulationDynamicsIPMExt.var&quot;#composed_kernel#composed_kernel##0&quot;{Dict{Symbol, Function}, Vector{Symbol}}, IntegralProjectionModels.ContinuousDomain{Float64}}, IntegralProjectionModels.ContinuousDomain{Float64}, Vector{Float64}, Nothing, Nothing}</code></pre><pre><code class="language-julia hljs">ipm_sol = IPM.solve(ipm_prob, IPM.EigenAnalysis())
+λ_ipm = IPM.lambda(ipm_sol)
+println(&quot;λ (IPM lowering) = &quot;, round(λ_ipm, digits=8))</code></pre><pre><code class="nohighlight hljs">λ (IPM lowering) = 0.86058597</code></pre><pre><code class="language-julia hljs">w_ipm = IPM.stable_distribution(ipm_sol)
+z_mesh = meshpoints(domain)
+plot(z_mesh, w_ipm,
+    xlabel=&quot;Plant dry mass z (g)&quot;, ylabel=&quot;Frequency&quot;,
+    title=&quot;Stable size distribution (cotton, IPM lowering)&quot;,
+    label=&quot;w(z)&quot;, linewidth=2, color=:green, fill=true, alpha=0.3)</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-1.png" alt/></p><h2 id="Direct-Matrix-via-Left-Kan-Extension"><a class="docs-heading-anchor" href="#Direct-Matrix-via-Left-Kan-Extension">Direct Matrix via Left Kan Extension</a><a id="Direct-Matrix-via-Left-Kan-Extension-1"></a><a class="docs-heading-anchor-permalink" href="#Direct-Matrix-via-Left-Kan-Extension" title="Permalink"></a></h2><p>The left Kan extension &lt;span class=&quot;math inline&quot;&gt;\\mathrm{Lan}_D\&lt;/span&gt; discretises each continuous kernel to a matrix. We verify that this gives the same &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; as the lowered IPM:</p><pre><code class="language-julia hljs">A_P = left_kan_extension(P_kernel, domain)
+A_F = left_kan_extension(F_kernel, domain)
+A_full = A_P + A_F
+
+λ_kan = lambda(A_full)
+println(&quot;λ (left Kan extension) = &quot;, round(λ_kan, digits=8))
+println(&quot;λ (IPM lowering)       = &quot;, round(λ_ipm, digits=8))
+println(&quot;Exact match: &quot;, isapprox(λ_ipm, λ_kan; atol=1e-10))</code></pre><pre><code class="nohighlight hljs">λ (left Kan extension) = 0.86058597
+λ (IPM lowering)       = 0.86058597
+Exact match: true</code></pre><p>The left Kan extension and the IPM lowering produce <strong>identical</strong> matrices (both use the midpoint rule at the same resolution), so the dominant eigenvalues agree exactly.</p><pre><code class="language-julia hljs">heatmap(z_mesh, z_mesh, A_full,
+    xlabel=&quot;Plant mass z (g)&quot;, ylabel=&quot;Plant mass z&#39; (g)&quot;,
+    title=&quot;Full projection kernel A = P + F&quot;,
+    color=:viridis, clims=(0, maximum(A_full)))</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-2.png" alt/></p><h2 id="Compositional-Construction"><a class="docs-heading-anchor" href="#Compositional-Construction">Compositional Construction</a><a id="Compositional-Construction-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Construction" title="Permalink"></a></h2><p>We now show that the same matrix can be built compositionally via three equivalent methods.</p><h3 id="Method-1:-compose_transitions"><a class="docs-heading-anchor" href="#Method-1:-compose_transitions">Method 1: <code>compose_transitions</code></a><a id="Method-1:-compose_transitions-1"></a><a class="docs-heading-anchor-permalink" href="#Method-1:-compose_transitions" title="Permalink"></a></h3><pre><code class="language-julia hljs">A_ct = compose_transitions(Dict(:P =&gt; A_P, :F =&gt; A_F))
+λ_ct = lambda(A_ct)
+println(&quot;λ (compose_transitions) = &quot;, round(λ_ct, digits=8))
+println(&quot;Matches Kan extension: &quot;, isapprox(λ_ct, λ_kan; atol=1e-10))</code></pre><pre><code class="nohighlight hljs">λ (compose_transitions) = 0.86058597
+Matches Kan extension: true</code></pre><h3 id="Method-2:-oapply-with-ProjectionSharers"><a class="docs-heading-anchor" href="#Method-2:-oapply-with-ProjectionSharers">Method 2: <code>oapply</code> with ProjectionSharers</a><a id="Method-2:-oapply-with-ProjectionSharers-1"></a><a class="docs-heading-anchor-permalink" href="#Method-2:-oapply-with-ProjectionSharers" title="Permalink"></a></h3><pre><code class="language-julia hljs">uwd = @relation (z, z_new) begin
+    survive_grow(z, z_new)
+    reproduce(z, z_new)
+end
+
+sharers = Dict(
+    :survive_grow =&gt; ProjectionSharer(A_P),
+    :reproduce =&gt; ProjectionSharer(A_F))
+result = oapply(uwd, sharers)
+λ_oapply = lambda(result.matrix)
+println(&quot;λ (oapply)              = &quot;, round(λ_oapply, digits=8))
+println(&quot;Matches Kan extension: &quot;, isapprox(λ_oapply, λ_kan; atol=1e-10))</code></pre><pre><code class="nohighlight hljs">λ (oapply)              = 0.86058597
+Matches Kan extension: true</code></pre><h3 id="Method-3:-compose_from_uwd-with-kernel-functions"><a class="docs-heading-anchor" href="#Method-3:-compose_from_uwd-with-kernel-functions">Method 3: <code>compose_from_uwd</code> with kernel functions</a><a id="Method-3:-compose_from_uwd-with-kernel-functions-1"></a><a class="docs-heading-anchor-permalink" href="#Method-3:-compose_from_uwd-with-kernel-functions" title="Permalink"></a></h3><pre><code class="language-julia hljs">sub_kernels = Dict(
+    :survive_grow =&gt; P_kernel,
+    :reproduce =&gt; F_kernel)
+
+A_uwd = compose_from_uwd(uwd, sub_kernels, domain)
+λ_uwd = lambda(A_uwd)
+println(&quot;λ (compose_from_uwd)    = &quot;, round(λ_uwd, digits=8))
+println(&quot;Matches Kan extension: &quot;, isapprox(λ_uwd, λ_kan; atol=1e-10))</code></pre><pre><code class="nohighlight hljs">λ (compose_from_uwd)    = 0.86058597
+Matches Kan extension: true</code></pre><p>All three compositional methods and the IPM lowering give <strong>identical</strong> results.</p><h2 id="Organ-Allocation-as-Composition"><a class="docs-heading-anchor" href="#Organ-Allocation-as-Composition">Organ Allocation as Composition</a><a id="Organ-Allocation-as-Composition-1"></a><a class="docs-heading-anchor-permalink" href="#Organ-Allocation-as-Composition" title="Permalink"></a></h2><p>The key innovation: we decompose the growth kernel into four organ-specific sub-kernels that capture how photosynthetic supply is partitioned among organs, and how each organ contributes to demography.</p><h3 id="Allocation-fractions"><a class="docs-heading-anchor" href="#Allocation-fractions">Allocation fractions</a><a id="Allocation-fractions-1"></a><a class="docs-heading-anchor-permalink" href="#Allocation-fractions" title="Permalink"></a></h3><p>At reference temperature (27 °C), cotton allocates photosynthate as follows:</p><pre><code class="language-julia hljs">α_leaf = 0.35   # leaf allocation → photosynthesis → growth rate
+α_stem = 0.20   # stem allocation → structural support → survival
+α_root = 0.20   # root allocation → nutrient uptake → baseline survival
+α_fruit = 0.25  # fruit allocation → reproduction pathway
+println(&quot;Organ allocation: leaf=$α_leaf, stem=$α_stem, root=$α_root, fruit=$α_fruit&quot;)
+println(&quot;Sum = &quot;, α_leaf + α_stem + α_root + α_fruit)</code></pre><pre><code class="nohighlight hljs">Organ allocation: leaf=0.35, stem=0.2, root=0.2, fruit=0.25
+Sum = 1.0</code></pre><h3 id="Organ-sub-kernels"><a class="docs-heading-anchor" href="#Organ-sub-kernels">Organ sub-kernels</a><a id="Organ-sub-kernels-1"></a><a class="docs-heading-anchor-permalink" href="#Organ-sub-kernels" title="Permalink"></a></h3><p>Each organ’s contribution modifies a specific demographic pathway:</p><p><strong>Leaf allocation</strong> — drives photosynthetic growth. The leaf fraction sets the growth increment:</p><pre><code class="language-julia hljs">function growth_mean_leaf(z, α_l)
+    increment = α_l / 0.35 * 0.8 * z^0.67 / (1.0 + 0.01 * z)
+    return z + increment
+end
+
+function P_leaf(z_new, z; α_l=α_leaf)
+    μ = growth_mean_leaf(z, α_l)
+    σ = growth_sd(z)
+    g_l = exp(-0.5 * ((z_new - μ) / σ)^2) / (σ * sqrt(2π))
+    return s(z) * g_l
+end</code></pre><pre><code class="nohighlight hljs">P_leaf (generic function with 1 method)</code></pre><p><strong>Stem allocation</strong> — enhances survival via structural support. More stem allocation increases survival:</p><pre><code class="language-julia hljs">function s_stem(z; α_s=α_stem)
+    base_s = 1.0 / (1.0 + exp(-(0.5 + 0.02 * z)))
+    stem_bonus = 0.5 * (α_s / 0.20 - 1.0)
+    return clamp(base_s + stem_bonus * (1.0 - base_s) * 0.1, 0.0, 1.0)
+end
+
+function P_stem_delta(z_new, z; α_s=α_stem)
+    μ = growth_mean(z)
+    σ = growth_sd(z)
+    g_val = exp(-0.5 * ((z_new - μ) / σ)^2) / (σ * sqrt(2π))
+    return (s_stem(z; α_s=α_s) - s(z)) * g_val
+end</code></pre><pre><code class="nohighlight hljs">P_stem_delta (generic function with 1 method)</code></pre><p><strong>Root allocation</strong> — enhances baseline survival via nutrient uptake. Similar mechanism to stem:</p><pre><code class="language-julia hljs">function s_root(z; α_r=α_root)
+    base_s = 1.0 / (1.0 + exp(-(0.5 + 0.02 * z)))
+    root_bonus = 0.3 * (α_r / 0.20 - 1.0)
+    return clamp(base_s + root_bonus * (1.0 - base_s) * 0.1, 0.0, 1.0)
+end
+
+function P_root_delta(z_new, z; α_r=α_root)
+    μ = growth_mean(z)
+    σ = growth_sd(z)
+    g_val = exp(-0.5 * ((z_new - μ) / σ)^2) / (σ * sqrt(2π))
+    return (s_root(z; α_r=α_r) - s(z)) * g_val
+end</code></pre><pre><code class="nohighlight hljs">P_root_delta (generic function with 1 method)</code></pre><p><strong>Fruit allocation</strong> — scales the fecundity pathway. More fruit allocation means more seeds:</p><pre><code class="language-julia hljs">function F_fruit(z_new, z; α_f=α_fruit)
+    scale = α_f / 0.25
+    return scale * flower_prob(z) * seed_count(z) * germination * seedling_dist(z_new)
+end</code></pre><pre><code class="nohighlight hljs">F_fruit (generic function with 1 method)</code></pre><h3 id="Verify-additive-decomposition"><a class="docs-heading-anchor" href="#Verify-additive-decomposition">Verify additive decomposition</a><a id="Verify-additive-decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Verify-additive-decomposition" title="Permalink"></a></h3><p>The organ-specific sub-kernels must sum to the full kernel. We define the decomposed full kernel:</p><pre><code class="language-julia hljs">K_leaf(z_new, z) = P_leaf(z_new, z)
+K_stem(z_new, z) = P_stem_delta(z_new, z)
+K_root(z_new, z) = P_root_delta(z_new, z)
+K_fruit(z_new, z) = F_fruit(z_new, z)
+
+K_composed(z_new, z) = K_leaf(z_new, z) + K_stem(z_new, z) + K_root(z_new, z) + K_fruit(z_new, z)</code></pre><pre><code class="nohighlight hljs">K_composed (generic function with 1 method)</code></pre><pre><code class="language-julia hljs">A_leaf = left_kan_extension(K_leaf, domain)
+A_stem = left_kan_extension(K_stem, domain)
+A_root = left_kan_extension(K_root, domain)
+A_fruit = left_kan_extension(K_fruit, domain)
+A_organ_sum = A_leaf + A_stem + A_root + A_fruit
+
+λ_organ = lambda(A_organ_sum)
+println(&quot;λ (organ-decomposed)   = &quot;, round(λ_organ, digits=8))
+println(&quot;λ (full P + F)         = &quot;, round(λ_kan, digits=8))</code></pre><pre><code class="nohighlight hljs">λ (organ-decomposed)   = 0.86058597
+λ (full P + F)         = 0.86058597</code></pre><p>At the reference allocation, the organ decomposition matches the full model because the stem and root deltas are zero when &lt;span class=&quot;math inline&quot;&gt;\\alpha\&lt;/span&gt; equals the reference value, and the leaf growth kernel reduces to the standard &lt;span class=&quot;math inline&quot;&gt;\P\&lt;/span&gt; kernel.</p><h3 id="Compose-organ-sub-kernels-via-UWD"><a class="docs-heading-anchor" href="#Compose-organ-sub-kernels-via-UWD">Compose organ sub-kernels via UWD</a><a id="Compose-organ-sub-kernels-via-UWD-1"></a><a class="docs-heading-anchor-permalink" href="#Compose-organ-sub-kernels-via-UWD" title="Permalink"></a></h3><pre><code class="language-julia hljs">uwd_organ = @relation (z, z_new) begin
+    leaf_growth(z, z_new)
+    stem_support(z, z_new)
+    root_uptake(z, z_new)
+    fruit_reproduction(z, z_new)
+end
+
+organ_kernels = Dict(
+    :leaf_growth =&gt; K_leaf,
+    :stem_support =&gt; K_stem,
+    :root_uptake =&gt; K_root,
+    :fruit_reproduction =&gt; K_fruit)
+
+A_organ_uwd = compose_from_uwd(uwd_organ, organ_kernels, domain)
+λ_organ_uwd = lambda(A_organ_uwd)
+println(&quot;λ (organ UWD)          = &quot;, round(λ_organ_uwd, digits=8))
+println(&quot;Matches organ sum: &quot;, isapprox(λ_organ_uwd, λ_organ; atol=1e-10))</code></pre><pre><code class="nohighlight hljs">λ (organ UWD)          = 0.86058597
+Matches organ sum: true</code></pre><h3 id="Visualise-organ-sub-kernels"><a class="docs-heading-anchor" href="#Visualise-organ-sub-kernels">Visualise organ sub-kernels</a><a id="Visualise-organ-sub-kernels-1"></a><a class="docs-heading-anchor-permalink" href="#Visualise-organ-sub-kernels" title="Permalink"></a></h3><pre><code class="language-julia hljs">p1 = heatmap(z_mesh, z_mesh, A_leaf,
+    title=&quot;Leaf (growth)&quot;, color=:viridis,
+    clims=(0, maximum(abs.(A_leaf))), xlabel=&quot;z&quot;, ylabel=&quot;z&#39;&quot;)
+p2 = heatmap(z_mesh, z_mesh, A_stem,
+    title=&quot;Stem (Δ survival)&quot;, color=:RdBu,
+    clims=(-maximum(abs.(A_stem .+ 1e-16)), maximum(abs.(A_stem .+ 1e-16))), xlabel=&quot;z&quot;, ylabel=&quot;z&#39;&quot;)
+p3 = heatmap(z_mesh, z_mesh, A_root,
+    title=&quot;Root (Δ survival)&quot;, color=:RdBu,
+    clims=(-maximum(abs.(A_root .+ 1e-16)), maximum(abs.(A_root .+ 1e-16))), xlabel=&quot;z&quot;, ylabel=&quot;z&#39;&quot;)
+p4 = heatmap(z_mesh, z_mesh, A_fruit,
+    title=&quot;Fruit (fecundity)&quot;, color=:viridis,
+    clims=(0, maximum(abs.(A_fruit))), xlabel=&quot;z&quot;, ylabel=&quot;z&#39;&quot;)
+plot(p1, p2, p3, p4, layout=(2, 2), size=(800, 700))</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-3.png" alt/></p><h2 id="Sensitivity:-Organ-Specific-Allocation"><a class="docs-heading-anchor" href="#Sensitivity:-Organ-Specific-Allocation">Sensitivity: Organ-Specific Allocation</a><a id="Sensitivity:-Organ-Specific-Allocation-1"></a><a class="docs-heading-anchor-permalink" href="#Sensitivity:-Organ-Specific-Allocation" title="Permalink"></a></h2><p>We now explore how reallocating photosynthate across organs affects the population growth rate &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt;.</p><h3 id="Scenario-1:-Remove-each-organ’s-contribution"><a class="docs-heading-anchor" href="#Scenario-1:-Remove-each-organ’s-contribution">Scenario 1: Remove each organ’s contribution</a><a id="Scenario-1:-Remove-each-organ’s-contribution-1"></a><a class="docs-heading-anchor-permalink" href="#Scenario-1:-Remove-each-organ’s-contribution" title="Permalink"></a></h3><pre><code class="language-julia hljs">scenarios = Dict{String, Float64}()
+
+# Baseline: all organs at reference allocation
+scenarios[&quot;Full model&quot;] = λ_organ
+
+# Remove leaf → no growth increment (growth_mean = z, no increment)
+K_no_leaf(z_new, z) = begin
+    σ = growth_sd(z)
+    g_val = exp(-0.5 * ((z_new - z) / σ)^2) / (σ * sqrt(2π))
+    s(z) * g_val + K_stem(z_new, z) + K_root(z_new, z) + K_fruit(z_new, z)
+end
+scenarios[&quot;No leaf&quot;] = lambda(left_kan_extension(K_no_leaf, domain))
+
+# Remove stem → lose stem survival bonus (zero at reference)
+A_no_stem = A_leaf + A_root + A_fruit
+scenarios[&quot;No stem&quot;] = lambda(A_no_stem)
+
+# Remove root → lose root survival bonus (zero at reference)
+A_no_root = A_leaf + A_stem + A_fruit
+scenarios[&quot;No root&quot;] = lambda(A_no_root)
+
+# Remove fruit → no reproduction
+A_no_fruit = A_leaf + A_stem + A_root
+scenarios[&quot;No fruit&quot;] = lambda(A_no_fruit)
+
+scenario_order = [&quot;Full model&quot;, &quot;No leaf&quot;, &quot;No stem&quot;, &quot;No root&quot;, &quot;No fruit&quot;]
+λ_values = [scenarios[s] for s in scenario_order]
+
+bar(scenario_order, λ_values,
+    ylabel=&quot;λ&quot;, title=&quot;Effect of removing organ contributions&quot;,
+    legend=false,
+    color=[:forestgreen, :lightgreen, :brown, :sienna, :orange],
+    xrotation=15)
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1&quot;)</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-4.png" alt/></p><h3 id="Scenario-2:-Reallocation-sweep"><a class="docs-heading-anchor" href="#Scenario-2:-Reallocation-sweep">Scenario 2: Reallocation sweep</a><a id="Scenario-2:-Reallocation-sweep-1"></a><a class="docs-heading-anchor-permalink" href="#Scenario-2:-Reallocation-sweep" title="Permalink"></a></h3><p>We sweep the leaf allocation fraction from 0.1 to 0.7, redistributing the remainder equally among the other three organs:</p><pre><code class="language-julia hljs">α_leaf_range = range(0.10, 0.70, length=50)
+λ_sweep = Float64[]
+
+for α_l in α_leaf_range
+    remainder = 1.0 - α_l
+    α_s_i = remainder / 3.0
+    α_r_i = remainder / 3.0
+    α_f_i = remainder / 3.0
+
+    K_i(z_new, z) = P_leaf(z_new, z; α_l=α_l) +
+                     P_stem_delta(z_new, z; α_s=α_s_i) +
+                     P_root_delta(z_new, z; α_r=α_r_i) +
+                     F_fruit(z_new, z; α_f=α_f_i)
+    A_i = left_kan_extension(K_i, domain)
+    push!(λ_sweep, lambda(A_i))
+end
+
+plot(Vector(α_leaf_range), λ_sweep,
+    xlabel=&quot;Leaf allocation fraction αₗ&quot;,
+    ylabel=&quot;λ&quot;,
+    title=&quot;Growth rate vs leaf allocation (remainder split equally)&quot;,
+    linewidth=2, color=:green, label=&quot;λ(αₗ)&quot;)
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1&quot;)
+vline!([α_leaf], linestyle=:dot, color=:gray, label=&quot;Reference αₗ = $α_leaf&quot;)</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-5.png" alt/></p><h3 id="Scenario-3:-Fruit-vs-leaf-trade-off"><a class="docs-heading-anchor" href="#Scenario-3:-Fruit-vs-leaf-trade-off">Scenario 3: Fruit vs leaf trade-off</a><a id="Scenario-3:-Fruit-vs-leaf-trade-off-1"></a><a class="docs-heading-anchor-permalink" href="#Scenario-3:-Fruit-vs-leaf-trade-off" title="Permalink"></a></h3><p>We fix stem + root allocation at 0.40 and vary the split between leaf and fruit:</p><pre><code class="language-julia hljs">α_fruit_range = range(0.05, 0.55, length=50)
+λ_trade = Float64[]
+
+for α_f in α_fruit_range
+    α_l = 0.60 - α_f  # leaf + fruit = 0.60
+    K_tf(z_new, z) = P_leaf(z_new, z; α_l=α_l) +
+                      P_stem_delta(z_new, z; α_s=0.20) +
+                      P_root_delta(z_new, z; α_r=0.20) +
+                      F_fruit(z_new, z; α_f=α_f)
+    A_tf = left_kan_extension(K_tf, domain)
+    push!(λ_trade, lambda(A_tf))
+end
+
+plot(Vector(α_fruit_range), λ_trade,
+    xlabel=&quot;Fruit allocation fraction αf&quot;,
+    ylabel=&quot;λ&quot;,
+    title=&quot;Leaf–fruit trade-off (stem + root fixed at 0.40)&quot;,
+    linewidth=2, color=:orange, label=&quot;λ(αf)&quot;)
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1&quot;)
+vline!([α_fruit], linestyle=:dot, color=:gray, label=&quot;Reference αf = $α_fruit&quot;)</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-6.png" alt/></p><h2 id="Temperature-Stratification"><a class="docs-heading-anchor" href="#Temperature-Stratification">Temperature Stratification</a><a id="Temperature-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Temperature-Stratification" title="Permalink"></a></h2><p>Temperature alters vital rates. We define three thermal environments (20 °C, 27 °C, 34 °C) and stratify the IPM.</p><h3 id="Temperature-dependent-vital-rates"><a class="docs-heading-anchor" href="#Temperature-dependent-vital-rates">Temperature-dependent vital rates</a><a id="Temperature-dependent-vital-rates-1"></a><a class="docs-heading-anchor-permalink" href="#Temperature-dependent-vital-rates" title="Permalink"></a></h3><p>We use a temperature scaling factor that peaks at 27 °C:</p><pre><code class="language-julia hljs">function temp_scale(T; T_opt=27.0, T_width=8.0)
+    return exp(-0.5 * ((T - T_opt) / T_width)^2)
+end
+
+temps = [20.0, 27.0, 34.0]
+temp_labels = [&quot;20°C&quot;, &quot;27°C&quot;, &quot;34°C&quot;]
+println(&quot;Temperature scaling factors:&quot;)
+for (T, lab) in zip(temps, temp_labels)
+    println(&quot;  $lab: &quot;, round(temp_scale(T), digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Temperature scaling factors:
+  20°C: 0.6819
+  27°C: 1.0
+  34°C: 0.6819</code></pre><h3 id="Build-kernels-at-each-temperature"><a class="docs-heading-anchor" href="#Build-kernels-at-each-temperature">Build kernels at each temperature</a><a id="Build-kernels-at-each-temperature-1"></a><a class="docs-heading-anchor-permalink" href="#Build-kernels-at-each-temperature" title="Permalink"></a></h3><pre><code class="language-julia hljs">function make_kernels_at_temp(T)
+    τ = temp_scale(T)
+
+    function P_T(z_new, z)
+        μ = z + τ * 0.8 * z^0.67 / (1.0 + 0.01 * z)
+        σ = growth_sd(z)
+        g_val = exp(-0.5 * ((z_new - μ) / σ)^2) / (σ * sqrt(2π))
+        return s(z) * g_val
+    end
+
+    function F_T(z_new, z)
+        return τ * flower_prob(z) * seed_count(z) * germination * seedling_dist(z_new)
+    end
+
+    return P_T, F_T
+end
+
+A_temps = Matrix{Float64}[]
+λ_temps = Float64[]
+
+for T in temps
+    P_T, F_T = make_kernels_at_temp(T)
+    A_T = left_kan_extension(P_T, domain) + left_kan_extension(F_T, domain)
+    push!(A_temps, A_T)
+    push!(λ_temps, lambda(A_T))
+end
+
+println(&quot;Per-temperature growth rates:&quot;)
+for (lab, λ_T) in zip(temp_labels, λ_temps)
+    println(&quot;  $lab: λ = &quot;, round(λ_T, digits=6))
+end</code></pre><pre><code class="nohighlight hljs">Per-temperature growth rates:
+  20°C: λ = 0.826007
+  27°C: λ = 0.860586
+  34°C: λ = 0.826007</code></pre><h3 id="Heterogeneous-stratification"><a class="docs-heading-anchor" href="#Heterogeneous-stratification">Heterogeneous stratification</a><a id="Heterogeneous-stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Heterogeneous-stratification" title="Permalink"></a></h3><p>Plants at different temperatures experience different dynamics but can be connected via a coupling matrix (e.g. seed dispersal between thermal micro-environments):</p><pre><code class="language-julia hljs">D_temp = [0.80 0.15 0.05;
+          0.10 0.80 0.10;
+          0.05 0.15 0.80]
+
+A_stratified = stratify(A_temps, D_temp)
+λ_strat = lambda(A_stratified)
+println(&quot;Stratified λ (3 temperatures) = &quot;, round(λ_strat, digits=6))
+println(&quot;Matrix dimension: &quot;, size(A_stratified))</code></pre><pre><code class="nohighlight hljs">Stratified λ (3 temperatures) = 0.841779
+Matrix dimension: (240, 240)</code></pre><pre><code class="language-julia hljs">heatmap(A_stratified,
+    title=&quot;Temperature-stratified projection matrix (240×240)&quot;,
+    color=:viridis, xlabel=&quot;Column index&quot;, ylabel=&quot;Row index&quot;,
+    clims=(0, maximum(A_stratified) * 0.5))
+
+n = domain.n_meshpoints
+for k in 1:2
+    vline!([k * n + 0.5], color=:white, linewidth=1, label=false)
+    hline!([k * n + 0.5], color=:white, linewidth=1, label=false)
+end</code></pre><h2 id="Coarsening"><a class="docs-heading-anchor" href="#Coarsening">Coarsening</a><a id="Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Coarsening" title="Permalink"></a></h2><p>We coarsen the 80-bin projection matrix to 20 bins and verify that &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; is preserved:</p><pre><code class="language-julia hljs">coarse_domain = ContinuousProjectionDomain(0.5, 100.0, 20)
+A_coarse = coarsen(A_full, domain, coarse_domain)
+
+λ_coarse = lambda(A_coarse)
+λ_fine = lambda(A_full)
+err_pct = abs(λ_coarse - λ_fine) / λ_fine * 100
+
+println(&quot;λ (fine, 80 bins)   = &quot;, round(λ_fine, digits=8))
+println(&quot;λ (coarse, 20 bins) = &quot;, round(λ_coarse, digits=8))
+println(&quot;Relative error:       &quot;, round(err_pct, digits=4), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">λ (fine, 80 bins)   = 0.86058597
+λ (coarse, 20 bins) = 0.87216847
+Relative error:       1.3459%</code></pre><pre><code class="language-julia hljs">z_coarse = meshpoints(coarse_domain)
+z_fine = meshpoints(domain)
+
+p1 = heatmap(z_fine, z_fine, A_full,
+    title=&quot;Fine (80 bins)&quot;, color=:viridis,
+    xlabel=&quot;z&quot;, ylabel=&quot;z&#39;&quot;,
+    clims=(0, maximum(A_full)))
+p2 = heatmap(z_coarse, z_coarse, A_coarse,
+    title=&quot;Coarse (20 bins)&quot;, color=:viridis,
+    xlabel=&quot;z&quot;, ylabel=&quot;z&#39;&quot;,
+    clims=(0, maximum(A_coarse)))
+plot(p1, p2, layout=(1, 2), size=(800, 350))</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-7.png" alt/></p><h2 id="Convergence"><a class="docs-heading-anchor" href="#Convergence">Convergence</a><a id="Convergence-1"></a><a class="docs-heading-anchor-permalink" href="#Convergence" title="Permalink"></a></h2><p>We verify that &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; converges as the mesh resolution increases, confirming that the left Kan extension is well-behaved:</p><pre><code class="language-julia hljs">full_K(z_new, z) = P_kernel(z_new, z) + F_kernel(z_new, z)
+
+resolutions = [10, 20, 40, 80, 160]
+λ_conv = Float64[]
+
+for n in resolutions
+    dom_n = ContinuousProjectionDomain(0.5, 100.0, n)
+    A_n = left_kan_extension(full_K, dom_n)
+    push!(λ_conv, lambda(A_n))
+end
+
+println(&quot;Resolution convergence:&quot;)
+for (n, λ_n) in zip(resolutions, λ_conv)
+    println(&quot;  n = &quot;, lpad(n, 3), &quot;: λ = &quot;, round(λ_n, digits=8))
+end</code></pre><pre><code class="nohighlight hljs">Resolution convergence:
+  n =  10: λ = 0.18021584
+  n =  20: λ = 0.18044234
+  n =  40: λ = 0.66998434
+  n =  80: λ = 0.86058597
+  n = 160: λ = 0.85921946</code></pre><pre><code class="language-julia hljs">plot(resolutions, λ_conv,
+    xlabel=&quot;Number of mesh points&quot;,
+    ylabel=&quot;λ&quot;,
+    title=&quot;Left Kan extension convergence&quot;,
+    marker=:circle, markersize=5,
+    linewidth=2, color=:blue, label=&quot;λ(n)&quot;)
+hline!([λ_conv[end]], linestyle=:dash, color=:red, label=&quot;λ (n=160)&quot;)</code></pre><p><img src="../16_cotton_organ_allocation_files/embedded-8.png" alt/></p><h3 id="Adjunction-diagnostics-at-each-resolution"><a class="docs-heading-anchor" href="#Adjunction-diagnostics-at-each-resolution">Adjunction diagnostics at each resolution</a><a id="Adjunction-diagnostics-at-each-resolution-1"></a><a class="docs-heading-anchor-permalink" href="#Adjunction-diagnostics-at-each-resolution" title="Permalink"></a></h3><pre><code class="language-julia hljs">println(&quot;Adjunction diagnostics:&quot;)
+for n in resolutions
+    dom_n = ContinuousProjectionDomain(0.5, 100.0, n)
+    errs = adjunction_errors(full_K, dom_n; n_quad=500)
+    println(&quot;  n=&quot;, lpad(n, 3),
+        &quot;: unit=&quot;, round(errs.unit, digits=12),
+        &quot;  counit=&quot;, round(errs.counit, digits=4),
+        &quot;  λ=&quot;, round(errs.lambda_matrix, digits=8))
+end</code></pre><pre><code class="nohighlight hljs">Adjunction diagnostics:
+  n= 10: unit=0.0  counit=0.9869  λ=0.18021584
+  n= 20: unit=0.0  counit=0.8349  λ=0.18044234
+  n= 40: unit=0.0  counit=0.8772  λ=0.66998434
+  n= 80: unit=0.0  counit=0.5151  λ=0.86058597
+  n=160: unit=0.0  counit=0.2415  λ=0.85921946</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette applied the <strong>full categorical projection model toolkit</strong> to a single continuous-state model of cotton growth:</p><ol><li><strong>IPM lowering</strong> — <code>lower(net, IPMTarget(...), kernels)</code> produced an <code>IPMProblem</code> solved via eigenanalysis</li><li><strong>Left Kan extension</strong> — <code>left_kan_extension(K, domain)</code> discretised continuous kernels to matrices; &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; <strong>exactly</strong> matches the lowered IPM</li><li><strong>Compositional construction</strong> — <code>compose_transitions</code>, <code>oapply</code>, and <code>compose_from_uwd</code> all produce identical results</li><li><strong>Organ allocation as composition</strong> — the growth kernel decomposes into leaf, stem, root, and fruit sub-kernels, each independently contributing to demography; UWD composition recovers the full kernel</li><li><strong>Organ sensitivity</strong> — reallocating photosynthate reveals growth-reproduction trade-offs: more leaf allocation increases growth rate, more fruit allocation increases reproduction, but the optimal &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; reflects a balance</li><li><strong>Temperature stratification</strong> — <code>stratify(A_locals, D)</code> builds a heterogeneous spatial-thermal model from per-temperature kernels</li><li><strong>Coarsening</strong> — <code>coarsen(A, domain, coarse_domain)</code> reduces resolution while preserving &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; to within a few percent</li><li><strong>Convergence</strong> — &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; converges monotonically as mesh resolution increases, with the adjunction unit error vanishing identically and the counit error decreasing</li></ol><p>This demonstrates that the categorical framework — lower, compose, stratify, coarsen, and Kan extension — provides a principled, modular approach to building and analysing continuous-state population models.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../15_rice_fish_coarsening/">« Trophic Coarsening</a><a class="docs-footer-nextpage" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

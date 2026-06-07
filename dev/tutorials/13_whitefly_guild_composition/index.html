@@ -1,0 +1,315 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Enemy Guild Composition · CategoricalPopulationDynamics.jl</title><meta name="title" content="Enemy Guild Composition · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Enemy Guild Composition · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Enemy Guild Composition · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/13_whitefly_guild_composition/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/13_whitefly_guild_composition/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/13_whitefly_guild_composition/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li class="is-active"><a class="tocitem" href>Enemy Guild Composition</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Whitefly-Base-Lifecycle"><span>Whitefly Base Lifecycle</span></a></li><li><a class="tocitem" href="#Parasitoid-Effects"><span>Parasitoid Effects</span></a></li><li><a class="tocitem" href="#Compositional-Assembly"><span>Compositional Assembly</span></a></li><li><a class="tocitem" href="#Guild-Contribution-Analysis"><span>Guild Contribution Analysis</span></a></li><li><a class="tocitem" href="#Parasitism-Intensity-Sweep"><span>Parasitism Intensity Sweep</span></a></li><li><a class="tocitem" href="#Is-the-Guild-More-Than-the-Sum-of-Its-Parts?"><span>Is the Guild More Than the Sum of Its Parts?</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Enemy Guild Composition</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Enemy Guild Composition</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/13_whitefly_guild_composition.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Enemy-Guild-Composition"><a class="docs-heading-anchor" href="#Enemy-Guild-Composition">Enemy Guild Composition</a><a id="Enemy-Guild-Composition-1"></a><a class="docs-heading-anchor-permalink" href="#Enemy-Guild-Composition" title="Permalink"></a></h1><p>Categorical Assembly of Multi-Parasitoid Biocontrol Models</p><p>Author</p><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Biological control of crop pests typically involves <strong>guilds</strong> of natural enemies — multiple parasitoid or predator species that jointly suppress pest populations. Modeling the joint effect of an enemy guild is a natural compositional problem: the pest lifecycle forms a <strong>base model</strong>, and each natural enemy adds a <strong>negative transition</strong> (additional mortality) to specific pest stages.</p><p>This vignette demonstrates how CategoricalPopulationDynamics.jl’s additive composition framework handles multi-species biocontrol. We model a cotton–whitefly–parasitoid system inspired by Schreiber et al. (2001), where three parasitoid species with different reproductive strategies attack different stages of the whitefly <em>Bemisia tabaci</em>.</p><p>The categorical insight is that the full model decomposes as:</p><p>&lt;span class=&quot;math display&quot;&gt;\ \mathbf{A}_{\text{full}} = \mathbf{A}_{\text{whitefly}} + \Delta\mathbf{A}_{P<em>1} + \Delta\mathbf{A}\</em>{P<em>2} + \Delta\mathbf{A}\</em>{P_3} \&lt;/span&gt;</p><p>where each &lt;span class=&quot;math inline&quot;&gt;\\Delta\mathbf{A}_{P<em>i}\&lt;/span&gt; is a <strong>sparse, negative</strong> perturbation capturing the mortality imposed by parasitoid &lt;span class=&quot;math inline&quot;&gt;\i\&lt;/span&gt; on specific whitefly stages. This is exactly the additive kernel composition that `compose</em>transitions<code>and</code>oapply` implement.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘
+using Catlab
+using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
+using Catlab.Programs: @relation
+using LinearAlgebra
+using ProjectionModels: lambda
+using Plots</code></pre><h2 id="Whitefly-Base-Lifecycle"><a class="docs-heading-anchor" href="#Whitefly-Base-Lifecycle">Whitefly Base Lifecycle</a><a id="Whitefly-Base-Lifecycle-1"></a><a class="docs-heading-anchor-permalink" href="#Whitefly-Base-Lifecycle" title="Permalink"></a></h2><p>The whitefly (<em>Bemisia tabaci</em>) has four developmental stages: <strong>egg</strong>, <strong>early nymph</strong> (1st instar), <strong>late nymph</strong> (2nd–3rd instars), and <strong>adult</strong>. At 27°C during the cotton growing season, daily demographic rates are:</p><pre><code class="language-julia hljs"># Daily development rates (probability of advancing per day)
+dev_egg     = 0.14    # ~7 day egg stage
+dev_nymph1  = 0.10    # ~10 day early nymph
+dev_nymph23 = 0.07    # ~14 day late nymph
+dev_adult   = 0.05    # adult senescence rate
+
+# Daily natural mortality rates
+μ_egg      = 0.05
+μ_nymph1   = 0.04
+μ_nymph23  = 0.03
+μ_adult    = 0.06
+
+# Fecundity: eggs per adult female per day × sex ratio
+fecundity  = 0.5 * 4.0  # = 2.0 female eggs/day</code></pre><pre><code class="nohighlight hljs">2.0</code></pre><p>From these rates, we compute daily stage-specific survival probabilities and transition rates:</p><pre><code class="language-julia hljs"># Survival probabilities
+σ_egg     = 1 - μ_egg       # 0.95
+σ_nymph1  = 1 - μ_nymph1    # 0.96
+σ_nymph23 = 1 - μ_nymph23   # 0.97
+σ_adult   = 1 - μ_adult     # 0.94
+
+# Stasis: survive AND remain in current stage
+stasis_egg     = σ_egg     * (1 - dev_egg)      # 0.817
+stasis_nymph1  = σ_nymph1  * (1 - dev_nymph1)   # 0.864
+stasis_nymph23 = σ_nymph23 * (1 - dev_nymph23)  # 0.9021
+stasis_adult   = σ_adult                          # 0.94
+
+# Progression: survive AND advance to next stage
+prog_egg_to_n1   = σ_egg     * dev_egg      # 0.133
+prog_n1_to_n23   = σ_nymph1  * dev_nymph1   # 0.096
+prog_n23_to_ad   = σ_nymph23 * dev_nymph23  # 0.0679
+
+println(&quot;Stasis: egg=$(round(stasis_egg, digits=4)), n1=$(round(stasis_nymph1, digits=4)), &quot;,
+        &quot;n23=$(round(stasis_nymph23, digits=4)), adult=$(round(stasis_adult, digits=4))&quot;)
+println(&quot;Progression: egg→n1=$(round(prog_egg_to_n1, digits=4)), &quot;,
+        &quot;n1→n23=$(round(prog_n1_to_n23, digits=4)), n23→ad=$(round(prog_n23_to_ad, digits=4))&quot;)</code></pre><pre><code class="nohighlight hljs">Stasis: egg=0.817, n1=0.864, n23=0.9021, adult=0.94
+Progression: egg→n1=0.133, n1→n23=0.096, n23→ad=0.0679</code></pre><h3 id="Building-the-ValuedProjectionNet"><a class="docs-heading-anchor" href="#Building-the-ValuedProjectionNet">Building the ValuedProjectionNet</a><a id="Building-the-ValuedProjectionNet-1"></a><a class="docs-heading-anchor-permalink" href="#Building-the-ValuedProjectionNet" title="Permalink"></a></h3><p>We encode the whitefly lifecycle as three separate <code>ValuedProjectionNet</code> components — development (stage advancement), stasis (survival within stage), and fecundity (reproduction) — and merge them with the <code>⊕</code> operator. Because all three share the same stage set but have disjoint transition names, <code>⊕</code> cleanly combines them into a single net:</p><pre><code class="language-julia hljs">stages = [:egg, :nymph1, :nymph23, :adult]
+
+whitefly_dev = ValuedProjectionNet(stages,
+    :development =&gt; [
+        (:egg     =&gt; :nymph1)  =&gt; prog_egg_to_n1,
+        (:nymph1  =&gt; :nymph23) =&gt; prog_n1_to_n23,
+        (:nymph23 =&gt; :adult)   =&gt; prog_n23_to_ad])
+
+whitefly_stasis = ValuedProjectionNet(stages,
+    :stasis =&gt; [
+        (:egg     =&gt; :egg)     =&gt; stasis_egg,
+        (:nymph1  =&gt; :nymph1)  =&gt; stasis_nymph1,
+        (:nymph23 =&gt; :nymph23) =&gt; stasis_nymph23,
+        (:adult   =&gt; :adult)   =&gt; stasis_adult])
+
+whitefly_fecundity = ValuedProjectionNet(stages,
+    :fecundity =&gt; [
+        (:adult =&gt; :egg) =&gt; fecundity])
+
+whitefly = whitefly_dev ⊕ whitefly_stasis ⊕ whitefly_fecundity
+
+println(&quot;Stages:      &quot;, stage_names(whitefly))
+println(&quot;Transitions: &quot;, transition_names(whitefly))</code></pre><pre><code class="nohighlight hljs">Stages:      [:egg, :nymph1, :nymph23, :adult]
+Transitions: [:stasis, :development, :fecundity]</code></pre><h3 id="Base-projection-matrix-and-growth-rate"><a class="docs-heading-anchor" href="#Base-projection-matrix-and-growth-rate">Base projection matrix and growth rate</a><a id="Base-projection-matrix-and-growth-rate-1"></a><a class="docs-heading-anchor-permalink" href="#Base-projection-matrix-and-growth-rate" title="Permalink"></a></h3><pre><code class="language-julia hljs">A_base = to_matrix(whitefly)
+λ_base = lambda(A_base)
+
+println(&quot;Whitefly base projection matrix:&quot;)
+display(A_base)
+println()
+println(&quot;λ_base = &quot;, round(λ_base, digits=6))
+println(&quot;Without biocontrol, the pest population is &quot;,
+        λ_base &gt; 1 ? &quot;GROWING (λ &gt; 1)&quot; : &quot;stable or declining&quot;)</code></pre><pre><code class="nohighlight hljs">Whitefly base projection matrix:
+
+λ_base = 1.089855
+Without biocontrol, the pest population is GROWING (λ &gt; 1)
+
+4×4 Matrix{Float64}:
+ 0.817  0.0    0.0     2.0
+ 0.133  0.864  0.0     0.0
+ 0.0    0.096  0.9021  0.0
+ 0.0    0.0    0.0679  0.94</code></pre><pre><code class="language-julia hljs">stages = String.(stage_names(whitefly))
+heatmap(stages, stages, A_base,
+    title=&quot;Whitefly base lifecycle (A_base)&quot;,
+    xlabel=&quot;From stage&quot;, ylabel=&quot;To stage&quot;,
+    color=:viridis, aspect_ratio=1, size=(450, 400))</code></pre><p><img src="../13_whitefly_guild_composition_files/embedded-1.png" alt/></p><h2 id="Parasitoid-Effects"><a class="docs-heading-anchor" href="#Parasitoid-Effects">Parasitoid Effects</a><a id="Parasitoid-Effects-1"></a><a class="docs-heading-anchor-permalink" href="#Parasitoid-Effects" title="Permalink"></a></h2><p>Three parasitoid species attack the whitefly, each with a different host-stage preference and parasitism rate:</p><p>&lt;table class=&quot;caption-top table&quot; style=&quot;width:97%;&quot;&gt; &lt;colgroup&gt; &lt;col style=&quot;width: 16%&quot; /&gt; &lt;col style=&quot;width: 27%&quot; /&gt; &lt;col style=&quot;width: 18%&quot; /&gt; &lt;col style=&quot;width: 16%&quot; /&gt; &lt;col style=&quot;width: 20%&quot; /&gt; &lt;/colgroup&gt; &lt;thead&gt; &lt;tr class=&quot;header&quot;&gt; &lt;th&gt;Species&lt;/th&gt; &lt;th&gt;Model organism&lt;/th&gt; &lt;th&gt;Strategy&lt;/th&gt; &lt;th&gt;Attacks&lt;/th&gt; &lt;th&gt;Rate (α)&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td&gt;P₁&lt;/td&gt; &lt;td&gt;&lt;em&gt;Eretmocerus&lt;/em&gt; sp.&lt;/td&gt; &lt;td&gt;Primary parasitoid&lt;/td&gt; &lt;td&gt;nymph1, nymph23&lt;/td&gt; &lt;td&gt;0.03/day&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td&gt;P₂&lt;/td&gt; &lt;td&gt;&lt;em&gt;Encarsia&lt;/em&gt; (obligate)&lt;/td&gt; &lt;td&gt;Obligate autoparasitoid&lt;/td&gt; &lt;td&gt;nymph23 only&lt;/td&gt; &lt;td&gt;0.025/day&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td&gt;P₃&lt;/td&gt; &lt;td&gt;&lt;em&gt;Encarsia&lt;/em&gt; (facultative)&lt;/td&gt; &lt;td&gt;Facultative autoparasitoid&lt;/td&gt; &lt;td&gt;nymph1, nymph23&lt;/td&gt; &lt;td&gt;0.02/day&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>Each parasitoid imposes <strong>additional daily mortality</strong> on the stages it attacks, reducing the stasis (within-stage survival) entries. We model each as a sparse matrix &lt;span class=&quot;math inline&quot;&gt;\\Delta\mathbf{A}_{P_i}\&lt;/span&gt; with negative entries only at the attacked stages:</p><pre><code class="language-julia hljs">α₁ = 0.03   # P₁ parasitism rate
+α₂ = 0.025  # P₂ parasitism rate
+α₃ = 0.02   # P₃ parasitism rate
+
+n = length(stage_names(whitefly))
+stage_idx = Dict(s =&gt; i for (i, s) in enumerate(stage_names(whitefly)))
+
+# P₁ (Eretmocerus): attacks nymph1 and nymph23
+ΔA_P1 = zeros(n, n)
+ΔA_P1[stage_idx[:nymph1],  stage_idx[:nymph1]]  = -α₁
+ΔA_P1[stage_idx[:nymph23], stage_idx[:nymph23]] = -α₁
+
+# P₂ (Encarsia obligate): attacks nymph23 only
+ΔA_P2 = zeros(n, n)
+ΔA_P2[stage_idx[:nymph23], stage_idx[:nymph23]] = -α₂
+
+# P₃ (Encarsia facultative): attacks nymph1 and nymph23
+ΔA_P3 = zeros(n, n)
+ΔA_P3[stage_idx[:nymph1],  stage_idx[:nymph1]]  = -α₃
+ΔA_P3[stage_idx[:nymph23], stage_idx[:nymph23]] = -α₃
+
+println(&quot;ΔA_P1 (Eretmocerus — nymph1, nymph23):&quot;); display(ΔA_P1); println()
+println(&quot;ΔA_P2 (Encarsia obligate — nymph23):&quot;); display(ΔA_P2); println()
+println(&quot;ΔA_P3 (Encarsia facultative — nymph1, nymph23):&quot;); display(ΔA_P3)</code></pre><pre><code class="nohighlight hljs">ΔA_P1 (Eretmocerus — nymph1, nymph23):
+
+ΔA_P2 (Encarsia obligate — nymph23):
+
+ΔA_P3 (Encarsia facultative — nymph1, nymph23):
+
+4×4 Matrix{Float64}:
+ 0.0   0.0    0.0   0.0
+ 0.0  -0.03   0.0   0.0
+ 0.0   0.0   -0.03  0.0
+ 0.0   0.0    0.0   0.0
+
+4×4 Matrix{Float64}:
+ 0.0  0.0   0.0    0.0
+ 0.0  0.0   0.0    0.0
+ 0.0  0.0  -0.025  0.0
+ 0.0  0.0   0.0    0.0
+
+4×4 Matrix{Float64}:
+ 0.0   0.0    0.0   0.0
+ 0.0  -0.02   0.0   0.0
+ 0.0   0.0   -0.02  0.0
+ 0.0   0.0    0.0   0.0</code></pre><h2 id="Compositional-Assembly"><a class="docs-heading-anchor" href="#Compositional-Assembly">Compositional Assembly</a><a id="Compositional-Assembly-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Assembly" title="Permalink"></a></h2><h3 id="Method-1:-compose_transitions-(Catlab-free)"><a class="docs-heading-anchor" href="#Method-1:-compose_transitions-(Catlab-free)">Method 1: <code>compose_transitions</code> (Catlab-free)</a><a id="Method-1:-compose_transitions-(Catlab-free)-1"></a><a class="docs-heading-anchor-permalink" href="#Method-1:-compose_transitions-(Catlab-free)" title="Permalink"></a></h3><p>The simplest approach — additively sum the base matrix and all parasitoid effects:</p><pre><code class="language-julia hljs">A_full_ct = compose_transitions(Dict(
+    :whitefly_base =&gt; A_base,
+    :parasitoid_P1 =&gt; ΔA_P1,
+    :parasitoid_P2 =&gt; ΔA_P2,
+    :parasitoid_P3 =&gt; ΔA_P3))
+
+λ_full_ct = lambda(A_full_ct)
+println(&quot;λ(compose_transitions) = &quot;, round(λ_full_ct, digits=6))</code></pre><pre><code class="nohighlight hljs">λ(compose_transitions) = 1.061794</code></pre><h3 id="Method-2:-oapply-with-UWD"><a class="docs-heading-anchor" href="#Method-2:-oapply-with-UWD">Method 2: <code>oapply</code> with UWD</a><a id="Method-2:-oapply-with-UWD-1"></a><a class="docs-heading-anchor-permalink" href="#Method-2:-oapply-with-UWD" title="Permalink"></a></h3><p>An <strong>undirected wiring diagram</strong> (UWD) formally specifies the composition pattern. Each box is a demographic process, and shared junctions identify common state variables:</p><pre><code class="language-julia hljs">uwd = @relation (stage,) begin
+    whitefly_base(stage,)
+    parasitoid_P1(stage,)
+    parasitoid_P2(stage,)
+    parasitoid_P3(stage,)
+end</code></pre><p>&lt;span class=&quot;c-set-summary&quot;&gt;Catlab.WiringDiagrams.RelationDiagrams.UntypedUnnamedRelationDiagram{Symbol, Symbol} {Box:4, Port:4, OuterPort:1, Junction:1, Name:0, VarName:0}&lt;/span&gt;</p><p>&lt;table class=&quot;caption-top table table-sm table-striped small&quot;&gt; &lt;thead&gt; &lt;tr class=&quot;header headerLastRow&quot;&gt; &lt;th class=&quot;rowLabel&quot; data-quarto-table-cell-role=&quot;th&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;Box&lt;/th&gt; &lt;th style=&quot;text-align: right;&quot; data-quarto-table-cell-role=&quot;th&quot;&gt;name&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;1&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;whitefly<em>base&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;2&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;parasitoid</em>P1&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;3&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;parasitoid<em>P2&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;4&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;parasitoid</em>P3&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>&lt;table class=&quot;caption-top table table-sm table-striped small&quot;&gt; &lt;thead&gt; &lt;tr class=&quot;header headerLastRow&quot;&gt; &lt;th class=&quot;rowLabel&quot; data-quarto-table-cell-role=&quot;th&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;Port&lt;/th&gt; &lt;th style=&quot;text-align: right;&quot; data-quarto-table-cell-role=&quot;th&quot;&gt;box&lt;/th&gt; &lt;th style=&quot;text-align: right;&quot; data-quarto-table-cell-role=&quot;th&quot;&gt;junction&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;1&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;1&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;1&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;2&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;2&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;1&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;3&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;3&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;1&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;4&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;4&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;1&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>&lt;table class=&quot;caption-top table table-sm table-striped small&quot;&gt; &lt;thead&gt; &lt;tr class=&quot;header headerLastRow&quot;&gt; &lt;th class=&quot;rowLabel&quot; data-quarto-table-cell-role=&quot;th&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;OuterPort&lt;/th&gt; &lt;th style=&quot;text-align: right;&quot; data-quarto-table-cell-role=&quot;th&quot;&gt;outer_junction&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;1&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;1&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>&lt;table class=&quot;caption-top table table-sm table-striped small&quot;&gt; &lt;thead&gt; &lt;tr class=&quot;header headerLastRow&quot;&gt; &lt;th class=&quot;rowLabel&quot; data-quarto-table-cell-role=&quot;th&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;Junction&lt;/th&gt; &lt;th style=&quot;text-align: right;&quot; data-quarto-table-cell-role=&quot;th&quot;&gt;variable&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td class=&quot;rowLabel&quot; style=&quot;text-align: right; font-weight: bold;&quot;&gt;1&lt;/td&gt; &lt;td style=&quot;text-align: right;&quot;&gt;stage&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>Wrap each matrix as a <code>ProjectionSharer</code> and compose via <code>oapply</code>:</p><pre><code class="language-julia hljs">sharers = Dict(
+    :whitefly_base =&gt; ProjectionSharer(A_base),
+    :parasitoid_P1 =&gt; ProjectionSharer(ΔA_P1),
+    :parasitoid_P2 =&gt; ProjectionSharer(ΔA_P2),
+    :parasitoid_P3 =&gt; ProjectionSharer(ΔA_P3))
+
+result = oapply(uwd, sharers)
+A_full_uwd = result.matrix
+λ_full_uwd = lambda(A_full_uwd)
+println(&quot;λ(oapply)              = &quot;, round(λ_full_uwd, digits=6))</code></pre><pre><code class="nohighlight hljs">λ(oapply)              = 1.061794</code></pre><h3 id="Equivalence"><a class="docs-heading-anchor" href="#Equivalence">Equivalence</a><a id="Equivalence-1"></a><a class="docs-heading-anchor-permalink" href="#Equivalence" title="Permalink"></a></h3><p>Both methods produce identical results — the UWD provides formal specification while <code>compose_transitions</code> provides a lightweight alternative:</p><pre><code class="language-julia hljs">println(&quot;compose_transitions: λ = &quot;, round(λ_full_ct, digits=8))
+println(&quot;oapply (UWD):        λ = &quot;, round(λ_full_uwd, digits=8))
+println(&quot;Direct sum:          λ = &quot;, round(lambda(A_base + ΔA_P1 + ΔA_P2 + ΔA_P3), digits=8))
+println(&quot;All agree: &quot;, A_full_ct ≈ A_full_uwd ≈ (A_base + ΔA_P1 + ΔA_P2 + ΔA_P3))</code></pre><pre><code class="nohighlight hljs">compose_transitions: λ = 1.06179436
+oapply (UWD):        λ = 1.06179436
+Direct sum:          λ = 1.06179436
+All agree: true</code></pre><pre><code class="language-julia hljs">p1 = heatmap(stages, stages, A_base,
+    title=&quot;Base (no biocontrol)&quot;, color=:viridis, clims=(minimum(A_full_ct), maximum(A_base)))
+p2 = heatmap(stages, stages, A_full_ct,
+    title=&quot;Full guild&quot;, color=:viridis, clims=(minimum(A_full_ct), maximum(A_base)))
+p3 = heatmap(stages, stages, A_full_ct - A_base,
+    title=&quot;Combined parasitoid effect&quot;, color=:RdBu,
+    clims=(-0.1, 0.1))
+plot(p1, p2, p3, layout=(1, 3), size=(1000, 320))</code></pre><p><img src="../13_whitefly_guild_composition_files/embedded-2.png" alt/></p><h2 id="Guild-Contribution-Analysis"><a class="docs-heading-anchor" href="#Guild-Contribution-Analysis">Guild Contribution Analysis</a><a id="Guild-Contribution-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Guild-Contribution-Analysis" title="Permalink"></a></h2><p>The compositional framework makes it easy to ask: <strong>what happens when each parasitoid is removed?</strong> We evaluate eight scenarios — the full guild, each species removed, each species alone, and no biocontrol:</p><pre><code class="language-julia hljs">scenarios = Dict(
+    &quot;Full guild&quot;    =&gt; A_base + ΔA_P1 + ΔA_P2 + ΔA_P3,
+    &quot;Remove P₁&quot;     =&gt; A_base + ΔA_P2 + ΔA_P3,
+    &quot;Remove P₂&quot;     =&gt; A_base + ΔA_P1 + ΔA_P3,
+    &quot;Remove P₃&quot;     =&gt; A_base + ΔA_P1 + ΔA_P2,
+    &quot;Only P₁&quot;       =&gt; A_base + ΔA_P1,
+    &quot;Only P₂&quot;       =&gt; A_base + ΔA_P2,
+    &quot;Only P₃&quot;       =&gt; A_base + ΔA_P3,
+    &quot;No biocontrol&quot; =&gt; A_base)
+
+# Compute λ for each scenario, maintaining display order
+scenario_order = [&quot;No biocontrol&quot;, &quot;Only P₃&quot;, &quot;Only P₂&quot;, &quot;Only P₁&quot;,
+                  &quot;Remove P₁&quot;, &quot;Remove P₂&quot;, &quot;Remove P₃&quot;, &quot;Full guild&quot;]
+
+λ_values = [lambda(scenarios[s]) for s in scenario_order]
+
+println(&quot;Guild composition analysis:&quot;)
+println(&quot;─&quot; ^ 45)
+for (s, λ) in zip(scenario_order, λ_values)
+    status = λ &gt; 1.0 ? &quot;  ↑ growing&quot; : &quot;  ↓ declining&quot;
+    println(rpad(s, 20), &quot;λ = &quot;, rpad(round(λ, digits=6), 10), status)
+end</code></pre><pre><code class="nohighlight hljs">Guild composition analysis:
+─────────────────────────────────────────────
+No biocontrol       λ = 1.089855    ↑ growing
+Only P₃             λ = 1.080408    ↑ growing
+Only P₂             λ = 1.083538    ↑ growing
+Only P₁             λ = 1.075881    ↑ growing
+Remove P₁           λ = 1.074454    ↑ growing
+Remove P₂           λ = 1.067216    ↑ growing
+Remove P₃           λ = 1.070106    ↑ growing
+Full guild          λ = 1.061794    ↑ growing</code></pre><h3 id="Bar-chart-of-growth-rates"><a class="docs-heading-anchor" href="#Bar-chart-of-growth-rates">Bar chart of growth rates</a><a id="Bar-chart-of-growth-rates-1"></a><a class="docs-heading-anchor-permalink" href="#Bar-chart-of-growth-rates" title="Permalink"></a></h3><pre><code class="language-julia hljs">colors = [:indianred, :lightsalmon, :lightsalmon, :lightsalmon,
+          :steelblue, :steelblue, :steelblue, :teal]
+
+bar(scenario_order, λ_values,
+    ylabel=&quot;Population growth rate (λ)&quot;,
+    title=&quot;Whitefly growth rate under different guild compositions&quot;,
+    legend=false, color=colors, alpha=0.8,
+    xrotation=30, size=(750, 450), bottom_margin=10Plots.mm)
+hline!([1.0], linestyle=:dash, color=:red, linewidth=2, label=&quot;λ = 1&quot;)
+annotate!(4.5, 1.001, text(&quot;λ = 1 (replacement)&quot;, :red, 8, :bottom))</code></pre><p><img src="../13_whitefly_guild_composition_files/embedded-3.png" alt/></p><h2 id="Parasitism-Intensity-Sweep"><a class="docs-heading-anchor" href="#Parasitism-Intensity-Sweep">Parasitism Intensity Sweep</a><a id="Parasitism-Intensity-Sweep-1"></a><a class="docs-heading-anchor-permalink" href="#Parasitism-Intensity-Sweep" title="Permalink"></a></h2><p>How sensitive is whitefly control to parasitism intensity? We sweep the parasitism rates of P₁ and P₂ (keeping P₃ at its baseline) and plot the resulting &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; surface:</p><pre><code class="language-julia hljs">α₁_range = range(0.0, 0.10, length=40)
+α₂_range = range(0.0, 0.10, length=40)
+
+λ_surface = zeros(length(α₁_range), length(α₂_range))
+
+for (i, a1) in enumerate(α₁_range)
+    for (j, a2) in enumerate(α₂_range)
+        Δ1 = zeros(n, n)
+        Δ1[stage_idx[:nymph1],  stage_idx[:nymph1]]  = -a1
+        Δ1[stage_idx[:nymph23], stage_idx[:nymph23]] = -a1
+
+        Δ2 = zeros(n, n)
+        Δ2[stage_idx[:nymph23], stage_idx[:nymph23]] = -a2
+
+        A_sweep = A_base + Δ1 + Δ2 + ΔA_P3
+        λ_surface[i, j] = lambda(A_sweep)
+    end
+end
+
+contourf(α₂_range, α₁_range, λ_surface,
+    xlabel=&quot;P₂ parasitism rate (α₂)&quot;,
+    ylabel=&quot;P₁ parasitism rate (α₁)&quot;,
+    title=&quot;Whitefly λ as function of parasitism intensity\n(P₃ fixed at α₃ = $(α₃))&quot;,
+    color=cgrad(:RdYlGn, rev=true), levels=20,
+    size=(600, 500))
+contour!(α₂_range, α₁_range, λ_surface,
+    levels=[1.0], linecolor=:black, linewidth=2, label=&quot;λ = 1&quot;)
+scatter!([α₂], [α₁], markersize=8, color=:white, markerstrokecolor=:black,
+    markerstrokewidth=2, label=&quot;Baseline&quot;)</code></pre><p><img src="../13_whitefly_guild_composition_files/embedded-4.png" alt/></p><p>The black contour line shows the <strong>critical parasitism boundary</strong> where &lt;span class=&quot;math inline&quot;&gt;\\lambda = 1\&lt;/span&gt;. Combinations above and to the right of this line achieve pest suppression.</p><h2 id="Is-the-Guild-More-Than-the-Sum-of-Its-Parts?"><a class="docs-heading-anchor" href="#Is-the-Guild-More-Than-the-Sum-of-Its-Parts?">Is the Guild More Than the Sum of Its Parts?</a><a id="Is-the-Guild-More-Than-the-Sum-of-Its-Parts?-1"></a><a class="docs-heading-anchor-permalink" href="#Is-the-Guild-More-Than-the-Sum-of-Its-Parts?" title="Permalink"></a></h2><p>In the additive framework, matrix entries sum linearly. But the <strong>dominant eigenvalue</strong> is a nonlinear function of matrix entries. This means the λ reduction from the full guild need not equal the sum of individual λ reductions — there can be <strong>synergistic</strong> or <strong>redundant</strong> interactions:</p><pre><code class="language-julia hljs"># Individual λ reductions
+Δλ_P1 = λ_base - lambda(A_base + ΔA_P1)
+Δλ_P2 = λ_base - lambda(A_base + ΔA_P2)
+Δλ_P3 = λ_base - lambda(A_base + ΔA_P3)
+Δλ_sum = Δλ_P1 + Δλ_P2 + Δλ_P3
+
+# Full guild λ reduction
+Δλ_full = λ_base - lambda(A_base + ΔA_P1 + ΔA_P2 + ΔA_P3)
+
+println(&quot;Individual λ reductions:&quot;)
+println(&quot;  P₁ alone:  Δλ = &quot;, round(Δλ_P1, digits=6))
+println(&quot;  P₂ alone:  Δλ = &quot;, round(Δλ_P2, digits=6))
+println(&quot;  P₃ alone:  Δλ = &quot;, round(Δλ_P3, digits=6))
+println(&quot;  Sum:       Δλ = &quot;, round(Δλ_sum, digits=6))
+println()
+println(&quot;Full guild:  Δλ = &quot;, round(Δλ_full, digits=6))
+println()
+
+interaction = Δλ_full - Δλ_sum
+if abs(interaction) &lt; 1e-10
+    println(&quot;The guild is EXACTLY the sum of its parts (no interaction).&quot;)
+elseif interaction &gt; 0
+    println(&quot;Synergy: full guild reduces λ by $(round(interaction, digits=6)) MORE than sum of parts.&quot;)
+else
+    println(&quot;Redundancy: full guild reduces λ by $(round(abs(interaction), digits=6)) LESS than sum of parts.&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Individual λ reductions:
+  P₁ alone:  Δλ = 0.013974
+  P₂ alone:  Δλ = 0.006317
+  P₃ alone:  Δλ = 0.009447
+  Sum:       Δλ = 0.029738
+
+Full guild:  Δλ = 0.02806
+
+Redundancy: full guild reduces λ by 0.001678 LESS than sum of parts.</code></pre><h3 id="Visualizing-guild-interactions"><a class="docs-heading-anchor" href="#Visualizing-guild-interactions">Visualizing guild interactions</a><a id="Visualizing-guild-interactions-1"></a><a class="docs-heading-anchor-permalink" href="#Visualizing-guild-interactions" title="Permalink"></a></h3><pre><code class="language-julia hljs">bar_labels = [&quot;P₁ alone&quot;, &quot;P₂ alone&quot;, &quot;P₃ alone&quot;, &quot;Sum of\nindividual&quot;, &quot;Full\nguild&quot;]
+bar_vals = [Δλ_P1, Δλ_P2, Δλ_P3, Δλ_sum, Δλ_full]
+bar_colors = [:steelblue, :steelblue, :steelblue, :goldenrod, :teal]
+
+bar(bar_labels, bar_vals,
+    ylabel=&quot;Reduction in λ (Δλ)&quot;,
+    title=&quot;Guild interaction: individual vs combined effects&quot;,
+    legend=false, color=bar_colors, alpha=0.8,
+    size=(650, 400), bottom_margin=5Plots.mm)</code></pre><p><img src="../13_whitefly_guild_composition_files/embedded-5.png" alt/></p><p>Even though matrix perturbations add linearly, eigenvalue sensitivity is nonlinear — the <strong>guild effect is not simply the sum of individual effects</strong>. This is precisely the kind of analysis that compositional construction makes straightforward: we can freely add, remove, and recombine parasitoid components and immediately evaluate the population-level consequences.</p><h3 id="Interaction-across-parasitism-intensities"><a class="docs-heading-anchor" href="#Interaction-across-parasitism-intensities">Interaction across parasitism intensities</a><a id="Interaction-across-parasitism-intensities-1"></a><a class="docs-heading-anchor-permalink" href="#Interaction-across-parasitism-intensities" title="Permalink"></a></h3><p>We can also sweep the total parasitism pressure to see how the interaction term changes:</p><pre><code class="language-julia hljs">scale_range = range(0.0, 3.0, length=50)
+Δλ_individuals = Float64[]
+Δλ_guilds = Float64[]
+interactions = Float64[]
+
+for s in scale_range
+    Δ1 = zeros(n, n)
+    Δ1[stage_idx[:nymph1],  stage_idx[:nymph1]]  = -α₁ * s
+    Δ1[stage_idx[:nymph23], stage_idx[:nymph23]] = -α₁ * s
+
+    Δ2 = zeros(n, n)
+    Δ2[stage_idx[:nymph23], stage_idx[:nymph23]] = -α₂ * s
+
+    Δ3 = zeros(n, n)
+    Δ3[stage_idx[:nymph1],  stage_idx[:nymph1]]  = -α₃ * s
+    Δ3[stage_idx[:nymph23], stage_idx[:nymph23]] = -α₃ * s
+
+    δ1 = λ_base - lambda(A_base + Δ1)
+    δ2 = λ_base - lambda(A_base + Δ2)
+    δ3 = λ_base - lambda(A_base + Δ3)
+    δ_full = λ_base - lambda(A_base + Δ1 + Δ2 + Δ3)
+
+    push!(Δλ_individuals, δ1 + δ2 + δ3)
+    push!(Δλ_guilds, δ_full)
+    push!(interactions, δ_full - (δ1 + δ2 + δ3))
+end
+
+p1 = plot(scale_range, [Δλ_individuals Δλ_guilds],
+    label=[&quot;Sum of individuals&quot; &quot;Full guild&quot;],
+    xlabel=&quot;Parasitism intensity (× baseline)&quot;,
+    ylabel=&quot;Δλ&quot;, title=&quot;Guild vs individual reductions&quot;,
+    linewidth=2, color=[:goldenrod :teal])
+
+p2 = plot(scale_range, interactions,
+    xlabel=&quot;Parasitism intensity (× baseline)&quot;,
+    ylabel=&quot;Interaction (Δλ_guild − Σ Δλᵢ)&quot;,
+    title=&quot;Nonlinear interaction term&quot;,
+    linewidth=2, color=:indianred, legend=false)
+hline!([0], linestyle=:dash, color=:gray)
+
+plot(p1, p2, layout=(1, 2), size=(900, 380))</code></pre><p><img src="../13_whitefly_guild_composition_files/embedded-6.png" alt/></p><p>At low parasitism, the interaction is near zero (eigenvalue sensitivity is approximately linear). As parasitism intensifies, the nonlinear interaction grows — the guild becomes increasingly more (or less) effective than the sum of its parts.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated how CategoricalPopulationDynamics.jl’s compositional framework enables <strong>guild-level analysis</strong> of multi-species biocontrol:</p><ol><li><strong>Base lifecycle</strong> — the whitefly model is assembled from three <code>ValuedProjectionNet</code> components (development, stasis, fecundity) merged with <code>⊕</code></li><li><strong>Parasitoid effects</strong> — each natural enemy is a sparse negative matrix reducing survival in attacked stages</li><li><strong>Additive composition</strong> — <code>compose_transitions</code> and <code>oapply</code> combine base + parasitoid effects, giving identical results</li><li><strong>Guild contribution</strong> — freely adding/removing parasitoid components reveals each species’ contribution to pest suppression</li><li><strong>Intensity sweeps</strong> — the &lt;span class=&quot;math inline&quot;&gt;\\lambda\&lt;/span&gt; surface shows critical parasitism boundaries for pest control</li><li><strong>Nonlinear interactions</strong> — even though matrices add linearly, the dominant eigenvalue responds nonlinearly, so guild effects are not simply additive</li></ol><p>The categorical framework turns a complex multi-species model into a <strong>modular assembly problem</strong>: define each component once, then compose in any combination to explore guild dynamics, species redundancy, and biocontrol thresholds.</p><h3 id="References"><a class="docs-heading-anchor" href="#References">References</a><a id="References-1"></a><a class="docs-heading-anchor-permalink" href="#References" title="Permalink"></a></h3><p>Schreiber, S.J., Mills, N.J., &amp; Gutierrez, A.P. (2001). Host-limited dynamics of autoparasitoids. <em>Journal of Theoretical Biology</em>, 212(2), 141–153.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../12_xylella_epi_stratification/">« Vector-Borne Disease Stratification</a><a class="docs-footer-nextpage" href="../14_lobesia_metapopulation/">Metapopulation Stratification »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

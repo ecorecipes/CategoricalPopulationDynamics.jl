@@ -1,0 +1,200 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Stratification and Coarsening · CategoricalPopulationDynamics.jl</title><meta name="title" content="Stratification and Coarsening · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Stratification and Coarsening · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Stratification and Coarsening · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/04_stratification_coarsening/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/04_stratification_coarsening/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/04_stratification_coarsening/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li class="is-active"><a class="tocitem" href>Stratification and Coarsening</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Baseline-Model"><span>Baseline Model</span></a></li><li><a class="tocitem" href="#Stratification:-Single-Patch-Metapopulation"><span>Stratification: Single Patch → Metapopulation</span></a></li><li><a class="tocitem" href="#Coarsening:-Fine-Resolution-Coarse-Resolution"><span>Coarsening: Fine Resolution → Coarse Resolution</span></a></li><li><a class="tocitem" href="#Combining-Stratification-and-Coarsening"><span>Combining Stratification and Coarsening</span></a></li><li><a class="tocitem" href="#Non-Uniform-Coarsening-via-FinFunction"><span>Non-Uniform Coarsening via FinFunction</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Stratification and Coarsening</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Stratification and Coarsening</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/04_stratification_coarsening.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Stratification-and-Coarsening"><a class="docs-heading-anchor" href="#Stratification-and-Coarsening">Stratification and Coarsening</a><a id="Stratification-and-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Stratification-and-Coarsening" title="Permalink"></a></h1><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Two important categorical operations transform the <em>spatial</em> and <em>resolution</em> structure of projection models:</p><ul><li><strong>Stratification</strong> — extends a local single-patch model to multiple patches via a dispersal matrix (pullback in a slice category)</li><li><strong>Coarsening</strong> — aggregates a fine-resolution model to a coarser one via pushforward along a <code>FinFunction</code></li></ul><p>Both are <em>functorial</em>: they preserve the compositional structure and interact correctly with Kan extensions. This vignette demonstrates both operations and their key properties.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using Catlab
+using Catlab.CategoricalAlgebra
+using LinearAlgebra
+using StructuredPopulationCore: lambda
+using Plots</code></pre><h2 id="Baseline-Model"><a class="docs-heading-anchor" href="#Baseline-Model">Baseline Model</a><a id="Baseline-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Baseline-Model" title="Permalink"></a></h2><p>We start with a single-patch perennial plant model:</p><pre><code class="language-julia hljs"># Vital rates
+s(z) = 1.0 / (1.0 + exp(-(0.5 + 0.3 * z)))
+g(z_new, z) = exp(-0.5 * ((z_new - (0.2 + 0.8 * z)) / 0.5)^2) / (0.5 * sqrt(2π))
+f_rate(z) = exp(0.1 + 0.2 * z)
+recruit_dist(z_new) = exp(-0.5 * ((z_new - 0.5) / 0.3)^2) / (0.3 * sqrt(2π))
+
+P_kernel(z_new, z) = s(z) * g(z_new, z)
+F_kernel(z_new, z) = f_rate(z) * recruit_dist(z_new)
+full_kernel(z_new, z) = P_kernel(z_new, z) + F_kernel(z_new, z)
+
+domain = ContinuousProjectionDomain(0.0, 5.0, 30)
+A_local = left_kan_extension(full_kernel, domain)
+
+println(&quot;Single-patch model: &quot;, size(A_local), &quot; matrix&quot;)
+println(&quot;λ (local) = &quot;, round(lambda(A_local), digits=4))</code></pre><pre><code class="nohighlight hljs">Single-patch model: (30, 30) matrix
+λ (local) = 1.7941</code></pre><h2 id="Stratification:-Single-Patch-Metapopulation"><a class="docs-heading-anchor" href="#Stratification:-Single-Patch-Metapopulation">Stratification: Single Patch → Metapopulation</a><a id="Stratification:-Single-Patch-Metapopulation-1"></a><a class="docs-heading-anchor-permalink" href="#Stratification:-Single-Patch-Metapopulation" title="Permalink"></a></h2><p>Stratification extends a local transition matrix to a spatial metapopulation by combining it with a dispersal matrix. The result is a block-structured matrix:</p><p class="math-container">\[A_{\text{strat}}[(p_{\text{to}}, i),\; (p_{\text{from}}, j)] = D[p_{\text{to}}, p_{\text{from}}] \cdot A_{\text{local}}[i, j]\]</p><h3 id="Two-Patch-Symmetric-Dispersal"><a class="docs-heading-anchor" href="#Two-Patch-Symmetric-Dispersal">Two-Patch Symmetric Dispersal</a><a id="Two-Patch-Symmetric-Dispersal-1"></a><a class="docs-heading-anchor-permalink" href="#Two-Patch-Symmetric-Dispersal" title="Permalink"></a></h3><pre><code class="language-julia hljs"># 90% stay, 10% disperse
+D_sym = [0.9 0.1;
+         0.1 0.9]
+
+A_2patch = stratify(A_local, D_sym)
+println(&quot;2-patch matrix: &quot;, size(A_2patch))
+println(&quot;λ (2 patches, symmetric) = &quot;, round(lambda(A_2patch), digits=4))
+println(&quot;λ (single patch)         = &quot;, round(lambda(A_local), digits=4))</code></pre><pre><code class="nohighlight hljs">2-patch matrix: (60, 60)
+λ (2 patches, symmetric) = 1.7941
+λ (single patch)         = 1.7941</code></pre><p>With symmetric dispersal, <span>$\lambda$</span> is preserved — the metapopulation grows at the same rate as an isolated patch.</p><h3 id="Visualising-Block-Structure"><a class="docs-heading-anchor" href="#Visualising-Block-Structure">Visualising Block Structure</a><a id="Visualising-Block-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Visualising-Block-Structure" title="Permalink"></a></h3><pre><code class="language-julia hljs">n = size(A_local, 1)
+heatmap(A_2patch,
+    title=&quot;Stratified matrix (2 patches, symmetric dispersal)&quot;,
+    xlabel=&quot;From (patch×size)&quot;, ylabel=&quot;To (patch×size)&quot;,
+    color=:viridis, size=(500, 450))
+# Add block boundary lines
+vline!([n + 0.5], color=:white, linewidth=2, label=false)
+hline!([n + 0.5], color=:white, linewidth=2, label=false)</code></pre><p><img src="../04_stratification_coarsening_files/figure-commonmark/cell-5-output-1.svg" alt/></p><h3 id="Asymmetric-Dispersal:-Source-Sink-Dynamics"><a class="docs-heading-anchor" href="#Asymmetric-Dispersal:-Source-Sink-Dynamics">Asymmetric Dispersal: Source-Sink Dynamics</a><a id="Asymmetric-Dispersal:-Source-Sink-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Asymmetric-Dispersal:-Source-Sink-Dynamics" title="Permalink"></a></h3><p>When dispersal is asymmetric, patches become sources and sinks:</p><pre><code class="language-julia hljs"># Patch 1 is a source (high dispersal out), Patch 2 is a sink (retains population)
+D_asym = [0.6 0.05;
+          0.4 0.95]
+
+A_asym = stratify(A_local, D_asym)
+println(&quot;λ (asymmetric) = &quot;, round(lambda(A_asym), digits=4))
+println(&quot;λ (symmetric)  = &quot;, round(lambda(A_2patch), digits=4))
+println(&quot;λ (local)      = &quot;, round(lambda(A_local), digits=4))</code></pre><pre><code class="nohighlight hljs">λ (asymmetric) = 1.7941
+λ (symmetric)  = 1.7941
+λ (local)      = 1.7941</code></pre><pre><code class="language-julia hljs"># Compare eigenvalues across dispersal scenarios
+D_isolated = [1.0 0.0; 0.0 1.0]  # no dispersal
+D_full = [0.5 0.5; 0.5 0.5]       # complete mixing
+
+scenarios = [
+    (&quot;Isolated&quot;, D_isolated),
+    (&quot;Low (10%)&quot;, D_sym),
+    (&quot;Asymmetric&quot;, D_asym),
+    (&quot;Full mixing&quot;, D_full)
+]
+
+lambdas = [lambda(stratify(A_local, D)) for (_, D) in scenarios]
+labels = [s[1] for s in scenarios]
+
+bar(labels, lambdas,
+    ylabel=&quot;λ&quot;, title=&quot;Growth rate vs dispersal pattern&quot;,
+    legend=false, color=:teal, alpha=0.7)
+hline!([lambda(A_local)], linestyle=:dash, color=:red, label=&quot;λ (local)&quot;)</code></pre><p><img src="../04_stratification_coarsening_files/figure-commonmark/cell-7-output-1.svg" alt/></p><h3 id="Three-Patch-Stepping-Stone-Model"><a class="docs-heading-anchor" href="#Three-Patch-Stepping-Stone-Model">Three-Patch Stepping-Stone Model</a><a id="Three-Patch-Stepping-Stone-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Three-Patch-Stepping-Stone-Model" title="Permalink"></a></h3><pre><code class="language-julia hljs"># Linear arrangement: patches connected to neighbours only
+D_step = [0.85 0.15 0.0;
+          0.10 0.80 0.10;
+          0.0  0.15 0.85]
+
+A_3patch = stratify(A_local, D_step)
+println(&quot;3-patch stepping-stone:&quot;)
+println(&quot;  Matrix size: &quot;, size(A_3patch))
+println(&quot;  λ = &quot;, round(lambda(A_3patch), digits=4))</code></pre><pre><code class="nohighlight hljs">3-patch stepping-stone:
+  Matrix size: (90, 90)
+  λ = 1.7941</code></pre><pre><code class="language-julia hljs">heatmap(A_3patch,
+    title=&quot;Stratified matrix (3-patch stepping-stone)&quot;,
+    xlabel=&quot;From (patch×size)&quot;, ylabel=&quot;To (patch×size)&quot;,
+    color=:viridis, size=(500, 450))
+vline!([n + 0.5, 2n + 0.5], color=:white, linewidth=2, label=false)
+hline!([n + 0.5, 2n + 0.5], color=:white, linewidth=2, label=false)</code></pre><p><img src="../04_stratification_coarsening_files/figure-commonmark/cell-9-output-1.svg" alt/></p><h2 id="Coarsening:-Fine-Resolution-Coarse-Resolution"><a class="docs-heading-anchor" href="#Coarsening:-Fine-Resolution-Coarse-Resolution">Coarsening: Fine Resolution → Coarse Resolution</a><a id="Coarsening:-Fine-Resolution-Coarse-Resolution-1"></a><a class="docs-heading-anchor-permalink" href="#Coarsening:-Fine-Resolution-Coarse-Resolution" title="Permalink"></a></h2><p>Coarsening aggregates a fine-resolution matrix to a coarser one via pushforward. This is implemented using Catlab’s <code>FinFunction</code> — a function between finite sets that maps fine bin indices to coarse bin indices.</p><h3 id="Domain-Pair-Coarsening"><a class="docs-heading-anchor" href="#Domain-Pair-Coarsening">Domain-Pair Coarsening</a><a id="Domain-Pair-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Domain-Pair-Coarsening" title="Permalink"></a></h3><p>The simplest interface specifies a fine and coarse domain:</p><pre><code class="language-julia hljs">fine_domain = ContinuousProjectionDomain(0.0, 5.0, 100)
+coarse_domain = ContinuousProjectionDomain(0.0, 5.0, 50)
+
+A_fine = left_kan_extension(full_kernel, fine_domain)
+A_coarse = coarsen(A_fine, fine_domain, coarse_domain)
+
+println(&quot;Fine matrix:   &quot;, size(A_fine))
+println(&quot;Coarse matrix: &quot;, size(A_coarse))
+println(&quot;λ (fine, n=100):  &quot;, round(lambda(A_fine), digits=6))
+println(&quot;λ (coarse, n=50): &quot;, round(lambda(A_coarse), digits=6))</code></pre><pre><code class="nohighlight hljs">Fine matrix:   (100, 100)
+Coarse matrix: (50, 50)
+λ (fine, n=100):  1.791561
+λ (coarse, n=50): 1.791638</code></pre><h3 id="FinFunction-Coarsening"><a class="docs-heading-anchor" href="#FinFunction-Coarsening">FinFunction Coarsening</a><a id="FinFunction-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#FinFunction-Coarsening" title="Permalink"></a></h3><p>For more control, construct an explicit <code>FinFunction</code> mapping:</p><pre><code class="language-julia hljs"># Map pairs of fine bins to single coarse bins
+f = FinFunction([((i-1) ÷ 2) + 1 for i in 1:100], 50)
+A_coarse_ff = coarsen(A_fine, f)
+
+println(&quot;FinFunction coarsening matches domain-pair: &quot;, A_coarse_ff ≈ A_coarse)</code></pre><pre><code class="nohighlight hljs">FinFunction coarsening matches domain-pair: true</code></pre><h3 id="Coarsening-Preserves-Growth-Rate"><a class="docs-heading-anchor" href="#Coarsening-Preserves-Growth-Rate">Coarsening Preserves Growth Rate</a><a id="Coarsening-Preserves-Growth-Rate-1"></a><a class="docs-heading-anchor-permalink" href="#Coarsening-Preserves-Growth-Rate" title="Permalink"></a></h3><p>The key property: coarsening approximately preserves <span>$\lambda$</span>:</p><pre><code class="language-julia hljs">fine_sizes = [200, 100, 50]
+coarse_sizes = [100, 50, 25]
+ratios = fine_sizes .÷ coarse_sizes
+
+println(rpad(&quot;Fine&quot;, 8), rpad(&quot;Coarse&quot;, 8), rpad(&quot;λ fine&quot;, 12), rpad(&quot;λ coarse&quot;, 12), &quot;Rel. error&quot;)
+println(&quot;-&quot;^52)
+
+for (nf, nc) in zip(fine_sizes, coarse_sizes)
+    dom_f = ContinuousProjectionDomain(0.0, 5.0, nf)
+    dom_c = ContinuousProjectionDomain(0.0, 5.0, nc)
+    A_f = left_kan_extension(full_kernel, dom_f)
+    A_c = coarsen(A_f, dom_f, dom_c)
+    λ_f = lambda(A_f)
+    λ_c = lambda(A_c)
+    err = abs(λ_c - λ_f) / λ_f
+    println(rpad(nf, 8), rpad(nc, 8),
+        rpad(round(λ_f, digits=6), 12),
+        rpad(round(λ_c, digits=6), 12),
+        round(err * 100, digits=4), &quot;%&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Fine    Coarse  λ fine      λ coarse    Rel. error
+----------------------------------------------------
+200     100     1.791372    1.791391    0.0011%
+100     50      1.791561    1.791638    0.0043%
+50      25      1.79232     1.792621    0.0168%</code></pre><h3 id="Progressive-Coarsening"><a class="docs-heading-anchor" href="#Progressive-Coarsening">Progressive Coarsening</a><a id="Progressive-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Progressive-Coarsening" title="Permalink"></a></h3><p>We can coarsen in multiple steps: 200 → 100 → 50 → 25:</p><pre><code class="language-julia hljs">dom_200 = ContinuousProjectionDomain(0.0, 5.0, 200)
+dom_100 = ContinuousProjectionDomain(0.0, 5.0, 100)
+dom_50 = ContinuousProjectionDomain(0.0, 5.0, 50)
+dom_25 = ContinuousProjectionDomain(0.0, 5.0, 25)
+
+A_200 = left_kan_extension(full_kernel, dom_200)
+A_100 = coarsen(A_200, dom_200, dom_100)
+A_50 = coarsen(A_100, dom_100, dom_50)
+A_25 = coarsen(A_50, dom_50, dom_25)
+
+# Also coarsen directly: 200 → 25
+A_25_direct = coarsen(A_200, dom_200, dom_25)
+
+println(&quot;Progressive: 200→100→50→25, λ = &quot;, round(lambda(A_25), digits=6))
+println(&quot;Direct:      200→25,         λ = &quot;, round(lambda(A_25_direct), digits=6))
+println(&quot;Agreement: &quot;, A_25 ≈ A_25_direct)</code></pre><pre><code class="nohighlight hljs">Progressive: 200→100→50→25, λ = 1.791775
+Direct:      200→25,         λ = 1.791775
+Agreement: true</code></pre><p>Progressive and direct coarsening agree — the pushforward is functorial (composition of FinFunctions commutes).</p><h3 id="Visualising-Coarsening"><a class="docs-heading-anchor" href="#Visualising-Coarsening">Visualising Coarsening</a><a id="Visualising-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Visualising-Coarsening" title="Permalink"></a></h3><pre><code class="language-julia hljs">z_fine = meshpoints(dom_100)
+z_coarse = meshpoints(dom_25)
+
+p1 = heatmap(z_fine, z_fine,
+    left_kan_extension(full_kernel, dom_100),
+    title=&quot;Fine (n=100)&quot;, xlabel=&quot;Size z&quot;, ylabel=&quot;Size z&#39;&quot;, color=:viridis)
+p2 = heatmap(z_coarse, z_coarse,
+    coarsen(left_kan_extension(full_kernel, dom_100), dom_100, dom_25),
+    title=&quot;Coarse (n=25)&quot;, xlabel=&quot;Size z&quot;, ylabel=&quot;Size z&#39;&quot;, color=:viridis)
+plot(p1, p2, layout=(1, 2), size=(800, 350))</code></pre><p><img src="../04_stratification_coarsening_files/figure-commonmark/cell-14-output-1.svg" alt/></p><h2 id="Combining-Stratification-and-Coarsening"><a class="docs-heading-anchor" href="#Combining-Stratification-and-Coarsening">Combining Stratification and Coarsening</a><a id="Combining-Stratification-and-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Combining-Stratification-and-Coarsening" title="Permalink"></a></h2><p>A common workflow: build a fine-resolution local model, stratify across patches, then coarsen for computational efficiency.</p><pre><code class="language-julia hljs"># Fine local model (100 bins)
+dom_fine = ContinuousProjectionDomain(0.0, 5.0, 100)
+A_fine_local = left_kan_extension(full_kernel, dom_fine)
+
+# Stratify across 3 patches
+D_3 = [0.85 0.10 0.05;
+       0.10 0.80 0.10;
+       0.05 0.10 0.85]
+A_fine_strat = stratify(A_fine_local, D_3)
+println(&quot;Fine stratified: &quot;, size(A_fine_strat), &quot;, λ = &quot;, round(lambda(A_fine_strat), digits=4))
+
+# Coarsen local model, then stratify
+dom_coarse = ContinuousProjectionDomain(0.0, 5.0, 25)
+A_coarse_local = coarsen(A_fine_local, dom_fine, dom_coarse)
+A_coarse_strat = stratify(A_coarse_local, D_3)
+println(&quot;Coarse stratified: &quot;, size(A_coarse_strat), &quot;, λ = &quot;, round(lambda(A_coarse_strat), digits=4))</code></pre><pre><code class="nohighlight hljs">Fine stratified: (300, 300), λ = 1.7916
+Coarse stratified: (75, 75), λ = 1.7919</code></pre><h3 id="Commutativity:-Stratify-Then-Coarsen-vs-Coarsen-Then-Stratify"><a class="docs-heading-anchor" href="#Commutativity:-Stratify-Then-Coarsen-vs-Coarsen-Then-Stratify">Commutativity: Stratify Then Coarsen vs Coarsen Then Stratify</a><a id="Commutativity:-Stratify-Then-Coarsen-vs-Coarsen-Then-Stratify-1"></a><a class="docs-heading-anchor-permalink" href="#Commutativity:-Stratify-Then-Coarsen-vs-Coarsen-Then-Stratify" title="Permalink"></a></h3><p>The operations commute — we get the same result regardless of order:</p><pre><code class="language-julia hljs"># Order 1: stratify fine, then coarsen blocks
+# (Not directly supported as a single operation, but lambda should match)
+λ_fine_strat = lambda(A_fine_strat)
+
+# Order 2: coarsen first, then stratify
+λ_coarse_strat = lambda(A_coarse_strat)
+
+println(&quot;Stratify(fine):          λ = &quot;, round(λ_fine_strat, digits=6))
+println(&quot;Stratify(coarsen(fine)): λ = &quot;, round(λ_coarse_strat, digits=6))
+println(&quot;Relative difference: &quot;, round(abs(λ_fine_strat - λ_coarse_strat) / λ_fine_strat * 100, digits=4), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">Stratify(fine):          λ = 1.791561
+Stratify(coarsen(fine)): λ = 1.791944
+Relative difference: 0.0214%</code></pre><p>The small difference comes from the coarsening approximation, not from any failure of commutativity.</p><h2 id="Non-Uniform-Coarsening-via-FinFunction"><a class="docs-heading-anchor" href="#Non-Uniform-Coarsening-via-FinFunction">Non-Uniform Coarsening via FinFunction</a><a id="Non-Uniform-Coarsening-via-FinFunction-1"></a><a class="docs-heading-anchor-permalink" href="#Non-Uniform-Coarsening-via-FinFunction" title="Permalink"></a></h2><p>FinFunction coarsening allows <em>non-uniform</em> bin aggregation — e.g., fine resolution where vital rates change rapidly, coarse resolution elsewhere:</p><pre><code class="language-julia hljs"># 60 fine bins → 25 coarse bins
+# Fine resolution in the reproductive size range (bins 20-40), coarse elsewhere
+n_fine = 60
+n_coarse = 25
+mapping = zeros(Int, n_fine)
+
+# Bins 1-15: coarsen 3:1 (5 coarse bins)
+for i in 1:15
+    mapping[i] = ((i-1) ÷ 3) + 1
+end
+# Bins 16-45: keep fine, 2:1 (15 coarse bins)
+for i in 16:45
+    mapping[i] = ((i-16) ÷ 2) + 6
+end
+# Bins 46-60: coarsen 3:1 (5 coarse bins)
+for i in 46:60
+    mapping[i] = ((i-46) ÷ 3) + 21
+end
+
+f_nonuniform = FinFunction(mapping, n_coarse)
+
+dom_60 = ContinuousProjectionDomain(0.0, 5.0, n_fine)
+A_60 = left_kan_extension(full_kernel, dom_60)
+A_nonuniform = coarsen(A_60, f_nonuniform)
+
+println(&quot;Non-uniform coarsening: &quot;, size(A_60), &quot; → &quot;, size(A_nonuniform))
+println(&quot;λ (fine, n=60):     &quot;, round(lambda(A_60), digits=6))
+println(&quot;λ (non-uniform, n=25): &quot;, round(lambda(A_nonuniform), digits=6))</code></pre><pre><code class="nohighlight hljs">Non-uniform coarsening: (60, 60) → (25, 25)
+λ (fine, n=60):     1.792011
+λ (non-uniform, n=25): 1.792261</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>In this vignette we demonstrated two categorical operations:</p><ol><li><strong>Stratification</strong> — extends local models to spatial metapopulations<ul><li>Preserves <span>$\lambda$</span> under symmetric dispersal</li><li>Models source-sink dynamics with asymmetric dispersal</li><li>Scales to arbitrary patch topologies</li></ul></li><li><strong>Coarsening</strong> — reduces model resolution via pushforward<ul><li>Approximately preserves <span>$\lambda$</span></li><li>Functorial: progressive coarsening commutes</li><li>Supports non-uniform aggregation via <code>FinFunction</code></li><li>Commutes with stratification (up to coarsening error)</li></ul></li></ol><p>The next vignette covers lowering categorical specifications to concrete IPMProblem and MatrixProjectionModel objects.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../03_composition/">« Compositional Model Construction</a><a class="docs-footer-nextpage" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

@@ -1,0 +1,281 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>PBDM Supply–Demand via Timescale Nesting · CategoricalPopulationDynamics.jl</title><meta name="title" content="PBDM Supply–Demand via Timescale Nesting · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="PBDM Supply–Demand via Timescale Nesting · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="PBDM Supply–Demand via Timescale Nesting · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/21_tritrophic_nesting/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/21_tritrophic_nesting/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/21_tritrophic_nesting/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li class="is-active"><a class="tocitem" href>PBDM Supply–Demand via Timescale Nesting</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Biological-Background"><span>Biological Background</span></a></li><li><a class="tocitem" href="#Level-1:-Photosynthetic-Carbon-Supply"><span>Level 1: Photosynthetic Carbon Supply</span></a></li><li><a class="tocitem" href="#Level-2:-Cotton-Plant-Growth"><span>Level 2: Cotton Plant Growth</span></a></li><li><a class="tocitem" href="#Level-3:-Bollworm-Pest-Pressure"><span>Level 3: Bollworm Pest Pressure</span></a></li><li><a class="tocitem" href="#Temperature-Sensitivity-Cascade"><span>Temperature Sensitivity Cascade</span></a></li><li><a class="tocitem" href="#Cloud-Cover-Sensitivity"><span>Cloud Cover Sensitivity</span></a></li><li><a class="tocitem" href="#Modifying-Processes-with"><span>Modifying Processes with ⊘</span></a></li><li><a class="tocitem" href="#Comparison-with-Flat-Approach"><span>Comparison with Flat Approach</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>PBDM Supply–Demand via Timescale Nesting</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>PBDM Supply–Demand via Timescale Nesting</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/21_tritrophic_nesting.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="PBDM-Supply–Demand-via-Timescale-Nesting"><a class="docs-heading-anchor" href="#PBDM-Supply–Demand-via-Timescale-Nesting">PBDM Supply–Demand via Timescale Nesting</a><a id="PBDM-Supply–Demand-via-Timescale-Nesting-1"></a><a class="docs-heading-anchor-permalink" href="#PBDM-Supply–Demand-via-Timescale-Nesting" title="Permalink"></a></h1><p>Coupling Resource Acquisition to Demographic Projection</p><p>Author</p><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p><strong>Physiologically based demographic models</strong> (PBDMs) couple an organism’s resource acquisition (supply) to its vital rates (demand). The PBDM paradigm introduced by Gutierrez and collaborators (Gutierrez et al., 1975; Gutierrez &amp; Baumgärtner, 1984) formalises this as a hierarchy of timescales:</p><ol><li><strong>Resource dynamics</strong> (fast) — photosynthesis, foraging, carbon fixation</li><li><strong>Organism demography</strong> (medium) — survival, development, reproduction</li><li><strong>Community interactions</strong> (slow) — herbivory, parasitism, crop yield</li></ol><p>This vignette demonstrates how <strong>timescale nesting</strong> with <code>⋉</code> maps directly onto the PBDM supply–demand framework. We build a simplified cotton–bollworm system where:</p><p>&lt;table class=&quot;caption-top table&quot; style=&quot;width:98%;&quot;&gt; &lt;colgroup&gt; &lt;col style=&quot;width: 20%&quot; /&gt; &lt;col style=&quot;width: 25%&quot; /&gt; &lt;col style=&quot;width: 31%&quot; /&gt; &lt;col style=&quot;width: 22%&quot; /&gt; &lt;/colgroup&gt; &lt;thead&gt; &lt;tr class=&quot;header&quot;&gt; &lt;th&gt;Level&lt;/th&gt; &lt;th&gt;Process&lt;/th&gt; &lt;th&gt;Timescale&lt;/th&gt; &lt;th&gt;States&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td&gt;1&lt;/td&gt; &lt;td&gt;Photosynthetic carbon supply&lt;/td&gt; &lt;td&gt;Hourly (12 h/day)&lt;/td&gt; &lt;td&gt;Light-limited, saturated&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td&gt;2&lt;/td&gt; &lt;td&gt;Cotton plant growth&lt;/td&gt; &lt;td&gt;Daily (120 d/season)&lt;/td&gt; &lt;td&gt;Vegetative, fruiting, mature&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td&gt;3&lt;/td&gt; &lt;td&gt;Bollworm pest pressure&lt;/td&gt; &lt;td&gt;Seasonal&lt;/td&gt; &lt;td&gt;Clean, infested&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>Changes in radiation or temperature at Level 1 cascade through carbon supply → plant growth → pest carrying capacity, providing an integrated physiologically grounded demographic projection.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘, ⋉
+using LinearAlgebra
+using ProjectionModels: lambda
+using Plots</code></pre><h2 id="Biological-Background"><a class="docs-heading-anchor" href="#Biological-Background">Biological Background</a><a id="Biological-Background-1"></a><a class="docs-heading-anchor-permalink" href="#Biological-Background" title="Permalink"></a></h2><p><strong>Cotton</strong> (<em>Gossypium hirsutum</em>) is a perennial grown as an annual crop. Carbon fixed through photosynthesis is allocated to vegetative organs (leaves, stems, roots) and reproductive organs (squares, bolls). The allocation fraction shifts seasonally: early-season growth is predominantly vegetative, mid-season plants flower and set fruit, and late-season mature bolls accumulate lint (Gutierrez et al., 1975).</p><p><strong>Bollworm</strong> (<em>Helicoverpa</em> spp.) larvae feed on cotton squares and bolls. Their population growth depends on the availability of fruiting structures — a direct link between plant supply and pest demand.</p><p>In the PBDM framework, the plant’s daily carbon budget determines how fast it transitions through developmental stages, and the abundance of fruiting stages determines the bollworm’s effective reproduction rate.</p><h2 id="Level-1:-Photosynthetic-Carbon-Supply"><a class="docs-heading-anchor" href="#Level-1:-Photosynthetic-Carbon-Supply">Level 1: Photosynthetic Carbon Supply</a><a id="Level-1:-Photosynthetic-Carbon-Supply-1"></a><a class="docs-heading-anchor-permalink" href="#Level-1:-Photosynthetic-Carbon-Supply" title="Permalink"></a></h2><p>We model the plant’s instantaneous photosynthetic state as a two-state Markov chain operating on an <strong>hourly</strong> timescale. Leaves are either <strong>light-limited</strong> (below saturating irradiance) or <strong>saturated</strong> (at maximum photosynthetic rate). Temperature and cloudiness affect the transition rates.</p><pre><code class="language-julia hljs">&quot;&quot;&quot;
+    photosynthesis_rate(T; T_opt=27.0, T_width=8.0)
+
+Gaussian temperature response for net photosynthesis.
+Peaks at `T_opt` °C with half-maximum width `T_width` °C.
+Based on cotton photosynthetic response curves (Reddy et al., 1991).
+&quot;&quot;&quot;
+function photosynthesis_rate(T; T_opt=27.0, T_width=8.0)
+    return exp(-0.5 * ((T - T_opt) / T_width)^2)
+end
+
+function make_carbon_vpn(T; cloud_factor=1.0)
+    photo = photosynthesis_rate(T)
+    # Light capture rate: fraction of hours achieving saturating irradiance
+    light_capture = 0.30 * photo * cloud_factor
+    # Light loss: saturated → limited (cloud passage, leaf angle change)
+    light_loss = 0.10
+    # Persistence
+    limited_stay  = 0.55
+    saturated_stay = 0.82
+
+    limited  = ValuedProjectionNet([:light_limited, :saturated],
+        :light_capture =&gt; [(:light_limited =&gt; :saturated) =&gt; light_capture])
+    loss     = ValuedProjectionNet([:light_limited, :saturated],
+        :light_loss    =&gt; [(:saturated =&gt; :light_limited) =&gt; light_loss])
+    persist  = ValuedProjectionNet([:light_limited, :saturated],
+        :persistence   =&gt; [(:light_limited =&gt; :light_limited) =&gt; limited_stay,
+                           (:saturated =&gt; :saturated)         =&gt; saturated_stay])
+    return limited ⊕ loss ⊕ persist
+end</code></pre><pre><code class="nohighlight hljs">make_carbon_vpn (generic function with 1 method)</code></pre><p>At optimal temperature (27 °C), the carbon supply model yields:</p><pre><code class="language-julia hljs">carbon_27 = make_carbon_vpn(27.0)
+A_carbon = to_matrix(carbon_27)
+λ_c = lambda(A_carbon)
+
+println(&quot;Carbon supply matrix (27°C):&quot;)
+display(round.(A_carbon, digits=4))
+println(&quot;\nλ_carbon = &quot;, round(λ_c, digits=4))
+println(&quot;Daily supply index (λ^12) = &quot;, round(λ_c^12, digits=4))</code></pre><pre><code class="nohighlight hljs">Carbon supply matrix (27°C):
+
+λ_carbon = 0.9046
+Daily supply index (λ^12) = 0.3003
+
+2×2 Matrix{Float64}:
+ 0.55  0.1
+ 0.3   0.82</code></pre><pre><code class="language-julia hljs">T_range = 5:1:45
+supply_index = [lambda(to_matrix(make_carbon_vpn(T)))^12 for T in T_range]
+
+plot(T_range, supply_index,
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Daily carbon supply (λ¹²)&quot;,
+    title=&quot;Cotton photosynthetic supply index&quot;,
+    linewidth=2, color=:forestgreen, legend=false,
+    size=(600, 350))
+vline!([27], linestyle=:dash, color=:gray, alpha=0.5)
+annotate!(29, maximum(supply_index)*0.95, text(&quot;T_opt = 27°C&quot;, 8, :gray))</code></pre><p><img src="../21_tritrophic_nesting_files/embedded-1.png" alt/></p><p>The Gaussian temperature response produces a symmetric supply curve centred on 27 °C. At temperature extremes, carbon supply drops sharply — plants fix less carbon when cold (enzyme limitation) or hot (stomatal closure).</p><h2 id="Level-2:-Cotton-Plant-Growth"><a class="docs-heading-anchor" href="#Level-2:-Cotton-Plant-Growth">Level 2: Cotton Plant Growth</a><a id="Level-2:-Cotton-Plant-Growth-1"></a><a class="docs-heading-anchor-permalink" href="#Level-2:-Cotton-Plant-Growth" title="Permalink"></a></h2><p>The plant growth model tracks three developmental stages on a <strong>daily</strong> timescale:</p><ul><li><strong>Vegetative</strong>: leaf and stem growth (carbon invested in canopy expansion)</li><li><strong>Fruiting</strong>: flowers, squares, and developing bolls</li><li><strong>Mature</strong>: harvestable bolls with lint and seed</li></ul><p>The development rate from vegetative → fruiting depends on accumulated carbon (photoperiod and temperature effects in the full PBDM). We model this as a transition scaled by the carbon supply sub-model.</p><pre><code class="language-julia hljs"># Plant growth parameters (daily rates at 27°C reference)
+# Development: fraction advancing per day
+dev_veg_to_fruit = 0.03   # ~33 days vegetative phase
+dev_fruit_to_mat = 0.02   # ~50 days fruiting phase
+
+# Survival: fraction remaining in stage
+surv_veg  = 0.98    # vegetative survival (robust)
+surv_fruit = 0.95   # fruiting survival (square/boll shed)
+surv_mat  = 0.99    # mature survival (bolls persist)
+
+# Fecundity: new vegetative growth from mature plants (ratoon/regrowth)
+regrowth = 0.1      # low regrowth rate
+
+development = ValuedProjectionNet([:vegetative, :fruiting, :mature],
+    :development =&gt; [(:vegetative =&gt; :fruiting) =&gt; dev_veg_to_fruit,
+                     (:fruiting =&gt; :mature)     =&gt; dev_fruit_to_mat])
+
+survival = ValuedProjectionNet([:vegetative, :fruiting, :mature],
+    :survival =&gt; [(:vegetative =&gt; :vegetative) =&gt; surv_veg - dev_veg_to_fruit,
+                  (:fruiting =&gt; :fruiting)     =&gt; surv_fruit - dev_fruit_to_mat,
+                  (:mature =&gt; :mature)         =&gt; surv_mat])
+
+fecundity = ValuedProjectionNet([:vegetative, :fruiting, :mature],
+    :fecundity =&gt; [(:mature =&gt; :vegetative) =&gt; regrowth])
+
+plant_base = development ⊕ survival ⊕ fecundity</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:3
+  Src = 1:3
+  Tgt = 1:3
+  Name = 1:0
+  src_t : Src → T = [1, 2, 3]
+  src_s : Src → S = [1, 1, 1]
+  tgt_t : Tgt → T = [1, 2, 3]
+  tgt_s : Tgt → S = [1, 1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:survival, :development, :fecundity], [:vegetative, :fruiting, :mature], Dict(:survival =&gt; [(:vegetative =&gt; :vegetative) =&gt; 0.95, (:fruiting =&gt; :fruiting) =&gt; 0.9299999999999999, (:mature =&gt; :mature) =&gt; 0.99], :development =&gt; [(:vegetative =&gt; :fruiting) =&gt; 0.03, (:fruiting =&gt; :mature) =&gt; 0.02], :fecundity =&gt; [(:mature =&gt; :vegetative) =&gt; 0.1]))</code></pre><h3 id="Nesting-Carbon-Supply-into-Development"><a class="docs-heading-anchor" href="#Nesting-Carbon-Supply-into-Development">Nesting Carbon Supply into Development</a><a id="Nesting-Carbon-Supply-into-Development-1"></a><a class="docs-heading-anchor-permalink" href="#Nesting-Carbon-Supply-into-Development" title="Permalink"></a></h3><p>The key PBDM insight: the rate at which plants advance from vegetative to fruiting stages depends on daily carbon fixation. We nest the photosynthetic supply model into the <code>:development</code> transition:</p><pre><code class="language-julia hljs">carbon_emb = TimescaleEmbedding(make_carbon_vpn(27.0), 12, :lambda)
+plant_nested = plant_base ⋉ (:development =&gt; carbon_emb)
+println(plant_nested)</code></pre><pre><code class="nohighlight hljs">NestableVPN{Float64}(3 stages, 3 transitions, 1 embeddings)
+  :development ⋉ TimescaleEmbedding(steps=12, extract=lambda)</code></pre><pre><code class="language-julia hljs">A_plant = to_matrix(plant_nested)
+λ_plant = lambda(A_plant)
+
+println(&quot;Plant growth matrix (27°C):&quot;)
+display(round.(A_plant, digits=4))
+println(&quot;\nλ_plant = &quot;, round(λ_plant, digits=4))
+eff_dev = A_plant[2,1]
+println(&quot;Effective veg → fruit rate = &quot;, round(eff_dev, digits=4),
+        &quot; (base: &quot;, dev_veg_to_fruit, &quot;)&quot;)</code></pre><pre><code class="nohighlight hljs">Plant growth matrix (27°C):
+
+λ_plant = 0.9921
+Effective veg → fruit rate = 0.009 (base: 0.03)
+
+3×3 Matrix{Float64}:
+ 0.95   0.0    0.1
+ 0.009  0.93   0.0
+ 0.0    0.006  0.99</code></pre><h2 id="Level-3:-Bollworm-Pest-Pressure"><a class="docs-heading-anchor" href="#Level-3:-Bollworm-Pest-Pressure">Level 3: Bollworm Pest Pressure</a><a id="Level-3:-Bollworm-Pest-Pressure-1"></a><a class="docs-heading-anchor-permalink" href="#Level-3:-Bollworm-Pest-Pressure" title="Permalink"></a></h2><p>The bollworm population depends on the availability of fruiting structures. We model two crop states on a <strong>seasonal</strong> timescale:</p><ul><li><strong>Clean</strong>: no significant pest damage</li><li><strong>Infested</strong>: bollworm population established, fruit loss occurring</li></ul><p>The clean → infested transition rate is proportional to plant productivity (more fruit = more oviposition sites and larval food). The infested → clean transition represents pest control (natural enemies, pesticides, host resistance).</p><pre><code class="language-julia hljs">pest_base = ValuedProjectionNet([:clean, :infested],
+    :infestation  =&gt; [(:clean =&gt; :infested) =&gt; 1.0],     # placeholder, nested
+    :control      =&gt; [(:infested =&gt; :clean) =&gt; 0.15],    # 15% pest control/day
+    :crop_persist =&gt; [(:clean =&gt; :clean)    =&gt; 0.85,
+                      (:infested =&gt; :infested) =&gt; 0.70]) # infested plants lose more</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:3
+  Src = 1:3
+  Tgt = 1:3
+  Name = 1:0
+  src_t : Src → T = [1, 2, 3]
+  src_s : Src → S = [1, 1, 1]
+  tgt_t : Tgt → T = [1, 2, 3]
+  tgt_s : Tgt → S = [1, 1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:infestation, :control, :crop_persist], [:clean, :infested], Dict(:control =&gt; [(:infested =&gt; :clean) =&gt; 0.15], :infestation =&gt; [(:clean =&gt; :infested) =&gt; 1.0], :crop_persist =&gt; [(:clean =&gt; :clean) =&gt; 0.85, (:infested =&gt; :infested) =&gt; 0.7]))</code></pre><h3 id="Two-Level-Nesting:-Carbon-Plant-Pest"><a class="docs-heading-anchor" href="#Two-Level-Nesting:-Carbon-Plant-Pest">Two-Level Nesting: Carbon → Plant → Pest</a><a id="Two-Level-Nesting:-Carbon-Plant-Pest-1"></a><a class="docs-heading-anchor-permalink" href="#Two-Level-Nesting:-Carbon-Plant-Pest" title="Permalink"></a></h3><p>We nest the entire plant model (which itself contains the carbon sub-model) into the pest’s infestation transition. The plant’s seasonal growth rate determines how many fruiting structures are available for bollworm colonisation.</p><pre><code class="language-julia hljs">plant_emb = TimescaleEmbedding(plant_nested, 120, :lambda, scale=0.05)
+pest_nested = pest_base ⋉ (:infestation =&gt; plant_emb)
+println(pest_nested)</code></pre><pre><code class="nohighlight hljs">NestableVPN{Float64}(2 stages, 3 transitions, 1 embeddings)
+  :infestation ⋉ TimescaleEmbedding(steps=120, extract=lambda, scale=0.05)</code></pre><pre><code class="language-julia hljs">A_pest = to_matrix(pest_nested)
+λ_pest = lambda(A_pest)
+eff_infest = evaluate(plant_emb)
+
+println(&quot;Pest pressure matrix:&quot;)
+display(round.(A_pest, digits=4))
+println(&quot;\nEffective infestation rate = &quot;, round(eff_infest, digits=4))
+println(&quot;Crop system λ = &quot;, round(λ_pest, digits=4))
+if λ_pest &gt; 1
+    println(&quot;→ Pest pressure INCREASING&quot;)
+else
+    println(&quot;→ Pest pressure CONTAINED&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Pest pressure matrix:
+
+Effective infestation rate = 0.0192
+Crop system λ = 0.8673
+→ Pest pressure CONTAINED
+
+2×2 Matrix{Float64}:
+ 0.85    0.15
+ 0.0192  0.7</code></pre><h2 id="Temperature-Sensitivity-Cascade"><a class="docs-heading-anchor" href="#Temperature-Sensitivity-Cascade">Temperature Sensitivity Cascade</a><a id="Temperature-Sensitivity-Cascade-1"></a><a class="docs-heading-anchor-permalink" href="#Temperature-Sensitivity-Cascade" title="Permalink"></a></h2><p>A core advantage of the PBDM approach is that physiological responses at the leaf level propagate mechanistically to the population level. We sweep temperature and observe how carbon supply → plant growth → pest pressure cascade through the hierarchy.</p><pre><code class="language-julia hljs">T_sweep = 10.0:0.5:42.0
+results = map(T_sweep) do T
+    # Level 1: carbon supply
+    carbon = make_carbon_vpn(T)
+    c_emb = TimescaleEmbedding(carbon, 12, :lambda)
+    supply = evaluate(c_emb)
+
+    # Level 2: plant growth with nested carbon
+    plant = plant_base ⋉ (:development =&gt; c_emb)
+    λ_pl = lambda(to_matrix(plant))
+
+    # Level 3: pest pressure with nested plant
+    p_emb = TimescaleEmbedding(plant, 120, :lambda, scale=0.05)
+    pest = pest_base ⋉ (:infestation =&gt; p_emb)
+    λ_pe = lambda(to_matrix(pest))
+
+    (T=T, supply=supply, λ_plant=λ_pl, λ_pest=λ_pe,
+     infestation=evaluate(p_emb))
+end
+
+Ts = [r.T for r in results]</code></pre><pre><code class="nohighlight hljs">65-element Vector{Float64}:
+ 10.0
+ 10.5
+ 11.0
+ 11.5
+ 12.0
+ 12.5
+ 13.0
+ 13.5
+ 14.0
+ 14.5
+  ⋮
+ 38.0
+ 38.5
+ 39.0
+ 39.5
+ 40.0
+ 40.5
+ 41.0
+ 41.5
+ 42.0</code></pre><pre><code class="language-julia hljs">p1 = plot(Ts, [r.supply for r in results],
+    ylabel=&quot;Daily supply (λ¹²)&quot;, title=&quot;Level 1: Carbon fixation&quot;,
+    linewidth=2, color=:forestgreen, legend=false)
+vline!([27], linestyle=:dash, color=:gray, alpha=0.3)
+
+p2 = plot(Ts, [r.λ_plant for r in results],
+    ylabel=&quot;Daily λ&quot;, title=&quot;Level 2: Plant growth&quot;,
+    linewidth=2, color=:goldenrod, legend=false)
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5)
+
+p3 = plot(Ts, [r.infestation for r in results],
+    ylabel=&quot;Infestation rate&quot;, title=&quot;Level 2 → 3: Pest colonisation&quot;,
+    linewidth=2, color=:brown, legend=false)
+
+p4 = plot(Ts, [r.λ_pest for r in results],
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Seasonal λ&quot;,
+    title=&quot;Level 3: Pest system&quot;,
+    linewidth=2, color=:crimson, legend=false)
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5)
+
+plot(p1, p2, p3, p4, layout=(2,2), size=(800, 600),
+    plot_title=&quot;PBDM temperature cascade: cotton–bollworm&quot;)</code></pre><p><img src="../21_tritrophic_nesting_files/embedded-2.png" alt/></p><p>The cascade shows how the Gaussian photosynthetic optimum (27 °C) creates a thermal window for pest outbreaks. Below ~15 °C or above ~38 °C, plant growth is too slow to support bollworm populations.</p><h2 id="Cloud-Cover-Sensitivity"><a class="docs-heading-anchor" href="#Cloud-Cover-Sensitivity">Cloud Cover Sensitivity</a><a id="Cloud-Cover-Sensitivity-1"></a><a class="docs-heading-anchor-permalink" href="#Cloud-Cover-Sensitivity" title="Permalink"></a></h2><p>We can also sweep a non-temperature driver — <strong>cloud cover</strong> — which affects only Level 1 (photosynthetic light capture) but cascades upward:</p><pre><code class="language-julia hljs">cloud_range = 0.2:0.05:1.0
+cloud_results = map(cloud_range) do cf
+    carbon = make_carbon_vpn(27.0; cloud_factor=cf)
+    c_emb = TimescaleEmbedding(carbon, 12, :lambda)
+    plant = plant_base ⋉ (:development =&gt; c_emb)
+    p_emb = TimescaleEmbedding(plant, 120, :lambda, scale=0.05)
+    pest = pest_base ⋉ (:infestation =&gt; p_emb)
+    (cloud=cf, λ_pest=lambda(to_matrix(pest)),
+     supply=evaluate(c_emb))
+end
+
+plot(
+    [r.cloud for r in cloud_results],
+    [r.λ_pest for r in cloud_results],
+    xlabel=&quot;Cloud factor (1.0 = clear sky)&quot;,
+    ylabel=&quot;Pest system λ&quot;,
+    title=&quot;Cloud cover effect on pest dynamics (T = 27°C)&quot;,
+    linewidth=2, color=:steelblue, legend=false,
+    size=(600, 350))
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5)</code></pre><p><img src="../21_tritrophic_nesting_files/embedded-3.png" alt/></p><h2 id="Modifying-Processes-with"><a class="docs-heading-anchor" href="#Modifying-Processes-with">Modifying Processes with ⊘</a><a id="Modifying-Processes-with-1"></a><a class="docs-heading-anchor-permalink" href="#Modifying-Processes-with" title="Permalink"></a></h2><p>The compositional framework allows targeted intervention modelling. For example, simulating a <strong>Bt cotton</strong> variety where fruiting survival increases (bollworm feeding reduced):</p><pre><code class="language-julia hljs"># Bt cotton: increase fruiting survival from 0.95 to 0.98
+plant_bt = plant_nested ⊘ (:survival =&gt; ((from, to), val) -&gt;
+    from == :fruiting &amp;&amp; to == :fruiting ? val + 0.03 : val)
+
+println(&quot;Conventional cotton λ_plant = &quot;,
+    round(lambda(to_matrix(plant_nested)), digits=4))
+println(&quot;Bt cotton λ_plant           = &quot;,
+    round(lambda(to_matrix(plant_bt)), digits=4))</code></pre><pre><code class="nohighlight hljs">Conventional cotton λ_plant = 0.9921
+Bt cotton λ_plant           = 0.9937</code></pre><p>Simulating <strong>irrigation</strong> by boosting the carbon supply sub-model’s persistence rates (less water stress → sustained photosynthesis):</p><pre><code class="language-julia hljs"># Irrigated: modify the carbon supply model&#39;s saturated persistence
+carbon_irrigated = make_carbon_vpn(35.0)  # hot conditions
+carbon_irrigated_boost = carbon_irrigated ⊘ (:persistence =&gt;
+    ((from, to), val) -&gt; from == :saturated ? val + 0.05 : val)
+
+supply_dryland  = lambda(to_matrix(make_carbon_vpn(35.0)))^12
+supply_irrigated = lambda(to_matrix(carbon_irrigated_boost))^12
+println(&quot;Carbon supply at 35°C (dryland):   &quot;, round(supply_dryland, digits=4))
+println(&quot;Carbon supply at 35°C (irrigated): &quot;, round(supply_irrigated, digits=4))
+println(&quot;Irrigation benefit: +$(round((supply_irrigated/supply_dryland - 1)*100, digits=1))%&quot;)</code></pre><pre><code class="nohighlight hljs">Carbon supply at 35°C (dryland):   0.2038
+Carbon supply at 35°C (irrigated): 0.3642
+Irrigation benefit: +78.7%</code></pre><h2 id="Comparison-with-Flat-Approach"><a class="docs-heading-anchor" href="#Comparison-with-Flat-Approach">Comparison with Flat Approach</a><a id="Comparison-with-Flat-Approach-1"></a><a class="docs-heading-anchor-permalink" href="#Comparison-with-Flat-Approach" title="Permalink"></a></h2><p>The nested approach encodes the <strong>mechanistic hierarchy</strong> explicitly. In a flat (non-nested) model, the modeller must pre-compute effective rates for each temperature and assemble them manually. Nesting automates this and preserves the compositional structure for downstream analysis.</p><pre><code class="language-julia hljs"># Flat approach: manually compute effective development rate
+function flat_plant_λ(T)
+    supply = lambda(to_matrix(make_carbon_vpn(T)))^12
+    A = to_matrix(plant_base)
+    A[2,1] *= supply    # manually scale development
+    A[3,2] *= supply    # scale fruiting → mature too
+    return lambda(A)
+end
+
+# Nested approach: automatic
+function nested_plant_λ(T)
+    c_emb = TimescaleEmbedding(make_carbon_vpn(T), 12, :lambda)
+    plant = plant_base ⋉ (:development =&gt; c_emb)
+    return lambda(to_matrix(plant))
+end
+
+# Compare
+println(rpad(&quot;T(°C)&quot;, 8), rpad(&quot;Flat λ&quot;, 12), rpad(&quot;Nested λ&quot;, 12), &quot;Match?&quot;)
+println(&quot;-&quot;^38)
+for T in [15.0, 20.0, 27.0, 35.0, 40.0]
+    lf = flat_plant_λ(T)
+    ln = nested_plant_λ(T)
+    match = isapprox(lf, ln, atol=1e-10) ? &quot;✓&quot; : &quot;✗&quot;
+    println(rpad(T, 8), rpad(round(lf, digits=6), 12),
+            rpad(round(ln, digits=6), 12), match)
+end</code></pre><pre><code class="nohighlight hljs">T(°C)   Flat λ      Nested λ    Match?
+--------------------------------------
+15.0    0.990527    0.990527    ✓
+20.0    0.991161    0.991161    ✓
+27.0    0.992071    0.992071    ✓
+35.0    0.990996    0.990996    ✓
+40.0    0.990456    0.990456    ✓</code></pre><p>The flat and nested approaches agree exactly, confirming that nesting faithfully scales the base transition values. The advantage of nesting is that the sub-model structure is preserved, enabling modification at any level without recomputing intermediate values.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated how the PBDM supply–demand paradigm maps to <strong>timescale nesting</strong> in CategoricalPopulationDynamics.jl:</p><p>&lt;table class=&quot;caption-top table&quot; style=&quot;width:99%;&quot;&gt; &lt;colgroup&gt; &lt;col style=&quot;width: 28%&quot; /&gt; &lt;col style=&quot;width: 50%&quot; /&gt; &lt;col style=&quot;width: 20%&quot; /&gt; &lt;/colgroup&gt; &lt;thead&gt; &lt;tr class=&quot;header&quot;&gt; &lt;th&gt;PBDM Concept&lt;/th&gt; &lt;th&gt;Categorical Operation&lt;/th&gt; &lt;th&gt;Example&lt;/th&gt; &lt;/tr&gt; &lt;/thead&gt; &lt;tbody&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td&gt;Resource acquisition (supply)&lt;/td&gt; &lt;td&gt;Inner &lt;code&gt;ValuedProjectionNet&lt;/code&gt;&lt;/td&gt; &lt;td&gt;Carbon fixation model&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td&gt;Demand coupling&lt;/td&gt; &lt;td&gt;&lt;code&gt;⋉&lt;/code&gt; nesting with &lt;code&gt;TimescaleEmbedding&lt;/code&gt;&lt;/td&gt; &lt;td&gt;Supply → development rate&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td&gt;Trophic cascading&lt;/td&gt; &lt;td&gt;Recursive nesting&lt;/td&gt; &lt;td&gt;Plant → pest infestation&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;even&quot;&gt; &lt;td&gt;Environmental sensitivity&lt;/td&gt; &lt;td&gt;Temperature sweep of innermost model&lt;/td&gt; &lt;td&gt;Gaussian photosynthetic response&lt;/td&gt; &lt;/tr&gt; &lt;tr class=&quot;odd&quot;&gt; &lt;td&gt;Intervention&lt;/td&gt; &lt;td&gt;&lt;code&gt;⊘&lt;/code&gt; modification of nested processes&lt;/td&gt; &lt;td&gt;Bt cotton, irrigation&lt;/td&gt; &lt;/tr&gt; &lt;/tbody&gt; &lt;/table&gt;</p><p>The key insight: <strong>fast-timescale physiology</strong> (hourly photosynthesis) and <strong>slow-timescale demography</strong> (seasonal crop/pest dynamics) compose cleanly when each level is a self-contained projection model embedded via <code>⋉</code>.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../20_bumblebee_nesting/">« Multi-Timescale Colony Dynamics</a><a class="docs-footer-nextpage" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

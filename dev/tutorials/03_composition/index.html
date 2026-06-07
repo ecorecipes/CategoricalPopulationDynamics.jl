@@ -1,0 +1,158 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Compositional Model Construction · CategoricalPopulationDynamics.jl</title><meta name="title" content="Compositional Model Construction · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Compositional Model Construction · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Compositional Model Construction · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/03_composition/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/03_composition/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/03_composition/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li class="is-active"><a class="tocitem" href>Compositional Model Construction</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Vital-Rate-Functions"><span>Vital Rate Functions</span></a></li><li><a class="tocitem" href="#Level-1:-Direct-Composition"><span>Level 1: Direct Composition</span></a></li><li><a class="tocitem" href="#Level-2:-ProjectionSharers-and-oapply"><span>Level 2: ProjectionSharers and <code>oapply</code></span></a></li><li><a class="tocitem" href="#Level-3:-UWD-Composition-with-Kernels"><span>Level 3: UWD Composition with Kernels</span></a></li><li><a class="tocitem" href="#All-Three-Methods-Agree"><span>All Three Methods Agree</span></a></li><li><a class="tocitem" href="#Building-Complex-Models:-Decomposing-Fecundity"><span>Building Complex Models: Decomposing Fecundity</span></a></li><li><a class="tocitem" href="#Sensitivity-to-Component-Removal"><span>Sensitivity to Component Removal</span></a></li><li><a class="tocitem" href="#Projection-Net-Structure"><span>Projection Net Structure</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Compositional Model Construction</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Compositional Model Construction</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/03_composition.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Compositional-Model-Construction"><a class="docs-heading-anchor" href="#Compositional-Model-Construction">Compositional Model Construction</a><a id="Compositional-Model-Construction-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Model-Construction" title="Permalink"></a></h1><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Real structured population models are built from <strong>components</strong> — survival, growth, reproduction, dormancy — that share state variables. CategoricalPopulationDynamics.jl provides three levels of compositional construction:</p><ol><li><strong><code>compose_transitions</code></strong> — Catlab-free additive sum of sub-matrices</li><li><strong><code>oapply</code> with ProjectionSharers</strong> — undirected wiring diagram  composition</li><li><strong><code>compose_from_uwd</code></strong> — UWD composition with kernel functions</li></ol><p>This vignette demonstrates all three approaches, shows their equivalence, and builds progressively more complex models.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using Catlab
+using Catlab.CategoricalAlgebra
+using Catlab.WiringDiagrams
+using Catlab.Programs: @relation
+using LinearAlgebra
+using StructuredPopulationCore: lambda
+using Plots</code></pre><h2 id="Vital-Rate-Functions"><a class="docs-heading-anchor" href="#Vital-Rate-Functions">Vital Rate Functions</a><a id="Vital-Rate-Functions-1"></a><a class="docs-heading-anchor-permalink" href="#Vital-Rate-Functions" title="Permalink"></a></h2><p>We define a set of vital rate functions for a perennial plant, designed so that each demographic process is a separate, reusable component.</p><pre><code class="language-julia hljs"># --- Survival ---
+s(z) = 1.0 / (1.0 + exp(-(0.5 + 0.3 * z)))
+
+# --- Growth (Gaussian transition) ---
+g(z_new, z) = exp(-0.5 * ((z_new - (0.2 + 0.8 * z)) / 0.5)^2) / (0.5 * sqrt(2π))
+
+# --- Fecundity ---
+f_rate(z) = exp(0.1 + 0.2 * z)
+recruit_dist(z_new) = exp(-0.5 * ((z_new - 0.5) / 0.3)^2) / (0.3 * sqrt(2π))
+
+# --- Sub-kernels ---
+P_kernel(z_new, z) = s(z) * g(z_new, z)
+F_kernel(z_new, z) = f_rate(z) * recruit_dist(z_new)
+
+# --- Domain ---
+domain = ContinuousProjectionDomain(0.0, 5.0, 50)</code></pre><pre><code class="nohighlight hljs">ContinuousProjectionDomain{Float64}(0.0, 5.0, 50)</code></pre><h2 id="Level-1:-Direct-Composition"><a class="docs-heading-anchor" href="#Level-1:-Direct-Composition">Level 1: Direct Composition</a><a id="Level-1:-Direct-Composition-1"></a><a class="docs-heading-anchor-permalink" href="#Level-1:-Direct-Composition" title="Permalink"></a></h2><p>The simplest approach — discretise each sub-kernel independently, then sum:</p><pre><code class="language-julia hljs">A_P = left_kan_extension(P_kernel, domain)
+A_F = left_kan_extension(F_kernel, domain)
+
+# Catlab-free: just sum the matrices
+A_direct = compose_transitions(Dict(:P =&gt; A_P, :F =&gt; A_F))
+println(&quot;λ(direct composition) = &quot;, round(lambda(A_direct), digits=6))</code></pre><pre><code class="nohighlight hljs">λ(direct composition) = 1.79232</code></pre><p>This also works with a <code>NamedTuple</code>:</p><pre><code class="language-julia hljs">A_nt = compose_transitions((P=A_P, F=A_F))
+println(&quot;λ(NamedTuple)   = &quot;, round(lambda(A_nt), digits=6))
+println(&quot;Agree: &quot;, A_nt ≈ A_direct)</code></pre><pre><code class="nohighlight hljs">λ(NamedTuple)   = 1.79232
+Agree: true</code></pre><h2 id="Level-2:-ProjectionSharers-and-oapply"><a class="docs-heading-anchor" href="#Level-2:-ProjectionSharers-and-oapply">Level 2: ProjectionSharers and <code>oapply</code></a><a id="Level-2:-ProjectionSharers-and-oapply-1"></a><a class="docs-heading-anchor-permalink" href="#Level-2:-ProjectionSharers-and-oapply" title="Permalink"></a></h2><p>A <code>ProjectionSharer</code> wraps a transition matrix as an undirected open system. Ports represent shared state variables; composition sums contributions at shared junctions.</p><h3 id="Constructing-Sharers"><a class="docs-heading-anchor" href="#Constructing-Sharers">Constructing Sharers</a><a id="Constructing-Sharers-1"></a><a class="docs-heading-anchor-permalink" href="#Constructing-Sharers" title="Permalink"></a></h3><pre><code class="language-julia hljs"># From a pre-computed matrix
+ps_P = ProjectionSharer(A_P)
+println(&quot;Survival sharer: &quot;, ps_P.nstates, &quot; states, &quot;, ps_P.nports, &quot; ports&quot;)
+
+# Or directly from a kernel function + domain
+ps_F = ProjectionSharer(F_kernel, domain)
+println(&quot;Fecundity sharer: &quot;, ps_F.nstates, &quot; states, &quot;, ps_F.nports, &quot; ports&quot;)</code></pre><pre><code class="nohighlight hljs">Survival sharer: 50 states, 50 ports
+Fecundity sharer: 50 states, 50 ports</code></pre><h3 id="Composing-via-UWD"><a class="docs-heading-anchor" href="#Composing-via-UWD">Composing via UWD</a><a id="Composing-via-UWD-1"></a><a class="docs-heading-anchor-permalink" href="#Composing-via-UWD" title="Permalink"></a></h3><p>An <strong>undirected wiring diagram</strong> (UWD) specifies how processes share state variables. The <code>@relation</code> macro from Catlab creates UWDs:</p><pre><code class="language-julia hljs"># Two processes sharing a common trait axis (z, z_new)
+uwd = @relation (z, z_new) begin
+    survive_grow(z, z_new)
+    reproduce(z, z_new)
+end
+
+# Compose: additive sum at shared junctions
+result = oapply(uwd, [ps_P, ps_F])
+println(&quot;λ(oapply) = &quot;, round(lambda(result.matrix), digits=6))
+println(&quot;Agrees with direct: &quot;, result.matrix ≈ A_direct)</code></pre><pre><code class="nohighlight hljs">λ(oapply) = 1.79232
+Agrees with direct: true</code></pre><h3 id="Named-Dictionary-Composition"><a class="docs-heading-anchor" href="#Named-Dictionary-Composition">Named Dictionary Composition</a><a id="Named-Dictionary-Composition-1"></a><a class="docs-heading-anchor-permalink" href="#Named-Dictionary-Composition" title="Permalink"></a></h3><p>For models with many components, use a dictionary keyed by UWD box names:</p><pre><code class="language-julia hljs">sharers_dict = Dict(
+    :survive_grow =&gt; ProjectionSharer(A_P),
+    :reproduce =&gt; ProjectionSharer(A_F))
+
+result_dict = oapply(uwd, sharers_dict)
+println(&quot;λ(dict oapply) = &quot;, round(lambda(result_dict.matrix), digits=6))</code></pre><pre><code class="nohighlight hljs">λ(dict oapply) = 1.79232</code></pre><h2 id="Level-3:-UWD-Composition-with-Kernels"><a class="docs-heading-anchor" href="#Level-3:-UWD-Composition-with-Kernels">Level 3: UWD Composition with Kernels</a><a id="Level-3:-UWD-Composition-with-Kernels-1"></a><a class="docs-heading-anchor-permalink" href="#Level-3:-UWD-Composition-with-Kernels" title="Permalink"></a></h2><p><code>compose_from_uwd</code> combines UWD specification with kernel evaluation — it performs the left Kan extension for each box and sums:</p><pre><code class="language-julia hljs">sub_kernels = Dict(
+    :survive_grow =&gt; P_kernel,
+    :reproduce =&gt; F_kernel)
+
+K = compose_from_uwd(uwd, sub_kernels, domain)
+println(&quot;λ(compose_from_uwd) = &quot;, round(lambda(K), digits=6))
+println(&quot;Agrees with direct:  &quot;, K ≈ A_direct)</code></pre><pre><code class="nohighlight hljs">λ(compose_from_uwd) = 1.79232
+Agrees with direct:  true</code></pre><h2 id="All-Three-Methods-Agree"><a class="docs-heading-anchor" href="#All-Three-Methods-Agree">All Three Methods Agree</a><a id="All-Three-Methods-Agree-1"></a><a class="docs-heading-anchor-permalink" href="#All-Three-Methods-Agree" title="Permalink"></a></h2><pre><code class="language-julia hljs">λ_1 = lambda(compose_transitions(Dict(:P =&gt; A_P, :F =&gt; A_F)))
+λ_2 = lambda(oapply(uwd, [ps_P, ps_F]).matrix)
+λ_3 = lambda(compose_from_uwd(uwd, sub_kernels, domain))
+
+println(&quot;compose_transitions: λ = &quot;, round(λ_1, digits=8))
+println(&quot;oapply (UWD):        λ = &quot;, round(λ_2, digits=8))
+println(&quot;compose_from_uwd:    λ = &quot;, round(λ_3, digits=8))
+println(&quot;All agree: &quot;, λ_1 ≈ λ_2 ≈ λ_3)</code></pre><pre><code class="nohighlight hljs">compose_transitions: λ = 1.79231987
+oapply (UWD):        λ = 1.79231987
+compose_from_uwd:    λ = 1.79231987
+All agree: true</code></pre><h2 id="Building-Complex-Models:-Decomposing-Fecundity"><a class="docs-heading-anchor" href="#Building-Complex-Models:-Decomposing-Fecundity">Building Complex Models: Decomposing Fecundity</a><a id="Building-Complex-Models:-Decomposing-Fecundity-1"></a><a class="docs-heading-anchor-permalink" href="#Building-Complex-Models:-Decomposing-Fecundity" title="Permalink"></a></h2><p>In practice, fecundity itself may be decomposed into sub-processes — flowering probability, seed production, germination, and seedling establishment. We can model each as a separate component:</p><pre><code class="language-julia hljs"># Decompose fecundity into components
+flower_prob(z) = 1.0 / (1.0 + exp(-(z - 2.0)))   # size-dependent flowering
+seed_count(z) = exp(1.0 + 0.3 * z)                 # seeds per flowering plant
+germination = 0.1                                    # germination probability
+seedling_dist(z_new) = exp(-0.5 * ((z_new - 0.3) / 0.2)^2) / (0.2 * sqrt(2π))
+
+# Combined fecundity kernel
+F_detailed(z_new, z) = flower_prob(z) * seed_count(z) * germination * seedling_dist(z_new)
+
+# UWD with 3 boxes: survival-growth, flowering reproduction, and
+# an optional clonal reproduction pathway
+clonal_prob(z) = 0.05 * s(z)  # small probability of clonal reproduction
+clonal_dist(z_new, z) = exp(-0.5 * ((z_new - z) / 0.3)^2) / (0.3 * sqrt(2π))
+C_kernel(z_new, z) = clonal_prob(z) * clonal_dist(z_new, z)
+
+uwd_3 = @relation (z, z_new) begin
+    survive_grow(z, z_new)
+    reproduce(z, z_new)
+    clone(z, z_new)
+end
+
+kernels_3 = Dict(
+    :survive_grow =&gt; P_kernel,
+    :reproduce =&gt; F_detailed,
+    :clone =&gt; C_kernel)
+
+K_3 = compose_from_uwd(uwd_3, kernels_3, domain)
+println(&quot;λ (3-component model) = &quot;, round(lambda(K_3), digits=4))</code></pre><pre><code class="nohighlight hljs">λ (3-component model) = 0.794</code></pre><pre><code class="language-julia hljs">z = meshpoints(domain)
+A_sg = left_kan_extension(P_kernel, domain)
+A_fd = left_kan_extension(F_detailed, domain)
+A_cl = left_kan_extension(C_kernel, domain)
+
+p1 = heatmap(z, z, A_sg, title=&quot;Survival-growth&quot;, color=:viridis, clims=(0, maximum(A_sg)))
+p2 = heatmap(z, z, A_fd, title=&quot;Reproduction&quot;, color=:viridis, clims=(0, maximum(A_fd)))
+p3 = heatmap(z, z, A_cl, title=&quot;Clonal&quot;, color=:viridis, clims=(0, maximum(A_cl)))
+p4 = heatmap(z, z, K_3, title=&quot;Full kernel K&quot;, color=:viridis, clims=(0, maximum(K_3)))
+plot(p1, p2, p3, p4, layout=(2, 2), size=(800, 700))</code></pre><p><img src="../03_composition_files/figure-commonmark/cell-12-output-1.svg" alt/></p><h2 id="Sensitivity-to-Component-Removal"><a class="docs-heading-anchor" href="#Sensitivity-to-Component-Removal">Sensitivity to Component Removal</a><a id="Sensitivity-to-Component-Removal-1"></a><a class="docs-heading-anchor-permalink" href="#Sensitivity-to-Component-Removal" title="Permalink"></a></h2><p>The compositional framework makes it easy to ask: what happens if we remove a component?</p><pre><code class="language-julia hljs"># Full model
+λ_full = lambda(K_3)
+
+# Remove clonal reproduction
+K_no_clone = compose_from_uwd(
+    (@relation (z, z_new) begin
+        survive_grow(z, z_new)
+        reproduce(z, z_new)
+    end),
+    Dict(:survive_grow =&gt; P_kernel, :reproduce =&gt; F_detailed),
+    domain)
+λ_no_clone = lambda(K_no_clone)
+
+# Remove sexual reproduction (only survival + clonal)
+K_no_sex = compose_from_uwd(
+    (@relation (z, z_new) begin
+        survive_grow(z, z_new)
+        clone(z, z_new)
+    end),
+    Dict(:survive_grow =&gt; P_kernel, :clone =&gt; C_kernel),
+    domain)
+λ_no_sex = lambda(K_no_sex)
+
+# Survival only
+λ_surv = lambda(left_kan_extension(P_kernel, domain))
+
+labels = [&quot;Full&quot;, &quot;No clonal&quot;, &quot;No sexual&quot;, &quot;Survival only&quot;]
+lambdas = [λ_full, λ_no_clone, λ_no_sex, λ_surv]
+
+bar(labels, lambdas,
+    ylabel=&quot;λ&quot;, title=&quot;Effect of removing components&quot;,
+    legend=false, color=[:teal :steelblue :goldenrod :indianred], alpha=0.7)
+hline!([1.0], linestyle=:dash, color=:red, label=&quot;λ = 1&quot;)</code></pre><p><img src="../03_composition_files/figure-commonmark/cell-13-output-1.svg" alt/></p><p>Sexual reproduction drives population growth; clonal reproduction provides a small additional contribution.</p><h2 id="Projection-Net-Structure"><a class="docs-heading-anchor" href="#Projection-Net-Structure">Projection Net Structure</a><a id="Projection-Net-Structure-1"></a><a class="docs-heading-anchor-permalink" href="#Projection-Net-Structure" title="Permalink"></a></h2><p>For documentation and model validation, we can inspect the projection net:</p><pre><code class="language-julia hljs">net_3 = LabelledProjectionNet([:size],
+    :survive_grow =&gt; (:size =&gt; :size),
+    :reproduce =&gt; (:size =&gt; :size),
+    :clone =&gt; (:size =&gt; :size))
+
+println(&quot;Model structure:&quot;)
+println(&quot;  States: &quot;, sname(net_3))
+println(&quot;  Transitions: &quot;, tname(net_3))
+println()
+for t in 1:n_transitions(net_3)
+    src_names = [sname(net_3, s) for s in sources(net_3, t)]
+    tgt_names = [sname(net_3, s) for s in targets(net_3, t)]
+    println(&quot;  &quot;, tname(net_3, t), &quot;: &quot;, src_names, &quot; → &quot;, tgt_names)
+end</code></pre><pre><code class="nohighlight hljs">Model structure:
+  States: [:size]
+  Transitions: [:survive_grow, :reproduce, :clone]
+
+  survive_grow: [:size] → [:size]
+  reproduce: [:size] → [:size]
+  clone: [:size] → [:size]</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>In this vignette we demonstrated three levels of compositional model construction:</p><ol><li><strong><code>compose_transitions</code></strong> — simple additive sum, no Catlab  dependency</li><li><strong><code>oapply</code> with ProjectionSharers</strong> — formal UWD composition via  Catlab</li><li><strong><code>compose_from_uwd</code></strong> — UWD composition directly from kernel  functions</li></ol><p>All three produce identical results. The UWD-based approaches provide:</p><ul><li>Formal specification of the composition pattern</li><li>Named dictionary lookup for components</li><li>Easy addition/removal of components for sensitivity analysis</li></ul><p>The next vignette covers spatial extension (stratification) and resolution change (coarsening).</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../02_kan_extensions/">« Kan Extensions and the IPM-MPM Adjunction</a><a class="docs-footer-nextpage" href="../04_stratification_coarsening/">Stratification and Coarsening »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

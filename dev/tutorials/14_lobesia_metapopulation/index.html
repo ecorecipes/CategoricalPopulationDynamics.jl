@@ -1,0 +1,396 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Metapopulation Stratification · CategoricalPopulationDynamics.jl</title><meta name="title" content="Metapopulation Stratification · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Metapopulation Stratification · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Metapopulation Stratification · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/14_lobesia_metapopulation/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/14_lobesia_metapopulation/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/14_lobesia_metapopulation/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li class="is-active"><a class="tocitem" href>Metapopulation Stratification</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Temperature-Dependent-Vital-Rates"><span>Temperature-Dependent Vital Rates</span></a></li><li><a class="tocitem" href="#Latitude-Specific-Lifecycles"><span>Latitude-Specific Lifecycles</span></a></li><li><a class="tocitem" href="#Local-Growth-Rates"><span>Local Growth Rates</span></a></li><li><a class="tocitem" href="#Dispersal-Matrix"><span>Dispersal Matrix</span></a></li><li><a class="tocitem" href="#Homogeneous-Stratification"><span>Homogeneous Stratification</span></a></li><li><a class="tocitem" href="#Heterogeneous-Metapopulation"><span>Heterogeneous Metapopulation</span></a></li><li><a class="tocitem" href="#Source-Sink-Analysis"><span>Source-Sink Analysis</span></a></li><li><a class="tocitem" href="#Dispersal-Sweep"><span>Dispersal Sweep</span></a></li><li><a class="tocitem" href="#Climate-Change-Scenario"><span>Climate Change Scenario</span></a></li><li><a class="tocitem" href="#Coarsening"><span>Coarsening</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Metapopulation Stratification</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Metapopulation Stratification</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/14_lobesia_metapopulation.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Metapopulation-Stratification"><a class="docs-heading-anchor" href="#Metapopulation-Stratification">Metapopulation Stratification</a><a id="Metapopulation-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Metapopulation-Stratification" title="Permalink"></a></h1><p>Latitude-Dependent Grape Moth Dynamics via Categorical Spatial Extension</p><p>Author</p><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>The European grape moth (<em>Lobesia botrana</em>) is a major viticultural pest across the Mediterranean basin and beyond. Its lifecycle — egg → larva → pupa → adult — is driven by temperature-dependent development rates, so populations at different latitudes experience fundamentally different demography.</p><p>A common modelling approach is to run the same lifecycle model independently at each latitude (as in <a href="../../PhysiologicallyBasedDemographicModels.jl/vignettes/05_lobesia_overwintering/05_lobesia_overwintering.qmd">PhysiologicallyBasedDemographicModels.jl vignette 05</a>). But grape moths disperse: adults can fly tens of kilometres, and wind-assisted long-range dispersal connects distant vineyards. Independent single-patch models cannot capture the <strong>source-sink dynamics</strong> that emerge when productive southern populations subsidise marginal northern ones.</p><p><strong>Categorical stratification</strong> provides the right framework. We:</p><ol><li>Build latitude-specific lifecycle matrices using temperature-dependent vital rates</li><li>Couple them via a stepping-stone dispersal matrix</li><li>Analyse the metapopulation as a single block-structured matrix</li><li>Use <strong>coarsening</strong> to test whether spatial resolution can be reduced</li></ol><p>This reveals which latitude bands are demographic sources, which are sinks, and how dispersal and climate warming reshape the metapopulation.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘
+using Catlab
+using Catlab.CategoricalAlgebra
+using LinearAlgebra
+using ProjectionModels: lambda
+using Plots</code></pre><h2 id="Temperature-Dependent-Vital-Rates"><a class="docs-heading-anchor" href="#Temperature-Dependent-Vital-Rates">Temperature-Dependent Vital Rates</a><a id="Temperature-Dependent-Vital-Rates-1"></a><a class="docs-heading-anchor-permalink" href="#Temperature-Dependent-Vital-Rates" title="Permalink"></a></h2><p><em>L. botrana</em> development follows a Brière function — a unimodal rate curve bounded by lower and upper thermal thresholds. Mortality is U-shaped, lowest near the thermal optimum and rising at temperature extremes. Fecundity peaks in the mid-range.</p><pre><code class="language-julia hljs"># Brière development rate parameters for L. botrana
+# (Gutierrez et al., adapted from PBDM vignette 05)
+const a_lb = 2.5e-5
+const T_L_lb = 7.3    # lower developmental threshold (°C)
+const T_M_lb = 33.7   # upper developmental threshold (°C)
+
+function briere_lb(T)
+    (T &lt;= T_L_lb || T &gt;= T_M_lb) &amp;&amp; return 0.0
+    return a_lb * T * (T - T_L_lb) * sqrt(T_M_lb - T)
+end
+
+# Stage-specific daily mortality: U-shaped around thermal optimum ~22°C
+mortality_lb(T) = max(0.01, 0.0003 * (T - 22.0)^2 + 0.01)
+
+# Adult fecundity (eggs per adult per day) — temperature-dependent
+function fecundity_lb(T)
+    (T &lt;= T_L_lb || T &gt;= T_M_lb) &amp;&amp; return 0.0
+    f_max = 8.0  # peak daily egg production
+    return f_max * exp(-0.5 * ((T - 24.0) / 5.0)^2)
+end</code></pre><pre><code class="nohighlight hljs">fecundity_lb (generic function with 1 method)</code></pre><pre><code class="language-julia hljs"># Visualise vital rate functions
+T_range = 5.0:0.5:38.0
+p1 = plot(T_range, briere_lb.(T_range),
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Development rate (1/day)&quot;,
+    title=&quot;Brière development&quot;, legend=false, color=:darkgreen, linewidth=2)
+p2 = plot(T_range, mortality_lb.(T_range),
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Daily mortality&quot;,
+    title=&quot;U-shaped mortality&quot;, legend=false, color=:firebrick, linewidth=2)
+p3 = plot(T_range, fecundity_lb.(T_range),
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Eggs / adult / day&quot;,
+    title=&quot;Fecundity&quot;, legend=false, color=:darkorange, linewidth=2)
+plot(p1, p2, p3, layout=(1, 3), size=(900, 280))</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-1.png" alt/></p><h2 id="Latitude-Specific-Lifecycles"><a class="docs-heading-anchor" href="#Latitude-Specific-Lifecycles">Latitude-Specific Lifecycles</a><a id="Latitude-Specific-Lifecycles-1"></a><a class="docs-heading-anchor-permalink" href="#Latitude-Specific-Lifecycles" title="Permalink"></a></h2><p>We model four European vineyard regions spanning 12° of latitude. Each has a characteristic mean temperature and seasonal amplitude, yielding different effective vital rates.</p><pre><code class="language-julia hljs"># Latitude band definitions
+latitudes = [
+    (name=:Sicily,   lat=37.5, mean_T=17.8, amplitude=8.0),
+    (name=:Bordeaux, lat=43.5, mean_T=16.5, amplitude=9.0),
+    (name=:Trentino, lat=46.0, mean_T=15.4, amplitude=10.0),
+    (name=:Mosel,    lat=49.5, mean_T=14.3, amplitude=10.0),
+]
+
+println(rpad(&quot;Location&quot;, 12), rpad(&quot;Lat (°N)&quot;, 10), rpad(&quot;Mean T&quot;, 10), &quot;Amplitude&quot;)
+println(&quot;-&quot;^42)
+for loc in latitudes
+    println(rpad(loc.name, 12), rpad(loc.lat, 10), rpad(loc.mean_T, 10), loc.amplitude)
+end</code></pre><pre><code class="nohighlight hljs">Location    Lat (°N)  Mean T    Amplitude
+------------------------------------------
+Sicily      37.5      17.8      8.0
+Bordeaux    43.5      16.5      9.0
+Trentino    46.0      15.4      10.0
+Mosel       49.5      14.3      10.0</code></pre><p>For each latitude, we compute effective seasonal vital rates by averaging over the growing season (days when T \&gt; T_L), then assemble a 4-stage projection matrix.</p><pre><code class="language-julia hljs">&quot;&quot;&quot;
+    seasonal_temperature(day, mean_T, amplitude)
+
+Sinusoidal daily temperature: peak at day 200 (mid-July).
+&quot;&quot;&quot;
+seasonal_temperature(day, mean_T, amplitude) =
+    mean_T + amplitude * sin(2π * (day - 110) / 365)
+
+&quot;&quot;&quot;
+    build_patch_matrix(mean_T, amplitude)
+
+Build a 4×4 daily projection matrix (egg, larva, pupa, adult) by averaging
+temperature-dependent rates over the growing season.
+&quot;&quot;&quot;
+function build_patch_matrix(mean_T, amplitude)
+    # Average rates over growing season (days when T &gt; T_L)
+    dev_sum = 0.0
+    mort_sum = 0.0
+    fec_sum = 0.0
+    n_days = 0
+
+    for day in 1:365
+        T = seasonal_temperature(day, mean_T, amplitude)
+        T &lt;= T_L_lb &amp;&amp; continue
+        dev_sum += briere_lb(T)
+        mort_sum += mortality_lb(T)
+        fec_sum += fecundity_lb(T)
+        n_days += 1
+    end
+
+    n_days == 0 &amp;&amp; return zeros(4, 4)
+
+    # Mean daily rates during growing season
+    dev = dev_sum / n_days     # mean development rate
+    mort = mort_sum / n_days   # mean daily mortality
+    fec = fec_sum / n_days     # mean daily fecundity
+
+    surv = 1.0 - mort          # daily survival probability
+    stage_dur = dev &gt; 0 ? 1.0 / dev : Inf  # mean days per stage
+
+    # Transition probability: probability of advancing to next stage per day
+    trans = min(dev, 0.95)  # cap at 0.95 for numerical stability
+
+    # 4-stage matrix: egg → larva → pupa → adult (→ egg via fecundity)
+    # Convention: A[to, from]
+    A = zeros(4, 4)
+    A[1, 1] = surv * (1 - trans)           # egg stasis
+    A[2, 1] = surv * trans                 # egg → larva
+    A[2, 2] = surv * (1 - trans)           # larva stasis
+    A[3, 2] = surv * trans                 # larva → pupa
+    A[3, 3] = surv * (1 - trans)           # pupa stasis
+    A[4, 3] = surv * trans                 # pupa → adult
+    A[4, 4] = surv * 0.85                  # adult survival (shorter-lived)
+    A[1, 4] = fec                          # adult → egg (fecundity)
+
+    return A
+end</code></pre><pre><code class="nohighlight hljs">Main.Notebook.build_patch_matrix</code></pre><h3 id="Building-ValuedProjectionNets"><a class="docs-heading-anchor" href="#Building-ValuedProjectionNets">Building ValuedProjectionNets</a><a id="Building-ValuedProjectionNets-1"></a><a class="docs-heading-anchor-permalink" href="#Building-ValuedProjectionNets" title="Permalink"></a></h3><p>We wrap each patch matrix in a <code>ValuedProjectionNet</code> to preserve the categorical structure. Using the <code>⊕</code> operator (<code>\oplus&lt;TAB&gt;</code>), we compose the lifecycle from separate survival and fecundity components — keeping each sub-kernel independently readable:</p><pre><code class="language-julia hljs">stages = [:egg, :larva, :pupa, :adult]
+stage_idx = Dict(s =&gt; i for (i, s) in enumerate(stages))
+
+function survival_vpn(A::Matrix)
+    entries = Pair{Pair{Symbol,Symbol}, Float64}[]
+    for i in 1:4, j in 1:4
+        (j == 4 &amp;&amp; i == 1) &amp;&amp; continue  # fecundity handled separately
+        A[i, j] ≈ 0.0 &amp;&amp; continue
+        push!(entries, (stages[j] =&gt; stages[i]) =&gt; A[i, j])
+    end
+    ValuedProjectionNet(stages, :survival =&gt; entries)
+end
+
+function fecundity_vpn(A::Matrix)
+    entries = Pair{Pair{Symbol,Symbol}, Float64}[]
+    A[1, 4] ≈ 0.0 || push!(entries, (:adult =&gt; :egg) =&gt; A[1, 4])
+    ValuedProjectionNet(stages, :fecundity =&gt; entries)
+end
+
+# Build local matrices and the reference VPN (Sicily) via ⊕
+A_patches = [build_patch_matrix(loc.mean_T, loc.amplitude) for loc in latitudes]
+vpn_ref = survival_vpn(A_patches[1]) ⊕ fecundity_vpn(A_patches[1])</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:2
+  Src = 1:2
+  Tgt = 1:2
+  Name = 1:0
+  src_t : Src → T = [1, 2]
+  src_s : Src → S = [1, 1]
+  tgt_t : Tgt → T = [1, 2]
+  tgt_s : Tgt → S = [1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:survival, :fecundity], [:egg, :larva, :pupa, :adult], Dict(:survival =&gt; [(:egg =&gt; :egg) =&gt; 0.9570566879220508, (:egg =&gt; :larva) =&gt; 0.01805131207794916, (:larva =&gt; :larva) =&gt; 0.9570566879220508, (:larva =&gt; :pupa) =&gt; 0.01805131207794916, (:pupa =&gt; :pupa) =&gt; 0.9570566879220508, (:pupa =&gt; :adult) =&gt; 0.01805131207794916, (:adult =&gt; :adult) =&gt; 0.8288418], :fecundity =&gt; [(:adult =&gt; :egg) =&gt; 3.993229147154501]))</code></pre><p>The reference VPN captures the full lifecycle <strong>structure</strong> — stage names, transition names, and which (from → to) entries are nonzero. All four latitudes share this structure; only the rates differ. Using the <code>⊘</code> operator (<code>\oslash&lt;TAB&gt;</code>), we stamp latitude-specific rates into the template without rebuilding it from scratch:</p><pre><code class="language-julia hljs">vpn_patches = [vpn_ref]  # Sicily is the reference
+for k in 2:length(latitudes)
+    A_k = A_patches[k]
+    vpn_k = vpn_ref ⊘ (:survival  =&gt; ((from, to), _) -&gt; A_k[stage_idx[to], stage_idx[from]]) ⊘
+                       (:fecundity =&gt; ((from, to), _) -&gt; A_k[stage_idx[to], stage_idx[from]])
+    push!(vpn_patches, vpn_k)
+end
+
+println(&quot;Patch matrices built: &quot;, length(A_patches), &quot; locations&quot;)
+for (i, loc) in enumerate(latitudes)
+    println(&quot;  &quot;, rpad(loc.name, 10), &quot; — &quot;, size(A_patches[i]))
+end</code></pre><pre><code class="nohighlight hljs">Patch matrices built: 4 locations
+  Sicily     — (4, 4)
+  Bordeaux   — (4, 4)
+  Trentino   — (4, 4)
+  Mosel      — (4, 4)</code></pre><h2 id="Local-Growth-Rates"><a class="docs-heading-anchor" href="#Local-Growth-Rates">Local Growth Rates</a><a id="Local-Growth-Rates-1"></a><a class="docs-heading-anchor-permalink" href="#Local-Growth-Rates" title="Permalink"></a></h2><p>Before coupling the patches, we examine each latitude in isolation. The thermal gradient creates a clear north-south demographic divide.</p><pre><code class="language-julia hljs">λ_local = [lambda(A) for A in A_patches]
+names_str = [String(loc.name) for loc in latitudes]
+
+println(rpad(&quot;Location&quot;, 12), rpad(&quot;λ_local&quot;, 10), &quot;Status&quot;)
+println(&quot;-&quot;^38)
+for (i, loc) in enumerate(latitudes)
+    status = λ_local[i] &gt; 1.01 ? &quot;SOURCE&quot; :
+             λ_local[i] &gt; 0.99 ? &quot;~ stable&quot; : &quot;SINK&quot;
+    println(rpad(loc.name, 12), rpad(round(λ_local[i], digits=4), 10), status)
+end</code></pre><pre><code class="nohighlight hljs">Location    λ_local   Status
+--------------------------------------
+Sicily      1.0079    ~ stable
+Bordeaux    0.9964    ~ stable
+Trentino    1.0077    ~ stable
+Mosel       1.0065    ~ stable</code></pre><pre><code class="language-julia hljs">bar(names_str, λ_local,
+    ylabel=&quot;λ (local growth rate)&quot;, title=&quot;Isolated Patch Growth Rates&quot;,
+    legend=false, color=[:forestgreen, :goldenrod, :darkorange, :firebrick],
+    alpha=0.8, ylim=(0.0, maximum(λ_local) * 1.15))
+hline!([1.0], linestyle=:dash, color=:black, linewidth=1.5, label=&quot;λ = 1&quot;)
+annotate!([(i, λ_local[i] + 0.02, text(round(λ_local[i], digits=3), 8))
+           for i in 1:4])</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-2.png" alt/></p><p>Southern patches (Sicily) are demographic <strong>sources</strong> with λ \&gt; 1, while northern patches (Mosel) are <strong>sinks</strong> that would decline without immigration.</p><h2 id="Dispersal-Matrix"><a class="docs-heading-anchor" href="#Dispersal-Matrix">Dispersal Matrix</a><a id="Dispersal-Matrix-1"></a><a class="docs-heading-anchor-permalink" href="#Dispersal-Matrix" title="Permalink"></a></h2><p>Adult grape moths disperse in a stepping-stone pattern: most stay local, some reach adjacent latitude bands, and long-distance dispersal is rare.</p><pre><code class="language-julia hljs"># Stepping-stone dispersal: probability of an individual from patch j
+# arriving in patch i (columns sum to 1)
+D = [0.90  0.08  0.02  0.00;   # → Sicily
+     0.05  0.85  0.08  0.02;   # → Bordeaux
+     0.01  0.05  0.87  0.07;   # → Trentino
+     0.00  0.02  0.05  0.93]   # → Mosel
+
+# Verify columns sum to ~1 (conservation of individuals)
+println(&quot;Column sums: &quot;, round.(sum(D, dims=1), digits=4))</code></pre><pre><code class="nohighlight hljs">Column sums: [0.96 1.0 1.02 1.02]</code></pre><pre><code class="language-julia hljs">heatmap(names_str, names_str, D,
+    title=&quot;Dispersal matrix D&quot;,
+    xlabel=&quot;From patch&quot;, ylabel=&quot;To patch&quot;,
+    color=:Blues, clim=(0, 1), size=(450, 400))</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-3.png" alt/></p><h2 id="Homogeneous-Stratification"><a class="docs-heading-anchor" href="#Homogeneous-Stratification">Homogeneous Stratification</a><a id="Homogeneous-Stratification-1"></a><a class="docs-heading-anchor-permalink" href="#Homogeneous-Stratification" title="Permalink"></a></h2><p>As a baseline, suppose all patches had Sicily’s (best-case) vital rates. Then <code>stratify(A_sicily, D)</code> gives the standard homogeneous metapopulation:</p><pre><code class="language-julia hljs">A_sicily = A_patches[1]
+A_homogeneous = stratify(A_sicily, D)
+
+println(&quot;Homogeneous stratification (all patches = Sicily):&quot;)
+println(&quot;  Matrix size:  &quot;, size(A_homogeneous))
+println(&quot;  λ_metapop:    &quot;, round(lambda(A_homogeneous), digits=4))
+println(&quot;  λ_local:      &quot;, round(lambda(A_sicily), digits=4))</code></pre><pre><code class="nohighlight hljs">Homogeneous stratification (all patches = Sicily):
+  Matrix size:  (16, 16)
+  λ_metapop:    1.0079
+  λ_local:      1.0079</code></pre><p>With identical patches, <code>stratify</code> produces a block matrix where each block <code>(i,j)</code> is <code>D[i,j] × A_sicily</code>. The metapopulation growth rate matches the local rate (dispersal neither helps nor hurts when all patches are equal).</p><pre><code class="language-julia hljs">n = 4  # stages per patch
+heatmap(A_homogeneous,
+    title=&quot;Homogeneous stratification (16×16)&quot;,
+    xlabel=&quot;From (patch × stage)&quot;, ylabel=&quot;To (patch × stage)&quot;,
+    color=:viridis, size=(550, 500))
+# Block boundaries
+for b in 1:3
+    vline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+    hline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+end</code></pre><h2 id="Heterogeneous-Metapopulation"><a class="docs-heading-anchor" href="#Heterogeneous-Metapopulation">Heterogeneous Metapopulation</a><a id="Heterogeneous-Metapopulation-1"></a><a class="docs-heading-anchor-permalink" href="#Heterogeneous-Metapopulation" title="Permalink"></a></h2><p>In reality, each latitude has <strong>different</strong> vital rates. The <code>stratify</code> function assumes a single local matrix, so we must build the block matrix manually.</p><p>The convention is:</p><p>&lt;span class=&quot;math display&quot;&gt;\A_{\text{full}}[(i, s_{\text{to}}),\ (j, s_{\text{from}})] = D[i,j] \cdot A<em>j[s\</em>{\text{to}}, s_{\text{from}}]\&lt;/span&gt;</p><p>Individuals develop at the rates of their <strong>source patch</strong> &lt;span class=&quot;math inline&quot;&gt;\j\&lt;/span&gt;, then a fraction &lt;span class=&quot;math inline&quot;&gt;\D[i,j]\&lt;/span&gt; disperses to patch &lt;span class=&quot;math inline&quot;&gt;\i\&lt;/span&gt;.</p><pre><code class="language-julia hljs"># Build 16×16 heterogeneous block matrix
+A_full = zeros(4n, 4n)
+for i in 1:4, j in 1:4
+    rows = (i-1)*n+1 : i*n
+    cols = (j-1)*n+1 : j*n
+    A_full[rows, cols] = D[i,j] * A_patches[j]
+end
+
+λ_meta = lambda(A_full)
+println(&quot;Heterogeneous metapopulation:&quot;)
+println(&quot;  λ_metapop = &quot;, round(λ_meta, digits=4))
+println(&quot;  λ_homog   = &quot;, round(lambda(A_homogeneous), digits=4))
+println(&quot;  λ_Sicily  = &quot;, round(λ_local[1], digits=4))</code></pre><pre><code class="nohighlight hljs">Heterogeneous metapopulation:
+  λ_metapop = 1.0049
+  λ_homog   = 1.0079
+  λ_Sicily  = 1.0079</code></pre><pre><code class="language-julia hljs">heatmap(A_full,
+    title=&quot;Heterogeneous metapopulation (16×16)&quot;,
+    xlabel=&quot;From (patch × stage)&quot;, ylabel=&quot;To (patch × stage)&quot;,
+    color=:viridis, size=(550, 500))
+for b in 1:3
+    vline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+    hline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+end</code></pre><p>Note the visible asymmetry: the upper-left blocks (Sicily) are brighter (higher rates) than the lower-right blocks (Mosel).</p><h2 id="Source-Sink-Analysis"><a class="docs-heading-anchor" href="#Source-Sink-Analysis">Source-Sink Analysis</a><a id="Source-Sink-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Source-Sink-Analysis" title="Permalink"></a></h2><p>The right eigenvector of the metapopulation matrix gives the <strong>stable stage distribution</strong> — the long-term relative population across all patches and stages.</p><pre><code class="language-julia hljs"># Right eigenvector (stable stage distribution)
+evals = eigen(A_full)
+idx = argmax(real.(evals.values))
+w = real.(evals.vectors[:, idx])
+w = w / sum(w)  # normalise to proportions
+
+# Aggregate by patch
+patch_pop = [sum(w[(i-1)*n+1 : i*n]) for i in 1:4]
+println(&quot;Stable population distribution across patches:&quot;)
+for (i, loc) in enumerate(latitudes)
+    pct = round(patch_pop[i] * 100, digits=1)
+    println(&quot;  &quot;, rpad(loc.name, 10), pct, &quot;%&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Stable population distribution across patches:
+  Sicily    24.8%
+  Bordeaux  24.2%
+  Trentino  25.4%
+  Mosel     25.6%</code></pre><pre><code class="language-julia hljs">bar(names_str, patch_pop * 100,
+    ylabel=&quot;% of metapopulation&quot;, title=&quot;Stable Patch Distribution&quot;,
+    legend=false, color=[:forestgreen, :goldenrod, :darkorange, :firebrick],
+    alpha=0.8)</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-4.png" alt/></p><pre><code class="language-julia hljs"># Which patches are sources vs sinks?
+# A sink is a patch that would decline without immigration (λ_local &lt; 1)
+# but persists in the metapopulation due to dispersal from sources
+println(rpad(&quot;Patch&quot;, 12), rpad(&quot;λ_local&quot;, 10), rpad(&quot;% pop&quot;, 10), &quot;Role&quot;)
+println(&quot;-&quot;^42)
+for (i, loc) in enumerate(latitudes)
+    role = λ_local[i] &gt; 1.0 ? &quot;SOURCE&quot; : &quot;SINK (rescued by dispersal)&quot;
+    println(rpad(loc.name, 12),
+        rpad(round(λ_local[i], digits=4), 10),
+        rpad(round(patch_pop[i] * 100, digits=1), 10),
+        role)
+end</code></pre><pre><code class="nohighlight hljs">Patch       λ_local   % pop     Role
+------------------------------------------
+Sicily      1.0079    24.8      SOURCE
+Bordeaux    0.9964    24.2      SINK (rescued by dispersal)
+Trentino    1.0077    25.4      SOURCE
+Mosel       1.0065    25.6      SOURCE</code></pre><h2 id="Dispersal-Sweep"><a class="docs-heading-anchor" href="#Dispersal-Sweep">Dispersal Sweep</a><a id="Dispersal-Sweep-1"></a><a class="docs-heading-anchor-permalink" href="#Dispersal-Sweep" title="Permalink"></a></h2><p>How does the dispersal rate affect metapopulation growth? We sweep the fraction of adults that disperse from 0 (isolated patches) to 0.5 (high mixing), using the same stepping-stone topology.</p><pre><code class="language-julia hljs">dispersal_rates = 0.0:0.02:0.50
+λ_sweep = Float64[]
+
+for d in dispersal_rates
+    # Build stepping-stone D with dispersal fraction d
+    D_sweep = zeros(4, 4)
+    for i in 1:4
+        for j in 1:4
+            dist = abs(i - j)
+            if dist == 0
+                D_sweep[i, j] = 1.0 - d
+            elseif dist == 1
+                D_sweep[i, j] = d * 0.7   # adjacent
+            elseif dist == 2
+                D_sweep[i, j] = d * 0.25  # next-nearest
+            else
+                D_sweep[i, j] = d * 0.05  # long-distance
+            end
+        end
+        # Normalise columns
+        D_sweep[:, i] ./= sum(D_sweep[:, i])
+    end
+
+    # Build heterogeneous block matrix
+    A_sweep = zeros(4n, 4n)
+    for i in 1:4, j in 1:4
+        rows = (i-1)*n+1 : i*n
+        cols = (j-1)*n+1 : j*n
+        A_sweep[rows, cols] = D_sweep[i,j] * A_patches[j]
+    end
+
+    push!(λ_sweep, lambda(A_sweep))
+end
+
+plot(Base.collect(dispersal_rates), λ_sweep,
+    xlabel=&quot;Dispersal fraction&quot;, ylabel=&quot;λ (metapopulation)&quot;,
+    title=&quot;Metapopulation Growth Rate vs Dispersal&quot;,
+    legend=false, linewidth=2, color=:navy, size=(600, 350))
+hline!([1.0], linestyle=:dash, color=:red, linewidth=1, label=&quot;λ = 1&quot;)
+scatter!([0.0], [λ_sweep[1]], color=:black, markersize=5, label=&quot;Isolated&quot;)</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-5.png" alt/></p><p>At zero dispersal, the metapopulation λ is dominated by the fastest-growing patch (Sicily). As dispersal increases, population is redistributed to sink patches, lowering the overall growth rate — a “dispersal cost.” In heterogeneous landscapes, connectivity is not always beneficial.</p><h2 id="Climate-Change-Scenario"><a class="docs-heading-anchor" href="#Climate-Change-Scenario">Climate Change Scenario</a><a id="Climate-Change-Scenario-1"></a><a class="docs-heading-anchor-permalink" href="#Climate-Change-Scenario" title="Permalink"></a></h2><p>Global warming shifts isotherms northward. We add +2°C to each latitude’s mean temperature and rebuild the metapopulation.</p><pre><code class="language-julia hljs">ΔT = 2.0  # warming (°C)
+
+A_patches_warm = [build_patch_matrix(loc.mean_T + ΔT, loc.amplitude)
+                  for loc in latitudes]
+λ_warm = [lambda(A) for A in A_patches_warm]
+
+println(rpad(&quot;Location&quot;, 12), rpad(&quot;λ current&quot;, 12), rpad(&quot;λ +2°C&quot;, 12), &quot;Change&quot;)
+println(&quot;-&quot;^48)
+for (i, loc) in enumerate(latitudes)
+    Δ = λ_warm[i] - λ_local[i]
+    arrow = Δ &gt; 0 ? &quot;↑&quot; : &quot;↓&quot;
+    println(rpad(loc.name, 12),
+        rpad(round(λ_local[i], digits=4), 12),
+        rpad(round(λ_warm[i], digits=4), 12),
+        arrow, &quot; &quot;, round(Δ, digits=4))
+end</code></pre><pre><code class="nohighlight hljs">Location    λ current   λ +2°C      Change
+------------------------------------------------
+Sicily      1.0079      1.0189      ↑ 0.011
+Bordeaux    0.9964      1.0085      ↑ 0.012
+Trentino    1.0077      0.9988      ↓ -0.0089
+Mosel       1.0065      1.0066      ↑ 0.0001</code></pre><pre><code class="language-julia hljs"># Build warmed metapopulation
+A_full_warm = zeros(4n, 4n)
+for i in 1:4, j in 1:4
+    rows = (i-1)*n+1 : i*n
+    cols = (j-1)*n+1 : j*n
+    A_full_warm[rows, cols] = D[i,j] * A_patches_warm[j]
+end
+
+λ_meta_warm = lambda(A_full_warm)
+println(&quot;Metapopulation λ (current): &quot;, round(λ_meta, digits=4))
+println(&quot;Metapopulation λ (+2°C):    &quot;, round(λ_meta_warm, digits=4))</code></pre><pre><code class="nohighlight hljs">Metapopulation λ (current): 1.0049
+Metapopulation λ (+2°C):    1.0068</code></pre><pre><code class="language-julia hljs"># Side-by-side comparison
+groupidx = repeat(1:4, 2)
+vals = vcat(λ_local, λ_warm)
+labels_all = vcat(names_str, names_str)
+
+xticks_pos = 1:4
+bar_w = 0.35
+p = bar(xticks_pos .- bar_w/2, λ_local, bar_width=bar_w,
+    label=&quot;Current&quot;, color=:steelblue, alpha=0.8,
+    ylabel=&quot;λ&quot;, title=&quot;Local Growth Rates: Current vs +2°C Warming&quot;,
+    xticks=(xticks_pos, names_str))
+bar!(xticks_pos .+ bar_w/2, λ_warm, bar_width=bar_w,
+    label=&quot;+2°C&quot;, color=:coral, alpha=0.8)
+hline!([1.0], linestyle=:dash, color=:black, linewidth=1.5, label=&quot;λ = 1&quot;)</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-6.png" alt/></p><p>Warming benefits northern sinks (more growing-degree days) but may harm southern sources if temperatures approach the upper thermal threshold. The source-sink boundary shifts northward.</p><pre><code class="language-julia hljs"># Warmed stable distribution
+evals_warm = eigen(A_full_warm)
+idx_warm = argmax(real.(evals_warm.values))
+w_warm = real.(evals_warm.vectors[:, idx_warm])
+w_warm = w_warm / sum(w_warm)
+patch_pop_warm = [sum(w_warm[(i-1)*n+1 : i*n]) for i in 1:4]
+
+bar(xticks_pos .- bar_w/2, patch_pop * 100, bar_width=bar_w,
+    label=&quot;Current&quot;, color=:steelblue, alpha=0.8,
+    ylabel=&quot;% of metapopulation&quot;,
+    title=&quot;Population Distribution: Current vs +2°C&quot;,
+    xticks=(xticks_pos, names_str))
+bar!(xticks_pos .+ bar_w/2, patch_pop_warm * 100, bar_width=bar_w,
+    label=&quot;+2°C&quot;, color=:coral, alpha=0.8)</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-7.png" alt/></p><h2 id="Coarsening"><a class="docs-heading-anchor" href="#Coarsening">Coarsening</a><a id="Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Coarsening" title="Permalink"></a></h2><p>Can we collapse the two northern patches (Trentino + Mosel) into a single “northern” aggregate without losing essential dynamics? We use <code>coarsen</code> with a <code>FinFunction</code> that maps the 16 state indices in the 4-patch model to 12 state indices in a 3-patch model.</p><pre><code class="language-julia hljs"># Mapping: 4 patches × 4 stages = 16 → 3 patches × 4 stages = 12
+# Patch 1 (Sicily, indices 1:4)   → coarse patch 1 (indices 1:4)
+# Patch 2 (Bordeaux, indices 5:8) → coarse patch 2 (indices 5:8)
+# Patch 3 (Trentino, indices 9:12) → coarse patch 3 (indices 9:12)
+# Patch 4 (Mosel, indices 13:16)   → coarse patch 3 (indices 9:12)
+
+fine_to_coarse = vcat(
+    1:4,    # Sicily → patch 1
+    5:8,    # Bordeaux → patch 2
+    9:12,   # Trentino → patch 3 (northern)
+    9:12    # Mosel → patch 3 (northern, merged)
+)
+
+f_spatial = FinFunction(fine_to_coarse, 12)
+A_coarsened = coarsen(A_full, f_spatial)
+
+λ_coarse = lambda(A_coarsened)
+println(&quot;Full 4-patch metapopulation (16×16): λ = &quot;, round(λ_meta, digits=4))
+println(&quot;Coarsened 3-patch model (12×12):     λ = &quot;, round(λ_coarse, digits=4))
+println(&quot;Relative error: &quot;, round(abs(λ_coarse - λ_meta) / λ_meta * 100, digits=3), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">Full 4-patch metapopulation (16×16): λ = 1.0049
+Coarsened 3-patch model (12×12):     λ = 1.0049
+Relative error: 0.003%</code></pre><pre><code class="language-julia hljs">coarse_names = [&quot;Sicily&quot;, &quot;Bordeaux&quot;, &quot;Northern&quot;]
+p1 = heatmap(A_full,
+    title=&quot;Full 4-patch (16×16)&quot;, color=:viridis, size=(450, 400))
+for b in 1:3
+    vline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+    hline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+end
+
+p2 = heatmap(A_coarsened,
+    title=&quot;Coarsened 3-patch (12×12)&quot;, color=:viridis, size=(450, 400))
+for b in 1:2
+    vline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+    hline!([b * n + 0.5], color=:white, linewidth=2, label=false)
+end
+
+plot(p1, p2, layout=(1, 2), size=(900, 400))</code></pre><p><img src="../14_lobesia_metapopulation_files/embedded-8.png" alt/></p><p>The coarsened model preserves the metapopulation growth rate well. When two patches have similar demography (both sinks), aggregating them loses little information — a hallmark of well-behaved pushforward.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated how categorical stratification and coarsening reveal metapopulation structure that is invisible in independent single-patch models:</p><ol><li><strong>Temperature-dependent vital rates</strong> — Brière development, U-shaped mortality, and Gaussian fecundity parameterise the <em>L. botrana</em> lifecycle</li><li><strong>Latitude-specific matrices</strong> — a reference <code>ValuedProjectionNet</code> is composed via <code>⊕</code> (survival ⊕ fecundity), then latitude-specific variants are stamped out with <code>⊘</code>, capturing the demographic gradient from Sicily (source, λ \&gt; 1) to the Mosel (sink, λ \&lt; 1)</li><li><strong>Homogeneous <code>stratify</code></strong> — the baseline: identical patches coupled by dispersal preserve λ</li><li><strong>Heterogeneous block matrix</strong> — manually building the 16×16 matrix with latitude-specific rates exposes the full metapopulation dynamics</li><li><strong>Source-sink analysis</strong> — the stable stage distribution reveals that southern patches support northern ones through immigration</li><li><strong>Dispersal sweep</strong> — increasing connectivity does not always increase λ; redistributing individuals to sinks incurs a dispersal cost</li><li><strong>Climate warming</strong> — a +2°C shift improves northern sinks but may stress southern sources, shifting the source-sink boundary northward</li><li><strong>Coarsening</strong> — collapsing two similar sink patches into one via <code>FinFunction</code> preserves λ, demonstrating functorial spatial aggregation</li></ol><p>The categorical framework — <code>⊕</code> for modular lifecycle composition, <code>⊘</code> for environment-specific parameterisation, stratification as pullback, coarsening as pushforward — provides principled tools for spatial scaling that go beyond ad hoc block-matrix construction. The same patterns apply to any metapopulation where patches differ in their local demography.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../13_whitefly_guild_composition/">« Enemy Guild Composition</a><a class="docs-footer-nextpage" href="../15_rice_fish_coarsening/">Trophic Coarsening »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

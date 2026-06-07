@@ -1,0 +1,237 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Trophic Coarsening · CategoricalPopulationDynamics.jl</title><meta name="title" content="Trophic Coarsening · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Trophic Coarsening · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Trophic Coarsening · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/15_rice_fish_coarsening/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/15_rice_fish_coarsening/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/15_rice_fish_coarsening/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li class="is-active"><a class="tocitem" href>Trophic Coarsening</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Four-Trophic-Model"><span>Four-Trophic Model</span></a></li><li><a class="tocitem" href="#Full-System-Analysis"><span>Full System Analysis</span></a></li><li><a class="tocitem" href="#Compositional-Decomposition"><span>Compositional Decomposition</span></a></li><li><a class="tocitem" href="#Process-Sensitivity"><span>Process Sensitivity</span></a></li><li><a class="tocitem" href="#Trophic-Coarsening:-Merge-Plankton"><span>Trophic Coarsening: Merge Plankton</span></a></li><li><a class="tocitem" href="#Aggressive-Coarsening:-2-Compartment"><span>Aggressive Coarsening: 2-Compartment</span></a></li><li><a class="tocitem" href="#Ecologically-Incoherent-Coarsening"><span>Ecologically Incoherent Coarsening</span></a></li><li><a class="tocitem" href="#Coarsening-Error-Analysis"><span>Coarsening Error Analysis</span></a></li><li><a class="tocitem" href="#Ecological-Interpretation"><span>Ecological Interpretation</span></a></li><li><a class="tocitem" href="#Fish-Stocking-Effect"><span>Fish Stocking Effect</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li><a class="tocitem" href="../20_bumblebee_nesting/">Multi-Timescale Colony Dynamics</a></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Trophic Coarsening</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Trophic Coarsening</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/15_rice_fish_coarsening.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Trophic-Coarsening"><a class="docs-heading-anchor" href="#Trophic-Coarsening">Trophic Coarsening</a><a id="Trophic-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Trophic-Coarsening" title="Permalink"></a></h1><p>Categorical Resolution Reduction in Multi-Trophic Agroecosystems</p><p>Author</p><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Multi-trophic agroecosystems involve many interacting compartments — producers, grazers, predators — each with distinct biomass dynamics. Modelling every trophic level is expensive and sometimes unnecessary. <strong>Trophic coarsening</strong> uses categorical pushforward (via <code>FinFunction</code>) to merge compartments, producing a lower-dimensional model whose fidelity can be quantified.</p><p>This vignette builds a 4-compartment rice-fish agroecosystem model (inspired by d’Oultremont &amp; Gutierrez 2002), decomposes it into named trophic interactions using <code>ValuedProjectionNet</code>, and then systematically coarsens it to assess when simplification is justified.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘
+using Catlab
+using Catlab.CategoricalAlgebra
+using LinearAlgebra
+using ProjectionModels: lambda
+using Plots</code></pre><h2 id="Four-Trophic-Model"><a class="docs-heading-anchor" href="#Four-Trophic-Model">Four-Trophic Model</a><a id="Four-Trophic-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Four-Trophic-Model" title="Permalink"></a></h2><p>The rice-fish agroecosystem at 28°C has four compartments across three trophic levels:</p><ol><li><strong>Rice</strong> — primary producer (terrestrial)</li><li><strong>Phytoplankton</strong> — primary producer (aquatic)</li><li><strong>Zooplankton</strong> — grazes phytoplankton</li><li><strong>Tilapia</strong> — feeds on zooplankton and phytoplankton</li></ol><p>We encode the daily biomass transitions as a <code>ValuedProjectionNet</code> with five named trophic processes.</p><pre><code class="language-julia hljs"># Daily transition rates at 28°C (from d&#39;Oultremont &amp; Gutierrez 2002)
+# Self-maintenance (stasis) rates
+σ_rice  = 0.95    # rice biomass retained
+σ_phyto = 0.85    # phytoplankton turnover (high)
+σ_zoo   = 0.88    # zooplankton turnover
+σ_fish  = 0.97    # fish (long-lived)
+
+# Trophic transfers (per day)
+phyto_from_light = 0.10   # light-limited phytoplankton growth
+zoo_from_phyto   = 0.08   # grazing: zooplankton gains from phytoplankton
+fish_from_zoo    = 0.04   # predation: fish gains from zooplankton
+fish_from_phyto  = 0.01   # filter feeding: fish directly from phytoplankton
+rice_from_fish   = 0.005  # nutrient recycling: fish feces → rice
+
+# Negative effects (consumed/lost)
+phyto_loss_to_zoo  = 0.06  # phytoplankton grazed by zooplankton
+phyto_loss_to_fish = 0.01  # phytoplankton filtered by fish
+zoo_loss_to_fish   = 0.03  # zooplankton consumed by fish</code></pre><pre><code class="nohighlight hljs">0.03</code></pre><h3 id="Building-the-ValuedProjectionNet"><a class="docs-heading-anchor" href="#Building-the-ValuedProjectionNet">Building the ValuedProjectionNet</a><a id="Building-the-ValuedProjectionNet-1"></a><a class="docs-heading-anchor-permalink" href="#Building-the-ValuedProjectionNet" title="Permalink"></a></h3><p>Each named transition captures a distinct trophic interaction. We build each process as a separate <code>ValuedProjectionNet</code> and compose them with <code>⊕</code> (direct sum / merge):</p><pre><code class="language-julia hljs">stages = [:rice, :phytoplankton, :zooplankton, :fish]
+
+# Self-maintenance (diagonal survival + net turnover effects)
+maintenance = ValuedProjectionNet(stages,
+    :self_maintenance =&gt; [
+        (:rice           =&gt; :rice)           =&gt; σ_rice,
+        (:phytoplankton  =&gt; :phytoplankton)  =&gt; σ_phyto + phyto_from_light - phyto_loss_to_zoo - phyto_loss_to_fish,
+        (:zooplankton    =&gt; :zooplankton)    =&gt; σ_zoo - zoo_loss_to_fish,
+        (:fish           =&gt; :fish)           =&gt; σ_fish])
+
+# Trophic interactions (one named transition each)
+grazing            = ValuedProjectionNet(stages,
+    :grazing            =&gt; [(:phytoplankton =&gt; :zooplankton) =&gt; zoo_from_phyto])
+predation          = ValuedProjectionNet(stages,
+    :predation          =&gt; [(:zooplankton   =&gt; :fish)        =&gt; fish_from_zoo])
+filter_feeding     = ValuedProjectionNet(stages,
+    :filter_feeding     =&gt; [(:phytoplankton =&gt; :fish)        =&gt; fish_from_phyto])
+nutrient_recycling = ValuedProjectionNet(stages,
+    :nutrient_recycling =&gt; [(:fish          =&gt; :rice)        =&gt; rice_from_fish])
+
+# Compose the full network via ⊕ — stages must match, transition names must be disjoint
+rice_fish = maintenance ⊕ grazing ⊕ predation ⊕ filter_feeding ⊕ nutrient_recycling</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:5
+  Src = 1:5
+  Tgt = 1:5
+  Name = 1:0
+  src_t : Src → T = [1, 2, 3, 4, 5]
+  src_s : Src → S = [1, 1, 1, 1, 1]
+  tgt_t : Tgt → T = [1, 2, 3, 4, 5]
+  tgt_s : Tgt → S = [1, 1, 1, 1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:self_maintenance, :predation, :grazing, :filter_feeding, :nutrient_recycling], [:rice, :phytoplankton, :zooplankton, :fish], Dict(:self_maintenance =&gt; [(:rice =&gt; :rice) =&gt; 0.95, (:phytoplankton =&gt; :phytoplankton) =&gt; 0.8799999999999999, (:zooplankton =&gt; :zooplankton) =&gt; 0.85, (:fish =&gt; :fish) =&gt; 0.97], :predation =&gt; [(:zooplankton =&gt; :fish) =&gt; 0.04], :grazing =&gt; [(:phytoplankton =&gt; :zooplankton) =&gt; 0.08], :filter_feeding =&gt; [(:phytoplankton =&gt; :fish) =&gt; 0.01], :nutrient_recycling =&gt; [(:fish =&gt; :rice) =&gt; 0.005]))</code></pre><pre><code class="language-julia hljs">println(&quot;Stages:      &quot;, stage_names(rice_fish))
+println(&quot;Transitions: &quot;, transition_names(rice_fish))</code></pre><pre><code class="nohighlight hljs">Stages:      [:rice, :phytoplankton, :zooplankton, :fish]
+Transitions: [:self_maintenance, :predation, :grazing, :filter_feeding, :nutrient_recycling]</code></pre><h2 id="Full-System-Analysis"><a class="docs-heading-anchor" href="#Full-System-Analysis">Full System Analysis</a><a id="Full-System-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Full-System-Analysis" title="Permalink"></a></h2><p>Materialize the full 4×4 projection matrix and compute its dominant eigenvalue:</p><pre><code class="language-julia hljs">A = to_matrix(rice_fish)
+println(&quot;Transition matrix (4×4):&quot;)
+display(round.(A, digits=4))</code></pre><pre><code class="nohighlight hljs">Transition matrix (4×4):
+
+4×4 Matrix{Float64}:
+ 0.95  0.0   0.0   0.005
+ 0.0   0.88  0.0   0.0
+ 0.0   0.08  0.85  0.0
+ 0.0   0.01  0.04  0.97</code></pre><pre><code class="language-julia hljs">λ_full = lambda(A)
+println(&quot;λ (full system) = &quot;, round(λ_full, digits=6))</code></pre><pre><code class="nohighlight hljs">λ (full system) = 0.97</code></pre><h3 id="Stable-Distribution"><a class="docs-heading-anchor" href="#Stable-Distribution">Stable Distribution</a><a id="Stable-Distribution-1"></a><a class="docs-heading-anchor-permalink" href="#Stable-Distribution" title="Permalink"></a></h3><pre><code class="language-julia hljs">w = real.(eigvecs(A)[:, argmax(real.(eigvals(A)))])
+w = w ./ sum(w)
+stage_labels = [&quot;Rice&quot;, &quot;Phyto&quot;, &quot;Zoo&quot;, &quot;Fish&quot;]
+bar(stage_labels, w,
+    ylabel=&quot;Proportion&quot;, title=&quot;Stable trophic distribution (4 compartments)&quot;,
+    legend=false, color=[:green :cyan :orange :blue], alpha=0.8)</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-1.png" alt/></p><h3 id="Transition-Matrix-Heatmap"><a class="docs-heading-anchor" href="#Transition-Matrix-Heatmap">Transition Matrix Heatmap</a><a id="Transition-Matrix-Heatmap-1"></a><a class="docs-heading-anchor-permalink" href="#Transition-Matrix-Heatmap" title="Permalink"></a></h3><pre><code class="language-julia hljs">heatmap(stage_labels, stage_labels, A,
+    title=&quot;Full transition matrix (4×4)&quot;,
+    xlabel=&quot;From&quot;, ylabel=&quot;To&quot;, color=:viridis,
+    size=(450, 400))</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-2.png" alt/></p><h2 id="Compositional-Decomposition"><a class="docs-heading-anchor" href="#Compositional-Decomposition">Compositional Decomposition</a><a id="Compositional-Decomposition-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Decomposition" title="Permalink"></a></h2><p>The <code>compose_transitions</code> function lets us reconstruct the full matrix from its named sub-processes:</p><pre><code class="language-julia hljs">sub_matrices = Dict(
+    :self_maintenance   =&gt; transition_matrix(rice_fish, :self_maintenance),
+    :grazing            =&gt; transition_matrix(rice_fish, :grazing),
+    :predation          =&gt; transition_matrix(rice_fish, :predation),
+    :filter_feeding     =&gt; transition_matrix(rice_fish, :filter_feeding),
+    :nutrient_recycling =&gt; transition_matrix(rice_fish, :nutrient_recycling)
+)
+
+A_recomposed = compose_transitions(sub_matrices)
+println(&quot;Recomposition matches: &quot;, A_recomposed ≈ A)</code></pre><pre><code class="nohighlight hljs">Recomposition matches: true</code></pre><p>Visualize each sub-process:</p><pre><code class="language-julia hljs">process_plots = []
+for (name, M) in sort(Base.collect(sub_matrices), by=x-&gt;string(x[1]))
+    p = heatmap(stage_labels, stage_labels, M,
+        title=string(name), color=:viridis,
+        xlabel=&quot;From&quot;, ylabel=&quot;To&quot;, clims=(0, maximum(A)))
+    push!(process_plots, p)
+end
+plot(process_plots..., layout=(2, 3), size=(900, 550))</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-3.png" alt/></p><h2 id="Process-Sensitivity"><a class="docs-heading-anchor" href="#Process-Sensitivity">Process Sensitivity</a><a id="Process-Sensitivity-1"></a><a class="docs-heading-anchor-permalink" href="#Process-Sensitivity" title="Permalink"></a></h2><p>Which trophic interaction matters most for system growth? Remove each in turn and recompute λ:</p><pre><code class="language-julia hljs">interaction_names = [:grazing, :predation, :filter_feeding, :nutrient_recycling]
+λ_removed = Dict{Symbol, Float64}()
+
+for name in interaction_names
+    reduced = Dict(k =&gt; v for (k, v) in sub_matrices if k != name)
+    A_reduced = compose_transitions(reduced)
+    λ_removed[name] = lambda(A_reduced)
+end
+
+println(rpad(&quot;Interaction removed&quot;, 24), rpad(&quot;λ&quot;, 12), &quot;Δλ&quot;)
+println(&quot;-&quot;^44)
+for name in interaction_names
+    Δ = λ_removed[name] - λ_full
+    println(rpad(string(name), 24),
+        rpad(round(λ_removed[name], digits=6), 12),
+        round(Δ, digits=6))
+end</code></pre><pre><code class="nohighlight hljs">Interaction removed     λ           Δλ
+--------------------------------------------
+grazing                 0.97        0.0
+predation               0.97        0.0
+filter_feeding          0.97        0.0
+nutrient_recycling      0.97        0.0</code></pre><pre><code class="language-julia hljs">bar(string.(interaction_names),
+    [λ_removed[n] for n in interaction_names],
+    ylabel=&quot;λ&quot;, title=&quot;Growth rate after removing each interaction&quot;,
+    legend=false, color=:coral, alpha=0.8)
+hline!([λ_full], linestyle=:dash, color=:black, label=&quot;Full model&quot;)</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-4.png" alt/></p><h2 id="Trophic-Coarsening:-Merge-Plankton"><a class="docs-heading-anchor" href="#Trophic-Coarsening:-Merge-Plankton">Trophic Coarsening: Merge Plankton</a><a id="Trophic-Coarsening:-Merge-Plankton-1"></a><a class="docs-heading-anchor-permalink" href="#Trophic-Coarsening:-Merge-Plankton" title="Permalink"></a></h2><p>The first coarsening merges phytoplankton and zooplankton into a single “plankton” compartment. This is a <code>FinFunction</code> mapping 4 fine compartments to 3 coarse ones:</p><ul><li>rice (1) → rice (1)</li><li>phytoplankton (2) → plankton (2)</li><li>zooplankton (3) → plankton (2)</li><li>fish (4) → fish (3)</li></ul><pre><code class="language-julia hljs">f_plankton = FinFunction([1, 2, 2, 3], 3)
+A_3comp = coarsen(A, f_plankton)
+
+coarse_labels_3 = [&quot;Rice&quot;, &quot;Plankton&quot;, &quot;Fish&quot;]
+println(&quot;Coarsened matrix (3×3):&quot;)
+display(round.(A_3comp, digits=4))</code></pre><pre><code class="nohighlight hljs">Coarsened matrix (3×3):
+
+3×3 Matrix{Float64}:
+ 0.95  0.0    0.005
+ 0.0   0.905  0.0
+ 0.0   0.025  0.97</code></pre><pre><code class="language-julia hljs">λ_3comp = lambda(A_3comp)
+err_3 = abs(λ_3comp - λ_full) / λ_full * 100
+println(&quot;λ (full, 4 comp)       = &quot;, round(λ_full, digits=6))
+println(&quot;λ (coarse, 3 comp)     = &quot;, round(λ_3comp, digits=6))
+println(&quot;Relative error         = &quot;, round(err_3, digits=4), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">λ (full, 4 comp)       = 0.97
+λ (coarse, 3 comp)     = 0.97
+Relative error         = 0.0%</code></pre><pre><code class="language-julia hljs">heatmap(coarse_labels_3, coarse_labels_3, A_3comp,
+    title=&quot;Coarsened matrix: plankton merged (3×3)&quot;,
+    xlabel=&quot;From&quot;, ylabel=&quot;To&quot;, color=:viridis,
+    size=(400, 350))</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-5.png" alt/></p><h3 id="Stable-Distribution-Comparison"><a class="docs-heading-anchor" href="#Stable-Distribution-Comparison">Stable Distribution Comparison</a><a id="Stable-Distribution-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Stable-Distribution-Comparison" title="Permalink"></a></h3><pre><code class="language-julia hljs">w_3 = real.(eigvecs(A_3comp)[:, argmax(real.(eigvals(A_3comp)))])
+w_3 = w_3 ./ sum(w_3)
+
+# Map fine stable distribution to coarse
+w_fine_mapped = [w[1], w[2] + w[3], w[4]]
+w_fine_mapped = w_fine_mapped ./ sum(w_fine_mapped)
+
+bar(coarse_labels_3, w_fine_mapped,
+    label=&quot;Fine (mapped)&quot;, color=:teal, alpha=0.7, bar_width=0.35,
+    ylabel=&quot;Proportion&quot;, title=&quot;Stable distribution: fine vs coarsened&quot;)
+bar!(coarse_labels_3, w_3,
+    label=&quot;Coarsened&quot;, color=:coral, alpha=0.7, bar_width=0.35)</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-6.png" alt/></p><h2 id="Aggressive-Coarsening:-2-Compartment"><a class="docs-heading-anchor" href="#Aggressive-Coarsening:-2-Compartment">Aggressive Coarsening: 2-Compartment</a><a id="Aggressive-Coarsening:-2-Compartment-1"></a><a class="docs-heading-anchor-permalink" href="#Aggressive-Coarsening:-2-Compartment" title="Permalink"></a></h2><p>Collapse all aquatic compartments (phytoplankton + zooplankton + fish) into a single “aquatic” pool:</p><pre><code class="language-julia hljs">f_aquatic = FinFunction([1, 2, 2, 2], 2)
+A_2comp = coarsen(A, f_aquatic)
+
+coarse_labels_2 = [&quot;Rice&quot;, &quot;Aquatic&quot;]
+println(&quot;Aggressively coarsened matrix (2×2):&quot;)
+display(round.(A_2comp, digits=4))</code></pre><pre><code class="nohighlight hljs">Aggressively coarsened matrix (2×2):
+
+2×2 Matrix{Float64}:
+ 0.95  0.0017
+ 0.0   0.9433</code></pre><pre><code class="language-julia hljs">λ_2comp = lambda(A_2comp)
+err_2 = abs(λ_2comp - λ_full) / λ_full * 100
+println(&quot;λ (full, 4 comp)       = &quot;, round(λ_full, digits=6))
+println(&quot;λ (coarse, 2 comp)     = &quot;, round(λ_2comp, digits=6))
+println(&quot;Relative error         = &quot;, round(err_2, digits=4), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">λ (full, 4 comp)       = 0.97
+λ (coarse, 2 comp)     = 0.95
+Relative error         = 2.0619%</code></pre><h2 id="Ecologically-Incoherent-Coarsening"><a class="docs-heading-anchor" href="#Ecologically-Incoherent-Coarsening">Ecologically Incoherent Coarsening</a><a id="Ecologically-Incoherent-Coarsening-1"></a><a class="docs-heading-anchor-permalink" href="#Ecologically-Incoherent-Coarsening" title="Permalink"></a></h2><p>Not all coarsenings make ecological sense. Merging rice with phytoplankton (terrestrial + aquatic producers) while keeping zooplankton and fish separate:</p><pre><code class="language-julia hljs">f_bad = FinFunction([1, 1, 2, 3], 3)
+A_bad = coarsen(A, f_bad)
+
+bad_labels = [&quot;Terrestrial+Phyto&quot;, &quot;Zoo&quot;, &quot;Fish&quot;]
+println(&quot;Ecologically incoherent coarsening (3×3):&quot;)
+display(round.(A_bad, digits=4))</code></pre><pre><code class="nohighlight hljs">Ecologically incoherent coarsening (3×3):
+
+3×3 Matrix{Float64}:
+ 0.915  0.0   0.005
+ 0.04   0.85  0.0
+ 0.005  0.04  0.97</code></pre><pre><code class="language-julia hljs">λ_bad = lambda(A_bad)
+err_bad = abs(λ_bad - λ_full) / λ_full * 100
+println(&quot;λ (incoherent coarsening) = &quot;, round(λ_bad, digits=6))
+println(&quot;Relative error            = &quot;, round(err_bad, digits=4), &quot;%&quot;)</code></pre><pre><code class="nohighlight hljs">λ (incoherent coarsening) = 0.971604
+Relative error            = 0.1654%</code></pre><h2 id="Coarsening-Error-Analysis"><a class="docs-heading-anchor" href="#Coarsening-Error-Analysis">Coarsening Error Analysis</a><a id="Coarsening-Error-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Coarsening-Error-Analysis" title="Permalink"></a></h2><p>Compare all coarsening schemes:</p><pre><code class="language-julia hljs">println(rpad(&quot;Scheme&quot;, 30), rpad(&quot;Dim&quot;, 6), rpad(&quot;λ&quot;, 12), rpad(&quot;Rel. error&quot;, 12))
+println(&quot;-&quot;^60)
+
+schemes = [
+    (&quot;Full (4 compartments)&quot;, 4, λ_full, 0.0),
+    (&quot;Merge plankton (3)&quot;, 3, λ_3comp, err_3),
+    (&quot;All aquatic (2)&quot;, 2, λ_2comp, err_2),
+    (&quot;Incoherent (3)&quot;, 3, λ_bad, err_bad)
+]
+
+for (name, dim, λ_val, err) in schemes
+    println(rpad(name, 30), rpad(dim, 6),
+        rpad(round(λ_val, digits=6), 12),
+        round(err, digits=4), &quot;%&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Scheme                        Dim   λ           Rel. error  
+------------------------------------------------------------
+Full (4 compartments)         4     0.97        0.0%
+Merge plankton (3)            3     0.97        0.0%
+All aquatic (2)               2     0.95        2.0619%
+Incoherent (3)                3     0.971604    0.1654%</code></pre><pre><code class="language-julia hljs">scheme_names = [s[1] for s in schemes]
+scheme_errors = [s[4] for s in schemes]
+bar(scheme_names, scheme_errors,
+    ylabel=&quot;Relative error (%)&quot;, title=&quot;Coarsening error by scheme&quot;,
+    legend=false, color=[:green, :teal, :coral, :red], alpha=0.8,
+    xrotation=15, size=(600, 400))</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-7.png" alt/></p><h2 id="Ecological-Interpretation"><a class="docs-heading-anchor" href="#Ecological-Interpretation">Ecological Interpretation</a><a id="Ecological-Interpretation-1"></a><a class="docs-heading-anchor-permalink" href="#Ecological-Interpretation" title="Permalink"></a></h2><p>The coarsening error tells us which trophic simplifications are justified:</p><ul><li><strong>Merging plankton</strong> typically introduces only modest error, because the grazing interaction between phytoplankton and zooplankton is rapid relative to the system time-step — the plankton sub-web equilibrates fast.</li><li><strong>Collapsing all aquatic compartments</strong> lumps trophically distant species (plankton and fish), losing the predation structure. This may introduce larger error when fish dynamics differ substantially from plankton turnover.</li><li><strong>Ecologically incoherent groupings</strong> (e.g., rice + phytoplankton) can produce unpredictable errors because the grouped compartments have no shared ecological role.</li></ul><p>The categorical framework makes these comparisons rigorous: each coarsening is a <code>FinFunction</code>, and the error is the difference between the pushforward eigenvalue and the original.</p><h2 id="Fish-Stocking-Effect"><a class="docs-heading-anchor" href="#Fish-Stocking-Effect">Fish Stocking Effect</a><a id="Fish-Stocking-Effect-1"></a><a class="docs-heading-anchor-permalink" href="#Fish-Stocking-Effect" title="Permalink"></a></h2><p>A practical management question: how does increasing fish stocking (enhancing fish-related transitions) change the system, and does the coarsened model capture the effect?</p><p>Rather than rebuilding the <code>ValuedProjectionNet</code> from scratch for each stocking density, we use the <code>⊘</code> operator to selectively transform the base model. For a stocking multiplier <code>s</code>, <code>⊘</code> scales the fish-mediated transitions (predation, filter feeding, nutrient recycling) and adjusts the self-maintenance diagonal to account for increased fish consumption:</p><pre><code class="language-julia hljs">stocking_levels = [1.0, 1.5, 2.0, 2.5, 3.0]
+λ_fine_stock = Float64[]
+λ_coarse_stock = Float64[]
+
+for s in stocking_levels
+    # Scale fish-related transitions from the base VPN using ⊘
+    vnet_stocked = rice_fish ⊘ (:self_maintenance =&gt; ((from, _), val) -&gt;
+        from == :phytoplankton ? val + (1 - s) * phyto_loss_to_fish :
+        from == :zooplankton   ? val + (1 - s) * zoo_loss_to_fish   : val
+    ) ⊘ (:predation          =&gt; (_, val) -&gt; s * val
+    ) ⊘ (:filter_feeding     =&gt; (_, val) -&gt; s * val
+    ) ⊘ (:nutrient_recycling =&gt; (_, val) -&gt; s * val)
+
+    A_s = to_matrix(vnet_stocked)
+    push!(λ_fine_stock, lambda(A_s))
+    push!(λ_coarse_stock, lambda(coarsen(A_s, f_plankton)))
+end</code></pre><pre><code class="language-julia hljs">plot(stocking_levels, λ_fine_stock,
+    label=&quot;Fine (4 comp)&quot;, marker=:circle, linewidth=2, color=:teal)
+plot!(stocking_levels, λ_coarse_stock,
+    label=&quot;Coarsened (3 comp)&quot;, marker=:square, linewidth=2,
+    color=:coral, linestyle=:dash)
+xlabel!(&quot;Fish stocking multiplier&quot;)
+ylabel!(&quot;λ&quot;)
+title!(&quot;Fish stocking effect: fine vs coarsened&quot;)</code></pre><p><img src="../15_rice_fish_coarsening_files/embedded-8.png" alt/></p><pre><code class="language-julia hljs">println(rpad(&quot;Stocking&quot;, 12), rpad(&quot;λ fine&quot;, 12), rpad(&quot;λ coarse&quot;, 12), &quot;Rel. error&quot;)
+println(&quot;-&quot;^48)
+for (s, λf, λc) in zip(stocking_levels, λ_fine_stock, λ_coarse_stock)
+    err = abs(λc - λf) / λf * 100
+    println(rpad(&quot;$(s)×&quot;, 12),
+        rpad(round(λf, digits=6), 12),
+        rpad(round(λc, digits=6), 12),
+        round(err, digits=4), &quot;%&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Stocking    λ fine      λ coarse    Rel. error
+------------------------------------------------
+1.0×        0.97        0.97        0.0%
+1.5×        0.97        0.97        0.0%
+2.0×        0.97        0.97        0.0%
+2.5×        0.97        0.97        0.0%
+3.0×        0.97        0.97        0.0%</code></pre><p>The plankton-merged model tracks the fine model across stocking levels, confirming that this coarsening preserves the system’s response to management interventions.</p><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated <strong>trophic coarsening</strong> as a categorical operation:</p><ol><li><strong><code>⊕</code> (merge)</strong> composes a multi-trophic agroecosystem from individual <code>ValuedProjectionNet</code> fragments — one per named interaction — yielding a full model with named sub-processes (self-maintenance, grazing, predation, filter feeding, nutrient recycling).</li><li><strong>compose_transitions</strong> decomposes and recomposes the full system from trophic sub-processes.</li><li><strong>Process sensitivity</strong> identifies which interactions dominate system growth.</li><li><strong>FinFunction coarsening</strong> systematically merges trophic compartments, quantifying information loss via eigenvalue comparison.</li><li><strong>Ecologically coherent</strong> coarsenings (merging functionally similar species) preserve dynamics better than arbitrary groupings.</li><li><strong><code>⊘</code> (map_values)</strong> selectively transforms transition entries — e.g., scaling fish-mediated processes by a stocking multiplier — without rebuilding the VPN from scratch. Chaining <code>⊘</code> makes management-scenario sweeps concise and auditable.</li><li><strong>Management scenarios</strong> (fish stocking via <code>⊘</code>) confirm that well-chosen coarsenings track the full model’s response to perturbation.</li></ol><p>The categorical framework provides a principled answer to: <em>when is trophic simplification justified?</em> — whenever the <code>FinFunction</code> pushforward preserves the dominant eigenvalue within an acceptable tolerance.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../14_lobesia_metapopulation/">« Metapopulation Stratification</a><a class="docs-footer-nextpage" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>

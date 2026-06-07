@@ -1,0 +1,259 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width, initial-scale=1.0"/><title>Multi-Timescale Colony Dynamics · CategoricalPopulationDynamics.jl</title><meta name="title" content="Multi-Timescale Colony Dynamics · CategoricalPopulationDynamics.jl"/><meta property="og:title" content="Multi-Timescale Colony Dynamics · CategoricalPopulationDynamics.jl"/><meta property="twitter:title" content="Multi-Timescale Colony Dynamics · CategoricalPopulationDynamics.jl"/><meta name="description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="twitter:description" content="Documentation for CategoricalPopulationDynamics.jl."/><meta property="og:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/20_bumblebee_nesting/"/><meta property="twitter:url" content="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/20_bumblebee_nesting/"/><link rel="canonical" href="https://ecorecipes.github.io/CategoricalPopulationDynamics.jl/tutorials/20_bumblebee_nesting/"/><script data-outdated-warner src="../../assets/warner.js"></script><link href="https://cdnjs.cloudflare.com/ajax/libs/lato-font/3.0.0/css/lato-font.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/juliamono/0.050/juliamono.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/fontawesome.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/solid.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.2/css/brands.min.css" rel="stylesheet" type="text/css"/><link href="https://cdnjs.cloudflare.com/ajax/libs/KaTeX/0.16.8/katex.min.css" rel="stylesheet" type="text/css"/><script>documenterBaseURL="../.."</script><script src="https://cdnjs.cloudflare.com/ajax/libs/require.js/2.3.6/require.min.js" data-main="../../assets/documenter.js"></script><script src="../../search_index.js"></script><script src="../../siteinfo.js"></script><script src="../../../versions.js"></script><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-mocha.css" data-theme-name="catppuccin-mocha"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-macchiato.css" data-theme-name="catppuccin-macchiato"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-frappe.css" data-theme-name="catppuccin-frappe"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/catppuccin-latte.css" data-theme-name="catppuccin-latte"/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-dark.css" data-theme-name="documenter-dark" data-theme-primary-dark/><link class="docs-theme-link" rel="stylesheet" type="text/css" href="../../assets/themes/documenter-light.css" data-theme-name="documenter-light" data-theme-primary/><script src="../../assets/themeswap.js"></script></head><body><div id="documenter"><nav class="docs-sidebar"><div class="docs-package-name"><span class="docs-autofit"><a href="../../">CategoricalPopulationDynamics.jl</a></span></div><button class="docs-search-query input is-rounded is-small is-clickable my-2 mx-auto py-1 px-2" id="documenter-search-query">Search docs (Ctrl + /)</button><ul class="docs-menu"><li><a class="tocitem" href="../../">Home</a></li><li><span class="tocitem">API Reference</span><ul><li><a class="tocitem" href="../../api/schemas/">Schemas &amp; Nets</a></li><li><a class="tocitem" href="../../api/domains/">Domain Types</a></li><li><a class="tocitem" href="../../api/kan_extensions/">Kan Extensions</a></li><li><a class="tocitem" href="../../api/stratification/">Stratification &amp; Coarsening</a></li><li><a class="tocitem" href="../../api/diagnostics/">Diagnostics</a></li><li><a class="tocitem" href="../../api/composition/">Composition</a></li><li><a class="tocitem" href="../../api/valued/">Valued Projection Nets</a></li><li><a class="tocitem" href="../../api/lowering/">Lowering &amp; Lifting</a></li><li><a class="tocitem" href="../../api/time_lag/">Time-Lag Models</a></li></ul></li><li><span class="tocitem">Tutorials</span><ul><li><a class="tocitem" href="../01_introduction/">Introduction to Categorical Projection Models</a></li><li><a class="tocitem" href="../02_kan_extensions/">Kan Extensions and the IPM-MPM Adjunction</a></li><li><a class="tocitem" href="../03_composition/">Compositional Model Construction</a></li><li><a class="tocitem" href="../04_stratification_coarsening/">Stratification and Coarsening</a></li><li><a class="tocitem" href="../05_lowering_lifting/">Lowering and Lifting: Connecting IPMs, MPMs, and Categorical Nets</a></li><li><a class="tocitem" href="../06_padrino_reconstruction/">Reconstructing a Published IPM from PADRINO</a></li><li><a class="tocitem" href="../07_comadre_reconstruction/">Decomposing a COMADRE Matrix Model: Loggerhead Sea Turtle Conservation</a></li><li><a class="tocitem" href="../08_valued_nets/">Valued Projection Nets</a></li><li><a class="tocitem" href="../09_stochastic_deterministic/">Environmental vs Demographic Stochasticity: A Categorical Perspective</a></li><li><a class="tocitem" href="../10_time_lag/">Time-Lagged Categorical Projection Models</a></li><li><a class="tocitem" href="../11_bt_resistance_stratification/">Genotype Stratification: Bt Cotton Resistance Evolution</a></li><li><a class="tocitem" href="../12_xylella_epi_stratification/">Vector-Borne Disease Stratification</a></li><li><a class="tocitem" href="../13_whitefly_guild_composition/">Enemy Guild Composition</a></li><li><a class="tocitem" href="../14_lobesia_metapopulation/">Metapopulation Stratification</a></li><li><a class="tocitem" href="../15_rice_fish_coarsening/">Trophic Coarsening</a></li><li><a class="tocitem" href="../16_cotton_organ_allocation/">Continuous-State Organ Allocation</a></li><li><a class="tocitem" href="../17_tritrophic_aphid_parasitoid/">Tritrophic Composition via Wiring Diagrams</a></li><li><a class="tocitem" href="../18_aedes_diapause_lag/">Time-Lag Expansion and Diapause Stratification</a></li><li><a class="tocitem" href="../19_medfly_spatial_ipm/">Continuous-State IPM with Spatial Stratification</a></li><li class="is-active"><a class="tocitem" href>Multi-Timescale Colony Dynamics</a><ul class="internal"><li><a class="tocitem" href="#Overview"><span>Overview</span></a></li><li><a class="tocitem" href="#Setup"><span>Setup</span></a></li><li><a class="tocitem" href="#Biological-Background"><span>Biological Background</span></a></li><li><a class="tocitem" href="#Level-1:-Foraging-Bout-Model"><span>Level 1: Foraging Bout Model</span></a></li><li><a class="tocitem" href="#Level-2:-Colony-Dynamics"><span>Level 2: Colony Dynamics</span></a></li><li><a class="tocitem" href="#Level-3:-Population-Dynamics"><span>Level 3: Population Dynamics</span></a></li><li><a class="tocitem" href="#Temperature-Sensitivity-Analysis"><span>Temperature Sensitivity Analysis</span></a></li><li><a class="tocitem" href="#Compositional-Modifications-with"><span>Compositional Modifications with ⊘</span></a></li><li><a class="tocitem" href="#Combining-and-:-Adding-Parasitism"><span>Combining ⊕ and ⋉: Adding Parasitism</span></a></li><li><a class="tocitem" href="#Climate-Scenario-Comparison"><span>Climate Scenario Comparison</span></a></li><li><a class="tocitem" href="#Summary"><span>Summary</span></a></li></ul></li><li><a class="tocitem" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting</a></li><li><a class="tocitem" href="../22_mosquito_ctmc/">Continuous-Time Stage Dynamics: Mosquito Development as a Generator</a></li><li><a class="tocitem" href="../23_perennial_continuous_ipm/">Continuous-Time Integral Projection: Perennial Herb Size Dynamics</a></li><li><a class="tocitem" href="../24_coupled_sit_system/">Coupled Demographic Systems: Sterile Insect Technique as a ProjectionSystem</a></li><li><a class="tocitem" href="../25_open_nets_cospans/">Open Projection Nets: Structured Cospans and Pushout Composition</a></li><li><a class="tocitem" href="../26_pspm_size_structured/">Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx</a></li><li><a class="tocitem" href="../27_time_reparametrization/">Time Reparametrization Morphisms</a></li></ul></li></ul><div class="docs-version-selector field has-addons"><div class="control"><span class="docs-label button is-static is-size-7">Version</span></div><div class="docs-selector control is-expanded"><div class="select is-fullwidth is-size-7"><select id="documenter-version-selector"></select></div></div></div></nav><div class="docs-main"><header class="docs-navbar"><a class="docs-sidebar-button docs-navbar-link fa-solid fa-bars is-hidden-desktop" id="documenter-sidebar-button" href="#"></a><nav class="breadcrumb"><ul class="is-hidden-mobile"><li><a class="is-disabled">Tutorials</a></li><li class="is-active"><a href>Multi-Timescale Colony Dynamics</a></li></ul><ul class="is-hidden-tablet"><li class="is-active"><a href>Multi-Timescale Colony Dynamics</a></li></ul></nav><div class="docs-right"><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl" title="View the repository on GitHub"><span class="docs-icon fa-brands"></span><span class="docs-label is-hidden-touch">GitHub</span></a><a class="docs-navbar-link" href="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl/blob/main/docs/src/tutorials/20_bumblebee_nesting.md" title="Edit source on GitHub"><span class="docs-icon fa-solid"></span></a><a class="docs-settings-button docs-navbar-link fa-solid fa-gear" id="documenter-settings-button" href="#" title="Settings"></a><a class="docs-article-toggle-button fa-solid fa-chevron-up" id="documenter-article-toggle-button" href="javascript:;" title="Collapse all docstrings"></a></div></header><article class="content" id="documenter-page"><h1 id="Multi-Timescale-Colony-Dynamics"><a class="docs-heading-anchor" href="#Multi-Timescale-Colony-Dynamics">Multi-Timescale Colony Dynamics</a><a id="Multi-Timescale-Colony-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Multi-Timescale-Colony-Dynamics" title="Permalink"></a></h1><p>Simon Frost</p><h2 id="Overview"><a class="docs-heading-anchor" href="#Overview">Overview</a><a id="Overview-1"></a><a class="docs-heading-anchor-permalink" href="#Overview" title="Permalink"></a></h2><p>Bumblebee colony dynamics span multiple timescales: individual foraging bouts operate on an hourly scale, colony-level demography plays out over days, and population persistence is determined by annual queen production and overwintering survival. This vignette demonstrates <strong>timescale nesting</strong> — a compositional tool that embeds fast-timescale models <em>inside</em> transitions of slower-timescale models. Changes at the foraging level automatically propagate upward through the hierarchy, enabling clean sensitivity analysis of how environmental drivers (e.g., temperature) at the finest scale cascade to population-level outcomes.</p><p>We construct a three-level nested model for <em>Bombus terrestris</em>:</p><table><tr><th style="text-align: right">Level</th><th style="text-align: right">Timescale</th><th style="text-align: right">Resolution</th><th style="text-align: right">Model</th></tr><tr><td style="text-align: right">1</td><td style="text-align: right">Foraging bout</td><td style="text-align: right">Hourly (10 h/day)</td><td style="text-align: right">Worker activity states</td></tr><tr><td style="text-align: right">2</td><td style="text-align: right">Colony dynamics</td><td style="text-align: right">Daily (150 d/season)</td><td style="text-align: right">Brood → nurse → forager</td></tr><tr><td style="text-align: right">3</td><td style="text-align: right">Population</td><td style="text-align: right">Yearly</td><td style="text-align: right">Queen → colony lifecycle</td></tr></table><p>The <code>⋉</code> (<code>\ltimes</code>) operator nests inner models into outer transitions, and the full hierarchy is materialized recursively by <code>to_matrix</code>.</p><h2 id="Setup"><a class="docs-heading-anchor" href="#Setup">Setup</a><a id="Setup-1"></a><a class="docs-heading-anchor-permalink" href="#Setup" title="Permalink"></a></h2><pre><code class="language-julia hljs">using CategoricalPopulationDynamics
+using CategoricalPopulationDynamics: ⊕, ⊘, ⋉
+using LinearAlgebra
+using StructuredPopulationCore: lambda
+using Plots</code></pre><h2 id="Biological-Background"><a class="docs-heading-anchor" href="#Biological-Background">Biological Background</a><a id="Biological-Background-1"></a><a class="docs-heading-anchor-permalink" href="#Biological-Background" title="Permalink"></a></h2><p><em>Bombus terrestris</em> is an annual-cycle bumblebee. A mated queen emerges from hibernation in spring, founds a colony alone, and rears the first cohort of workers. The colony grows through a worker-production phase (~120 days), followed by a sexual phase producing males and new queens (gynes). New queens mate, enter diapause, and — if they survive the winter — found the next year’s colonies.</p><p><strong>Foraging</strong> is the colony’s lifeline: workers collect nectar and pollen to sustain brood development and adult maintenance. Foraging activity is strongly temperature-dependent — <em>B. terrestris</em> forages across a wide thermal range (5–38 °C) but peaks at 15–28 °C (Corbet et al., 1993; Kwon &amp; Saeed, 2003).</p><p><strong>Colony productivity</strong> depends on the balance between worker emergence (a slow process with ~22-day brood + nurse periods) and forager mortality. The number of gynes produced over a season determines the colony’s contribution to the next generation.</p><p><strong>Population persistence</strong> hinges on the founding-success × gyne-production × overwinter-survival chain. Climate warming may benefit populations in cold regions but push warm-edge populations past thermal limits.</p><h2 id="Level-1:-Foraging-Bout-Model"><a class="docs-heading-anchor" href="#Level-1:-Foraging-Bout-Model">Level 1: Foraging Bout Model</a><a id="Level-1:-Foraging-Bout-Model-1"></a><a class="docs-heading-anchor-permalink" href="#Level-1:-Foraging-Bout-Model" title="Permalink"></a></h2><p>We model individual worker activity as a two-state Markov chain operating on an hourly timescale. Workers are either <strong>idle</strong> (resting, guarding, nursing) or <strong>actively foraging</strong>. The transition from idle → active depends on ambient temperature via a triangular activity function calibrated from <em>B. terrestris</em> behavioral data (Corbet et al., 1993; Kwon &amp; Saeed, 2003).</p><pre><code class="language-julia hljs">&quot;&quot;&quot;
+    foraging_activity(T)
+
+Temperature-dependent foraging activity for *B. terrestris*.
+Triangular response: ramp up 5–15°C, plateau 15–28°C, ramp down 28–38°C.
+&quot;&quot;&quot;
+function foraging_activity(T)
+    T &lt; 5.0  &amp;&amp; return 0.0
+    T &lt; 15.0 &amp;&amp; return (T - 5.0) / 10.0
+    T ≤ 28.0 &amp;&amp; return 1.0
+    T ≤ 38.0 &amp;&amp; return (38.0 - T) / 10.0
+    return 0.0
+end
+
+function make_foraging_vpn(T)
+    a = foraging_activity(T)
+    activation   = ValuedProjectionNet([:idle, :active],
+        :activation =&gt; [(:idle =&gt; :active) =&gt; 0.35 * a])
+    deactivation = ValuedProjectionNet([:idle, :active],
+        :deactivation =&gt; [(:active =&gt; :idle) =&gt; 0.15])
+    persistence  = ValuedProjectionNet([:idle, :active],
+        :persistence =&gt; [(:idle =&gt; :idle)     =&gt; 0.60,
+                         (:active =&gt; :active) =&gt; 0.80])
+    return activation ⊕ deactivation ⊕ persistence
+end</code></pre><pre><code class="nohighlight hljs">make_foraging_vpn (generic function with 1 method)</code></pre><p>At optimal temperature (20 °C), the foraging model is:</p><pre><code class="language-julia hljs">foraging_20 = make_foraging_vpn(20.0)
+A_forage = to_matrix(foraging_20)
+println(&quot;Foraging matrix (20°C):&quot;)
+display(A_forage)
+println(&quot;\nλ_forage = &quot;, round(lambda(A_forage), digits=4))
+println(&quot;Daily efficiency (λ^10) = &quot;, round(lambda(A_forage)^10, digits=4))</code></pre><pre><code class="nohighlight hljs">Foraging matrix (20°C):
+
+λ_forage = 0.95
+Daily efficiency (λ^10) = 0.5987
+
+2×2 Matrix{Float64}:
+ 0.6   0.15
+ 0.35  0.8</code></pre><p>The dominant eigenvalue λ \&lt; 1 reflects that workers cycle through activity states with some loss (mortality, failed trips). Raised to the 10th power (10 active hours per day), this gives the <strong>daily foraging efficiency</strong> — the fraction of maximum food collection actually achieved.</p><pre><code class="language-julia hljs"># Temperature sweep of foraging efficiency
+T_range = 0:1:45
+forage_eff = [lambda(to_matrix(make_foraging_vpn(T)))^10 for T in T_range]
+
+plot(T_range, forage_eff,
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Daily foraging efficiency (λ¹⁰)&quot;,
+    title=&quot;Bombus terrestris foraging activity&quot;,
+    linewidth=2, color=:darkorange, legend=false,
+    size=(600, 350))
+vline!([15, 28], linestyle=:dash, color=:gray, alpha=0.5, label=&quot;&quot;)
+annotate!(21.5, 0.65, text(&quot;Optimal\nrange&quot;, 8, :gray))</code></pre><p><img src="../20_bumblebee_nesting_files/figure-commonmark/cell-5-output-1.svg" alt/></p><h2 id="Level-2:-Colony-Dynamics"><a class="docs-heading-anchor" href="#Level-2:-Colony-Dynamics">Level 2: Colony Dynamics</a><a id="Level-2:-Colony-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Level-2:-Colony-Dynamics" title="Permalink"></a></h2><p>The colony model tracks three stage classes on a <strong>daily</strong> timescale, adapted from Khoury et al. (2011) and Banks et al. (2017):</p><ul><li><strong>Brood</strong>: eggs and larvae (~22-day development period)</li><li><strong>Nurse</strong>: young adult workers tending brood (~20-day period)</li><li><strong>Forager</strong>: mature workers collecting resources</li></ul><pre><code class="language-julia hljs">development = ValuedProjectionNet([:brood, :nurse, :forager],
+    :development =&gt; [(:brood =&gt; :nurse)   =&gt; 0.045,    # 1/22 ≈ 0.045
+                     (:nurse =&gt; :forager)  =&gt; 0.050])   # 1/20 = 0.050
+
+survival = ValuedProjectionNet([:brood, :nurse, :forager],
+    :survival =&gt; [(:brood =&gt; :brood)     =&gt; 0.920,
+                  (:nurse =&gt; :nurse)     =&gt; 0.930,
+                  (:forager =&gt; :forager) =&gt; 0.900])
+
+reproduction = ValuedProjectionNet([:brood, :nurse, :forager],
+    :reproduction =&gt; [(:forager =&gt; :brood) =&gt; 2.0])
+
+colony_base = development ⊕ survival ⊕ reproduction</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:3
+  Src = 1:3
+  Tgt = 1:3
+  Name = 1:0
+  src_t : Src → T = [1, 2, 3]
+  src_s : Src → S = [1, 1, 1]
+  tgt_t : Tgt → T = [1, 2, 3]
+  tgt_s : Tgt → S = [1, 1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:survival, :development, :reproduction], [:brood, :nurse, :forager], Dict(:survival =&gt; [(:brood =&gt; :brood) =&gt; 0.92, (:nurse =&gt; :nurse) =&gt; 0.93, (:forager =&gt; :forager) =&gt; 0.9], :development =&gt; [(:brood =&gt; :nurse) =&gt; 0.045, (:nurse =&gt; :forager) =&gt; 0.05], :reproduction =&gt; [(:forager =&gt; :brood) =&gt; 2.0]))</code></pre><p>The <code>:reproduction</code> transition represents egg-laying enabled by forager food collection. We <strong>nest</strong> the foraging model into this transition: the base rate (2.0 eggs per forager-day) is multiplied by daily foraging efficiency.</p><pre><code class="language-julia hljs">foraging_emb = TimescaleEmbedding(make_foraging_vpn(20.0), 10, :lambda)
+colony_nested = colony_base ⋉ (:reproduction =&gt; foraging_emb)
+println(colony_nested)</code></pre><pre><code class="nohighlight hljs">NestableVPN{Float64}(3 stages, 3 transitions, 1 embeddings)
+  :reproduction ⋉ TimescaleEmbedding(steps=10, extract=lambda)</code></pre><p>The returned object is a <code>NestableVPN</code> — a <code>ValuedProjectionNet</code> augmented with <code>TimescaleEmbedding</code>s. We can inspect the embedded summary directly without going through <code>to_matrix</code>:</p><pre><code class="language-julia hljs">colony_nested isa NestableVPN</code></pre><pre><code class="nohighlight hljs">true</code></pre><pre><code class="language-julia hljs"># extract_summary runs the inner model and returns the scalar that
+# scales the outer :reproduction transition.
+inner_A        = to_matrix(make_foraging_vpn(20.0))
+foraging_yield = extract_summary(inner_A, 10, :lambda)
+round(foraging_yield, digits = 4)</code></pre><pre><code class="nohighlight hljs">0.5987</code></pre><pre><code class="language-julia hljs">A_colony = to_matrix(colony_nested)
+λ_colony = lambda(A_colony)
+println(&quot;Colony matrix (20°C):&quot;)
+display(round.(A_colony, digits=4))
+println(&quot;\nλ_colony = &quot;, round(λ_colony, digits=4))
+println(&quot;Effective reproduction rate = &quot;, round(A_colony[1,3], digits=4),
+        &quot; eggs/forager/day&quot;)
+println(&quot;Seasonal growth (λ^150) = &quot;, round(λ_colony^150, sigdigits=3))</code></pre><pre><code class="nohighlight hljs">Colony matrix (20°C):
+
+λ_colony = 1.0564
+Effective reproduction rate = 1.1975 eggs/forager/day
+Seasonal growth (λ^150) = 3730.0
+
+3×3 Matrix{Float64}:
+ 0.92   0.0   1.1975
+ 0.045  0.93  0.0
+ 0.0    0.05  0.9</code></pre><h2 id="Level-3:-Population-Dynamics"><a class="docs-heading-anchor" href="#Level-3:-Population-Dynamics">Level 3: Population Dynamics</a><a id="Level-3:-Population-Dynamics-1"></a><a class="docs-heading-anchor-permalink" href="#Level-3:-Population-Dynamics" title="Permalink"></a></h2><p>The population model operates on a <strong>yearly</strong> timescale with two stages:</p><ul><li><strong>Queen</strong>: hibernating mated queens (overwinter in diapause)</li><li><strong>Colony</strong>: established colonies producing gynes</li></ul><pre><code class="language-julia hljs">founding  = ValuedProjectionNet([:queen, :colony],
+    :founding =&gt; [(:queen =&gt; :colony) =&gt; 0.25])          # 25% founding success
+
+gyne_prod = ValuedProjectionNet([:queen, :colony],
+    :queen_production =&gt; [(:colony =&gt; :queen) =&gt; 1.0])   # placeholder
+
+overwinter = ValuedProjectionNet([:queen, :colony],
+    :overwinter =&gt; [(:queen =&gt; :queen) =&gt; 0.15])          # 15% winter survival
+
+population_base = founding ⊕ gyne_prod ⊕ overwinter</code></pre><pre><code class="nohighlight hljs">ValuedProjectionNet{Float64}(CategoricalPopulationDynamics.LabelledProjectionNet:
+  S = 1:1
+  T = 1:3
+  Src = 1:3
+  Tgt = 1:3
+  Name = 1:0
+  src_t : Src → T = [1, 2, 3]
+  src_s : Src → S = [1, 1, 1]
+  tgt_t : Tgt → T = [1, 2, 3]
+  tgt_s : Tgt → S = [1, 1, 1]
+  sname : S → Name = [:stage]
+  tname : T → Name = [:overwinter, :founding, :queen_production], [:queen, :colony], Dict(:overwinter =&gt; [(:queen =&gt; :queen) =&gt; 0.15], :founding =&gt; [(:queen =&gt; :colony) =&gt; 0.25], :queen_production =&gt; [(:colony =&gt; :queen) =&gt; 1.0]))</code></pre><p>The <code>:queen_production</code> transition is scaled by seasonal colony productivity. We nest the <em>entire colony model</em> (which itself contains the nested foraging model) into this transition, creating a <strong>3-level recursive hierarchy</strong>:</p><pre><code class="language-julia hljs">colony_emb = TimescaleEmbedding(colony_nested, 150, :lambda, scale=0.002)
+population = population_base ⋉ (:queen_production =&gt; colony_emb)
+println(population)</code></pre><pre><code class="nohighlight hljs">NestableVPN{Float64}(2 stages, 3 transitions, 1 embeddings)
+  :queen_production ⋉ TimescaleEmbedding(steps=150, extract=lambda, scale=0.002)</code></pre><pre><code class="language-julia hljs">A_pop = to_matrix(population)
+λ_pop = lambda(A_pop)
+eff_queens = evaluate(colony_emb)
+println(&quot;Population matrix (20°C):&quot;)
+display(round.(A_pop, digits=4))
+println(&quot;\nEffective queens per colony = &quot;, round(eff_queens, digits=2))
+println(&quot;Population λ = &quot;, round(λ_pop, digits=4))
+if λ_pop &gt; 1
+    println(&quot;→ Population GROWING ($(round((λ_pop-1)*100, digits=1))% per year)&quot;)
+else
+    println(&quot;→ Population DECLINING ($(round((1-λ_pop)*100, digits=1))% per year)&quot;)
+end</code></pre><pre><code class="nohighlight hljs">Population matrix (20°C):
+
+Effective queens per colony = 7.46
+Population λ = 1.4431
+→ Population GROWING (44.3% per year)
+
+2×2 Matrix{Float64}:
+ 0.15  7.4644
+ 0.25  0.0</code></pre><h2 id="Temperature-Sensitivity-Analysis"><a class="docs-heading-anchor" href="#Temperature-Sensitivity-Analysis">Temperature Sensitivity Analysis</a><a id="Temperature-Sensitivity-Analysis-1"></a><a class="docs-heading-anchor-permalink" href="#Temperature-Sensitivity-Analysis" title="Permalink"></a></h2><p>The key advantage of the nesting framework is that we can sweep an environmental driver at the <em>lowest</em> level and let changes propagate automatically through the entire hierarchy. We rebuild the foraging model at each temperature and let <code>to_matrix</code> recursively evaluate all three levels.</p><pre><code class="language-julia hljs">T_sweep = 2.0:0.5:44.0
+results = map(T_sweep) do T
+    # Level 1: temperature-dependent foraging
+    forage = make_foraging_vpn(T)
+    forage_emb = TimescaleEmbedding(forage, 10, :lambda)
+
+    # Level 2: colony with nested foraging
+    colony = colony_base ⋉ (:reproduction =&gt; forage_emb)
+    λ_c = lambda(to_matrix(colony))
+
+    # Level 3: population with nested colony
+    col_emb = TimescaleEmbedding(colony, 150, :lambda, scale=0.002)
+    pop = population_base ⋉ (:queen_production =&gt; col_emb)
+    A = to_matrix(pop)
+    λ_p = lambda(A)
+
+    (T=T, forage_eff=evaluate(forage_emb), λ_colony=λ_c,
+     queens_per_colony=evaluate(col_emb), λ_pop=λ_p)
+end
+
+# Extract arrays
+Ts = [r.T for r in results]
+λ_pops = [r.λ_pop for r in results]
+λ_cols = [r.λ_colony for r in results]
+forages = [r.forage_eff for r in results]
+queens  = [r.queens_per_colony for r in results]</code></pre><pre><code class="nohighlight hljs">85-element Vector{Float64}:
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0020478387986383084
+ 0.0036133966167389733
+ 0.006170937300848725
+ ⋮
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285
+ 0.0011109731081543285</code></pre><pre><code class="language-julia hljs">p1 = plot(Ts, forages,
+    ylabel=&quot;Daily efficiency (λ¹⁰)&quot;, title=&quot;Level 1: Foraging&quot;,
+    linewidth=2, color=:darkorange, legend=false)
+hline!([0.5], linestyle=:dot, color=:gray, alpha=0.5)
+
+p2 = plot(Ts, λ_cols,
+    ylabel=&quot;Daily λ&quot;, title=&quot;Level 2: Colony&quot;,
+    linewidth=2, color=:forestgreen, legend=false)
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5)
+
+p3 = plot(Ts, queens,
+    ylabel=&quot;Gynes per colony&quot;, title=&quot;Level 2 → 3: Queen production&quot;,
+    linewidth=2, color=:purple, legend=false, yscale=:log10,
+    ylims=(1e-4, 20))
+
+p4 = plot(Ts, λ_pops,
+    xlabel=&quot;Temperature (°C)&quot;, ylabel=&quot;Annual λ&quot;,
+    title=&quot;Level 3: Population&quot;,
+    linewidth=2, color=:royalblue, legend=false)
+hline!([1.0], linestyle=:dash, color=:red, alpha=0.5, label=&quot;&quot;)
+annotate!(25, 1.1, text(&quot;λ = 1&quot;, 8, :red))
+
+plot(p1, p2, p3, p4, layout=(2,2), size=(800, 600),
+    plot_title=&quot;Temperature cascade across timescales&quot;)</code></pre><p><img src="../20_bumblebee_nesting_files/figure-commonmark/cell-15-output-1.svg" alt/></p><p>The population is viable (λ \&gt; 1) only within the <strong>15–28 °C optimal foraging window</strong>. Small changes in foraging efficiency at the hourly scale are amplified through colony growth (150 daily steps) and population dynamics (founding success × overwinter survival), creating a sharp thermal niche.</p><h2 id="Compositional-Modifications-with"><a class="docs-heading-anchor" href="#Compositional-Modifications-with">Compositional Modifications with ⊘</a><a id="Compositional-Modifications-with-1"></a><a class="docs-heading-anchor-permalink" href="#Compositional-Modifications-with" title="Permalink"></a></h2><p>One advantage of the nested framework is that individual processes can be modified with <code>⊘</code> without rebuilding the entire hierarchy. For example, simulating a pesticide that reduces forager survival:</p><pre><code class="language-julia hljs"># Reduce forager survival by 10% — simulates chronic pesticide exposure
+colony_pesticide = colony_nested ⊘ (:survival =&gt; ((from, to), val) -&gt;
+    from == :forager &amp;&amp; to == :forager ? val * 0.90 : val)
+
+# Compare colony growth rates
+λ_base = lambda(to_matrix(colony_nested))
+λ_pest = lambda(to_matrix(colony_pesticide))
+println(&quot;Colony λ (baseline):  &quot;, round(λ_base, digits=4))
+println(&quot;Colony λ (pesticide): &quot;, round(λ_pest, digits=4))
+println(&quot;Change: $(round((λ_pest/λ_base - 1)*100, digits=2))%&quot;)</code></pre><pre><code class="nohighlight hljs">Colony λ (baseline):  1.0564
+Colony λ (pesticide): 1.0346
+Change: -2.06%</code></pre><h2 id="Combining-and-:-Adding-Parasitism"><a class="docs-heading-anchor" href="#Combining-and-:-Adding-Parasitism">Combining ⊕ and ⋉: Adding Parasitism</a><a id="Combining-and-:-Adding-Parasitism-1"></a><a class="docs-heading-anchor-permalink" href="#Combining-and-:-Adding-Parasitism" title="Permalink"></a></h2><p>We can merge additional processes with <code>⊕</code> alongside nested transitions:</p><pre><code class="language-julia hljs"># Add a parasitism pressure process (varroa-like load reduces nurse survival)
+parasitism = ValuedProjectionNet([:brood, :nurse, :forager],
+    :parasitism =&gt; [(:nurse =&gt; :nurse) =&gt; -0.02])   # 2% additional nurse mortality
+
+# Merge with the nested colony model
+colony_with_parasite = colony_nested ⊕ parasitism
+λ_parasite = lambda(to_matrix(colony_with_parasite))
+println(&quot;Colony λ (with parasite): &quot;, round(λ_parasite, digits=4),
+        &quot; (baseline: &quot;, round(lambda(to_matrix(colony_nested)), digits=4), &quot;)&quot;)</code></pre><pre><code class="nohighlight hljs">Colony λ (with parasite): 1.0494 (baseline: 1.0564)</code></pre><h2 id="Climate-Scenario-Comparison"><a class="docs-heading-anchor" href="#Climate-Scenario-Comparison">Climate Scenario Comparison</a><a id="Climate-Scenario-Comparison-1"></a><a class="docs-heading-anchor-permalink" href="#Climate-Scenario-Comparison" title="Permalink"></a></h2><p>We compare three climate scenarios by rebuilding the nested hierarchy at different mean temperatures:</p><pre><code class="language-julia hljs">scenarios = [
+    (&quot;Current (18°C mean)&quot;, 18.0),
+    (&quot;+2°C warming (20°C)&quot;,  20.0),
+    (&quot;+4°C warming (22°C)&quot;,  22.0),
+    (&quot;+6°C warming (24°C)&quot;,  24.0),
+    (&quot;Heat extreme (32°C)&quot;,  32.0),
+]
+
+println(&quot;Climate Scenario Comparison&quot;)
+println(&quot;=&quot;^65)
+println(rpad(&quot;Scenario&quot;, 28), rpad(&quot;Queens/colony&quot;, 15), rpad(&quot;λ_pop&quot;, 8), &quot;Status&quot;)
+println(&quot;-&quot;^65)
+
+for (name, T) in scenarios
+    f = make_foraging_vpn(T)
+    fe = TimescaleEmbedding(f, 10, :lambda)
+    cn = colony_base ⋉ (:reproduction =&gt; fe)
+    ce = TimescaleEmbedding(cn, 150, :lambda, scale=0.002)
+    pn = population_base ⋉ (:queen_production =&gt; ce)
+    λ = lambda(to_matrix(pn))
+    q = evaluate(ce)
+    status = λ &gt; 1 ? &quot;✓ Growing&quot; : &quot;✗ Declining&quot;
+    println(rpad(name, 28), rpad(round(q, digits=2), 15),
+            rpad(round(λ, digits=4), 8), status)
+end</code></pre><pre><code class="nohighlight hljs">Climate Scenario Comparison
+=================================================================
+Scenario                    Queens/colony  λ_pop   Status
+-----------------------------------------------------------------
+Current (18°C mean)         7.46           1.4431  ✓ Growing
++2°C warming (20°C)         7.46           1.4431  ✓ Growing
++4°C warming (22°C)         7.46           1.4431  ✓ Growing
++6°C warming (24°C)         7.46           1.4431  ✓ Growing
+Heat extreme (32°C)         0.35           0.382   ✗ Declining</code></pre><h2 id="Summary"><a class="docs-heading-anchor" href="#Summary">Summary</a><a id="Summary-1"></a><a class="docs-heading-anchor-permalink" href="#Summary" title="Permalink"></a></h2><p>This vignette demonstrated <strong>timescale nesting</strong> — the ability to embed fast-timescale models inside transitions of slow-timescale models using the <code>⋉</code> operator and <code>TimescaleEmbedding</code>:</p><table><tr><th style="text-align: right">Operation</th><th style="text-align: right">Symbol</th><th style="text-align: right">Purpose</th></tr><tr><td style="text-align: right"><code>TimescaleEmbedding(model, steps, :lambda)</code></td><td style="text-align: right">—</td><td style="text-align: right">Wrap inner model with extraction recipe</td></tr><tr><td style="text-align: right"><code>outer ⋉ (:trans =&gt; embedding)</code></td><td style="text-align: right"><code>⋉</code></td><td style="text-align: right">Nest inner model into outer transition</td></tr><tr><td style="text-align: right"><code>to_matrix(nested)</code></td><td style="text-align: right">—</td><td style="text-align: right">Recursively evaluate entire hierarchy</td></tr><tr><td style="text-align: right"><code>⊕</code></td><td style="text-align: right"><code>⊕</code></td><td style="text-align: right">Merge additional processes into nested models</td></tr><tr><td style="text-align: right"><code>⊘</code></td><td style="text-align: right"><code>⊘</code></td><td style="text-align: right">Modify individual transitions without rebuilding</td></tr></table><p>The three-level <em>Bombus terrestris</em> model shows how hourly foraging decisions cascade through daily colony growth to annual population viability, with temperature as the driving variable propagating bottom-up through the hierarchy.</p></article><nav class="docs-footer"><a class="docs-footer-prevpage" href="../19_medfly_spatial_ipm/">« Continuous-State IPM with Spatial Stratification</a><a class="docs-footer-nextpage" href="../21_tritrophic_nesting/">PBDM Supply–Demand via Timescale Nesting »</a><div class="flexbox-break"></div><p class="footer-message">Powered by <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> and the <a href="https://julialang.org/">Julia Programming Language</a>.</p></nav></div><div class="modal" id="documenter-settings"><div class="modal-background"></div><div class="modal-card"><header class="modal-card-head"><p class="modal-card-title">Settings</p><button class="delete"></button></header><section class="modal-card-body"><p><label class="label">Theme</label><div class="select"><select id="documenter-themepicker"><option value="auto">Automatic (OS)</option><option value="documenter-light">documenter-light</option><option value="documenter-dark">documenter-dark</option><option value="catppuccin-latte">catppuccin-latte</option><option value="catppuccin-frappe">catppuccin-frappe</option><option value="catppuccin-macchiato">catppuccin-macchiato</option><option value="catppuccin-mocha">catppuccin-mocha</option></select></div></p><hr/><p>This document was generated with <a href="https://github.com/JuliaDocs/Documenter.jl">Documenter.jl</a> version 1.17.0 on <span class="colophon-date" title="Sunday 7 June 2026 10:18">Sunday 7 June 2026</span>. Using Julia version 1.12.6.</p></section><footer class="modal-card-foot"></footer></div></div></div></body></html>
