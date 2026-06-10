@@ -10,6 +10,7 @@ using ContinuousStatePopulationDynamics: ContinuousIPMProblem, DelayIPMProblem,
     DelayGeneratorTerm, FixedMeshUpwind, PSPMIPMProblem, to_ode_problem, to_dde_problem
 using MatrixProjectionModels
 using StructuredPopulationCore: lambda
+using Random
 
 # ---------------------------------------------------------------------------
 # Test data: simple IPM kernel (survival/growth + fecundity)
@@ -1227,6 +1228,83 @@ include("test_time_lag.jl")
         modified = nested ⊘ (:surv => (_, val) -> val * 0.5)
         @test haskey(modified.embeddings, :fec)
         @test transition_matrix(modified.base, :surv)[1,1] ≈ 0.25
+    end
+end
+
+@testset "Demographic stochasticity lowering (phase 5)" begin
+    rng = Random.Xoshiro(909)
+
+    @testset "survival_fecundity_matrices split (move vs birth)" begin
+        vnet = ValuedProjectionNet([:juv, :adult],
+            :survival => [(:juv => :adult) => 0.5, (:adult => :adult) => 0.7],
+            :fecundity => [(:adult => :juv) => 2.0])
+        U, F = survival_fecundity_matrices(vnet; fecundity=[:fecundity])
+        @test U == [0.0 0.0; 0.5 0.7]
+        @test F == [0.0 2.0; 0.0 0.0]
+        @test U .+ F == to_matrix(vnet)
+    end
+
+    @testset "DemographicMPMTarget -> demographic MPMProblem (discrete time)" begin
+        vnet = ValuedProjectionNet([:juv, :adult],
+            :survival => [(:juv => :adult) => 0.5, (:adult => :adult) => 0.7],
+            :fecundity => [(:adult => :juv) => 2.0])
+        A = [0.0 2.0; 0.5 0.7]
+        n0 = [40, 40]
+        prob = lower(vnet, DemographicMPMTarget(n0, (0, 5); fecundity=[:fecundity]))
+        @test prob isa MPMProblem
+        s1 = solve(prob, DirectIteration(); rng=Random.Xoshiro(1))
+        @test all(x -> x == round(x) && x >= 0, s1.u[end])
+
+        reps = 3000
+        acc = [zeros(2) for _ in 1:6]
+        for _ in 1:reps
+            s = solve(prob, DirectIteration(); rng=rng)
+            for tt in 1:6
+                acc[tt] .+= s.u[tt]
+            end
+        end
+        det = Vector{Vector{Float64}}(undef, 6); det[1] = Float64.(n0)
+        for tt in 2:6
+            det[tt] = A * det[tt-1]
+        end
+        for tt in 1:6
+            @test isapprox(acc[tt] ./ reps, det[tt]; rtol=0.08)
+        end
+    end
+
+    @testset "demographic_reactions: birth adds, migration moves" begin
+        m, f = 0.4, 0.6
+        vnet = ValuedProjectionNet([:juv, :adult],
+            :maturation => [(:juv => :adult) => m],
+            :fecundity => [(:adult => :juv) => f])
+        sys = demographic_reactions(vnet; fecundity=[:fecundity])
+        stoichs = [r.stoichiometry for r in sys.reactions]
+        @test length(stoichs) == 2
+        @test [1, 0] in stoichs        # birth: +juv only (parent persists)
+        @test [-1, 1] in stoichs       # migration: juv -> adult
+    end
+
+    @testset "DemographicFiniteStateTarget -> CTMC, mean = exp(Gt)·n0" begin
+        m, f = 0.4, 0.6
+        vnet = ValuedProjectionNet([:juv, :adult],
+            :maturation => [(:juv => :adult) => m],
+            :fecundity => [(:adult => :juv) => f])
+        n0 = [100, 50]
+        prob = lower(vnet, DemographicFiniteStateTarget(n0, (0.0, 2.0); fecundity=[:fecundity]))
+        @test prob isa FiniteStatePopulationDynamics.FiniteStateReactionProblem
+        G = [-m f; m 0.0]
+        grid = 0.0:0.5:2.0
+        reps = 3000
+        acc = [zeros(2) for _ in grid]
+        for _ in 1:reps
+            s = solve(prob, Demographic(); rng=rng, saveat=grid)
+            for g in eachindex(grid)
+                acc[g] .+= s.u[g]
+            end
+        end
+        for (g, t) in enumerate(grid)
+            @test isapprox(acc[g] ./ reps, exp(G .* t) * n0; rtol=0.06, atol=1.5)
+        end
     end
 end
 

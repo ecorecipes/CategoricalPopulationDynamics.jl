@@ -304,6 +304,116 @@ Target for lifting a concrete model back to a `LabelledProjectionNet`.
 struct ProjectionNetTarget <: AbstractLoweringTarget end
 
 # ---------------------------------------------------------------------------
+# Demographic stochasticity: move-vs-birth resolution + targets
+# ---------------------------------------------------------------------------
+
+"""
+    survival_fecundity_matrices(vnet; fecundity = Symbol[])
+
+Split a `ValuedProjectionNet` into a survival/transition matrix `U` and a
+fecundity matrix `F` by summing each transition's matrix into `F` if its name is
+listed in `fecundity` and into `U` otherwise. `U` feeds the Multinomial
+survival/movement draw and `F` the Poisson birth draw of a discrete-time
+demographic realization; `U + F == to_matrix(vnet)`.
+"""
+function survival_fecundity_matrices(vnet::ValuedProjectionNet; fecundity = Symbol[])
+    fec = Set(Symbol.(fecundity))
+    n = length(stage_names(vnet))
+    U = zeros(Float64, n, n)
+    F = zeros(Float64, n, n)
+    for tn in transition_names(vnet)
+        M = transition_matrix(vnet, tn)
+        if tn in fec
+            F .+= M
+        else
+            U .+= M
+        end
+    end
+    return U, F
+end
+
+_demographic_propensity(coef, i) = (n, p, t) -> coef * n[i]
+
+"""
+    demographic_reactions(vnet; fecundity = Symbol[])
+
+Build a continuous-time `DemographicReactionSystem` from a `ValuedProjectionNet`
+by interpreting each transition value as a per-capita rate. Entries of a
+**fecundity** transition `(from => to) => r` become **birth** reactions
+(`+e_to` at rate `r·n_from`; the parent persists). Entries of other transitions
+`(from => to) => r` with `from ≠ to` become **migration** reactions
+(`-e_from + e_to`); `from == to` entries are skipped (no event in continuous
+time). Model death as migration to an absorbing stage.
+"""
+function demographic_reactions(vnet::ValuedProjectionNet; fecundity = Symbol[])
+    fec = Set(Symbol.(fecundity))
+    snames = stage_names(vnet)
+    n = length(snames)
+    idx = Dict(s => i for (i, s) in enumerate(snames))
+    reactions = DemographicReaction[]
+    for tn in transition_names(vnet)
+        isfec = tn in fec
+        for pr in vnet.transition_values[tn]
+            from, to = pr.first.first, pr.first.second
+            val = pr.second
+            val == 0 && continue
+            i = idx[from]
+            j = idx[to]
+            if isfec
+                push!(reactions, DemographicReaction(_demographic_propensity(val, i), n, j => +1))
+            elseif i != j
+                push!(reactions, DemographicReaction(_demographic_propensity(val, i), n,
+                    i => -1, j => +1))
+            end
+        end
+    end
+    return DemographicReactionSystem(n, reactions)
+end
+
+"""
+    DemographicMPMTarget(n0, tspan; fecundity = Symbol[], p = nothing)
+
+Target for lowering a `ValuedProjectionNet` to a demographic-stochastic
+`MPMProblem` (discrete time): survival/transition values become the Multinomial
+matrix `U` and `fecundity`-tagged values the Poisson matrix `F`. Requires the
+MatrixProjectionModels extension. Solve with `solve(prob, DirectIteration())`.
+"""
+struct DemographicMPMTarget{N, P, F} <: AbstractLoweringTarget
+    n0::N
+    tspan::Tuple{Int, Int}
+    fecundity::F
+    p::P
+end
+
+function DemographicMPMTarget(n0, tspan::Tuple{<:Integer, <:Integer};
+        fecundity = Symbol[], p = nothing)
+    return DemographicMPMTarget(collect(n0), (Int(tspan[1]), Int(tspan[2])),
+        collect(Symbol, fecundity), p)
+end
+
+"""
+    DemographicFiniteStateTarget(n0, tspan; fecundity = Symbol[], p = nothing)
+
+Target for lowering a `ValuedProjectionNet` to a demographic-stochastic
+`FiniteStateReactionProblem` (continuous-time Markov jump process), using
+[`demographic_reactions`](@ref) (transition values are per-capita rates).
+Requires the FiniteStatePopulationDynamics extension. Solve with
+`solve(prob, Demographic())`.
+"""
+struct DemographicFiniteStateTarget{N, T<:Real, P, F} <: AbstractLoweringTarget
+    n0::N
+    tspan::Tuple{T, T}
+    fecundity::F
+    p::P
+end
+
+function DemographicFiniteStateTarget(n0, tspan::Tuple{<:Real, <:Real};
+        fecundity = Symbol[], p = nothing)
+    return DemographicFiniteStateTarget(collect(n0), (float(tspan[1]), float(tspan[2])),
+        collect(Symbol, fecundity), p)
+end
+
+# ---------------------------------------------------------------------------
 # Function stubs (extended by package extensions)
 # ---------------------------------------------------------------------------
 

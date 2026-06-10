@@ -174,4 +174,21 @@ function CategoricalPopulationDynamics.lower(
     return CategoricalPopulationDynamics.lower(vnet, target)
 end
 
+"""
+    lower(vnet::ValuedProjectionNet, target::DemographicFiniteStateTarget)
+
+Lower to a demographic-stochastic `FiniteStateReactionProblem` (continuous-time
+Markov jump process), building reactions via `demographic_reactions`: transition
+values are per-capita rates, `fecundity`-tagged entries are births and the rest
+are migrations. Solve with `solve(prob, Demographic())`.
+"""
+function CategoricalPopulationDynamics.lower(
+        vnet::CategoricalPopulationDynamics.ValuedProjectionNet,
+        target::CategoricalPopulationDynamics.DemographicFiniteStateTarget)
+    reactions = CategoricalPopulationDynamics.demographic_reactions(vnet;
+        fecundity = target.fecundity)
+    return FiniteStatePopulationDynamics.FiniteStateReactionProblem(reactions,
+        target.n0, target.tspan; p = target.p)
+end
+
 end # module

@@ -160,4 +160,23 @@ function CategoricalPopulationDynamics.lower(
     return CategoricalPopulationDynamics.lower(vnet, target)
 end
 
+"""
+    lower(vnet::ValuedProjectionNet, target::DemographicMPMTarget)
+
+Lower to a demographic-stochastic `MPMProblem`: the `fecundity`-tagged
+transitions form the Poisson matrix `F` and the rest the Multinomial
+survival/transition matrix `U` (`A = U + F`). Solve with
+`solve(prob, DirectIteration())` for one realization, or `demographic_ensemble`.
+"""
+function CategoricalPopulationDynamics.lower(
+        vnet::CategoricalPopulationDynamics.ValuedProjectionNet,
+        target::CategoricalPopulationDynamics.DemographicMPMTarget)
+    U, F = CategoricalPopulationDynamics.survival_fecundity_matrices(vnet;
+        fecundity = target.fecundity)
+    snames = CategoricalPopulationDynamics.stage_names(vnet)
+    mpm = MatrixProjectionModels.MatrixProjectionModel(U, F; stage_names = snames)
+    return MatrixProjectionModels.MPMProblem(MatrixProjectionModels.Demographic(),
+        mpm, target.n0, target.tspan; p = target.p)
+end
+
 end # module

@@ -7,7 +7,8 @@ using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.WiringDiagrams.UndirectedWiringDiagrams: AbstractUWD
 using LinearAlgebra
-using StructuredPopulationCore: lambda, ContinuousDomain
+using StructuredPopulationCore: lambda, ContinuousDomain,
+       DemographicReaction, DemographicReactionSystem
 
 import Catlab.WiringDiagrams: oapply
 import Catlab: ⊕, evaluate
@@ -52,6 +53,10 @@ export AbstractLoweringTarget, IPMTarget, ContinuousIPMTarget, PSPMTarget,
        FiniteStateDynamicsTarget,
        MPMTarget, StateDependentMPMTarget, ProjectionNetTarget,
        lower, lift
+
+# Demographic stochasticity lowering
+export DemographicMPMTarget, DemographicFiniteStateTarget
+export survival_fecundity_matrices, demographic_reactions
 
 include("schemas.jl")
 include("types.jl")
