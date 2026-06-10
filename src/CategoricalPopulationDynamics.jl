@@ -55,7 +55,7 @@ export AbstractLoweringTarget, IPMTarget, ContinuousIPMTarget, PSPMTarget,
        lower, lift
 
 # Demographic stochasticity lowering
-export DemographicMPMTarget, DemographicFiniteStateTarget
+export DemographicMPMTarget, DemographicFiniteStateTarget, DemographicIPMTarget
 export survival_fecundity_matrices, demographic_reactions
 
 include("schemas.jl")

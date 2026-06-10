@@ -392,6 +392,36 @@ function DemographicMPMTarget(n0, tspan::Tuple{<:Integer, <:Integer};
 end
 
 """
+    DemographicIPMTarget(domains; n0, tspan, fecundity = Symbol[], rule = :midpoint, p = nothing)
+
+Target for lowering a single-state `LabelledProjectionNet` of continuous kernels
+to a **binned** demographic-stochastic discrete-time problem. The non-`fecundity`
+transition kernels are summed and Kan-extended into a sub-stochastic
+survival/growth matrix `P` (Multinomial draw); the `fecundity` kernels into a
+fecundity matrix `F` (Poisson draw). Since the discretized model is a matrix
+demographic model over mesh bins, this produces an `MPMProblem` with
+`Demographic()` stochasticity (requires the MatrixProjectionModels extension).
+Solve with `solve(prob, DirectIteration())`.
+"""
+struct DemographicIPMTarget{N, P, F} <: AbstractLoweringTarget
+    domains::Dict{Symbol, ContinuousProjectionDomain}
+    n0::N
+    tspan::Tuple{Int, Int}
+    fecundity::F
+    rule::Symbol
+    p::P
+end
+
+function DemographicIPMTarget(domains::AbstractDict{Symbol}; n0, tspan,
+        fecundity = Symbol[], rule::Symbol = :midpoint, p = nothing)
+    return DemographicIPMTarget(
+        Dict{Symbol, ContinuousProjectionDomain}(name => dom for (name, dom) in pairs(domains)),
+        collect(n0), (Int(tspan[1]), Int(tspan[2])), collect(Symbol, fecundity), rule, p)
+end
+
+DemographicIPMTarget(pairs::Pair...; kwargs...) = DemographicIPMTarget(Dict(pairs...); kwargs...)
+
+"""
     DemographicFiniteStateTarget(n0, tspan; fecundity = Symbol[], p = nothing)
 
 Target for lowering a `ValuedProjectionNet` to a demographic-stochastic

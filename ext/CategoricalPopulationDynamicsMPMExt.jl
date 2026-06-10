@@ -179,4 +179,51 @@ function CategoricalPopulationDynamics.lower(
         mpm, target.n0, target.tspan; p = target.p)
 end
 
+"""
+    lower(net::LabelledProjectionNet, target::DemographicIPMTarget, transition_data)
+
+Lower a single-state net of continuous kernels to a binned demographic-stochastic
+`MPMProblem`: the non-`fecundity` kernels are Kan-extended into a sub-stochastic
+survival/growth matrix `P` and the `fecundity` kernels into a fecundity matrix
+`F`. The discretized model is a matrix demographic model over mesh bins.
+"""
+function CategoricalPopulationDynamics.lower(
+        net::CategoricalPopulationDynamics.LabelledProjectionNet,
+        target::CategoricalPopulationDynamics.DemographicIPMTarget,
+        transition_data::Dict{Symbol})
+    state_names = CategoricalPopulationDynamics.sname(net)
+    length(state_names) == 1 || error(
+        "DemographicIPMTarget lowering currently supports single-state models only")
+    sn = state_names[1]
+    haskey(target.domains, sn) || error("No domain for state :$sn in DemographicIPMTarget")
+    cpd = target.domains[sn]
+    tnames = CategoricalPopulationDynamics.tname(net)
+    fec = Set(target.fecundity)
+
+    survival_kernel = function(z_new, z)
+        v = 0.0
+        for tn in tnames
+            tn in fec && continue
+            haskey(transition_data, tn) || error("No kernel for transition :$tn")
+            v += transition_data[tn](z_new, z)
+        end
+        return v
+    end
+    fecundity_kernel = function(z_new, z)
+        v = 0.0
+        for tn in tnames
+            tn in fec || continue
+            haskey(transition_data, tn) || error("No kernel for transition :$tn")
+            v += transition_data[tn](z_new, z)
+        end
+        return v
+    end
+
+    P = CategoricalPopulationDynamics.left_kan_extension(survival_kernel, cpd; rule = target.rule)
+    F = CategoricalPopulationDynamics.left_kan_extension(fecundity_kernel, cpd; rule = target.rule)
+    mpm = MatrixProjectionModels.MatrixProjectionModel(P, F)
+    return MatrixProjectionModels.MPMProblem(MatrixProjectionModels.Demographic(),
+        mpm, target.n0, target.tspan; p = target.p)
+end
+
 end # module

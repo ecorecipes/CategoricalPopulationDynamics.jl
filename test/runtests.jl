@@ -7,7 +7,8 @@ using Catlab.Programs: @relation
 import FiniteStatePopulationDynamics
 using LinearAlgebra
 using ContinuousStatePopulationDynamics: ContinuousIPMProblem, DelayIPMProblem,
-    DelayGeneratorTerm, FixedMeshUpwind, PSPMIPMProblem, to_ode_problem, to_dde_problem
+    DelayGeneratorTerm, FixedMeshUpwind, PSPMIPMProblem, to_ode_problem, to_dde_problem,
+    to_sde_problem
 using MatrixProjectionModels
 using StructuredPopulationCore: lambda
 using Random
@@ -1305,6 +1306,76 @@ end
         for (g, t) in enumerate(grid)
             @test isapprox(acc[g] ./ reps, exp(G .* t) * n0; rtol=0.06, atol=1.5)
         end
+    end
+end
+
+@testset "Demographic lowering: continuous-state backends" begin
+    rng = Random.Xoshiro(2718)
+
+    @testset "DemographicIPMTarget -> binned demographic MPMProblem" begin
+        net = LabelledProjectionNet([:size],
+            :survival_growth => (:size => :size),
+            :fecundity => (:size => :size))
+        d = ContinuousProjectionDomain(0.0, 5.0, 30)
+        z = meshpoints(d)
+        n0 = round.(Int, 4 .* exp.(-((z .- 2.0) .^ 2)))
+        target = DemographicIPMTarget(:size => d; n0=n0, tspan=(0, 4), fecundity=[:fecundity])
+        prob = lower(net, target, Dict(:survival_growth => P_kernel, :fecundity => F_kernel))
+        @test prob isa MPMProblem
+
+        s1 = solve(prob, DirectIteration(); rng=Random.Xoshiro(3))
+        @test all(x -> x == round(x) && x >= 0, s1.u[end])
+
+        # deterministic mesh kernel K = P + F; ensemble mean total tracks deterministic total
+        K = left_kan_extension(P_kernel, d) .+ left_kan_extension(F_kernel, d)
+        detn = Float64.(n0); dettot = [sum(detn)]
+        for _ in 1:4
+            detn = K * detn; push!(dettot, sum(detn))
+        end
+        reps = 2500
+        tot_acc = zeros(5)
+        for _ in 1:reps
+            s = solve(prob, DirectIteration(); rng=rng)
+            for tt in 1:5
+                tot_acc[tt] += sum(s.u[tt])
+            end
+        end
+        @test isapprox(tot_acc ./ reps, dettot; rtol=0.06)
+    end
+
+    @testset "ContinuousIPMTarget output is demographic-realizable (compose)" begin
+        net = LabelledProjectionNet([:size],
+            :sg => (:size => :size), :fec => (:size => :size))
+        target = ContinuousIPMTarget(:size => ContinuousProjectionDomain(0.0, 5.0, 8);
+            u0 = fill(6, 8), tspan = (0.0, 1.0))
+        prob = lower(net, target, Dict(:sg => P_kernel, :fec => F_kernel))
+        @test prob isa ContinuousIPMProblem
+
+        s = solve(prob, Demographic(); rng=rng, saveat=0.5)   # exact jump realization
+        @test all(x -> x == round(x) && x >= 0, s.u[end])
+
+        sde = to_sde_problem(prob)                            # chemical Langevin SDE
+        u = Float64.(prob.u0); du1 = zeros(8); du2 = zeros(8)
+        sde.f.f(du1, u, prob.p, 0.0)
+        to_ode_problem(prob).f(du2, u, prob.p, 0.0)
+        @test isapprox(du1, du2; atol=1e-10)                  # SDE drift = deterministic RHS
+    end
+
+    @testset "PSPMTarget output is demographic-realizable (SDE)" begin
+        net = LabelledProjectionNet([:size],
+            :growth => (:size => :size), :mortality => (:size => :size))
+        target = PSPMTarget(:size => ContinuousProjectionDomain(0.0, 1.0, 4);
+            u0 = [5.0, 5.0, 5.0, 5.0], tspan = (0.0, 1.0))
+        prob = lower(net, target, Dict(
+            :growth => (velocity = 0.3,),
+            :mortality => (mortality = 0.1,)))
+        @test prob isa PSPMIPMProblem
+
+        sde = to_sde_problem(prob)
+        u = prob.n0; du1 = zeros(4); du2 = zeros(4)
+        sde.f.f(du1, u, prob.p, 0.0)
+        to_ode_problem(prob).f(du2, u, prob.p, 0.0)
+        @test isapprox(du1, du2; atol=1e-10)                  # SDE drift = transport RHS
     end
 end
 
