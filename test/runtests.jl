@@ -1343,6 +1343,49 @@ end
         @test isapprox(tot_acc ./ reps, dettot; rtol=0.06)
     end
 
+    @testset "multi-state DemographicIPMTarget (block assembly)" begin
+        net = LabelledProjectionNet([:juv, :adult],
+            :growth => (:juv => :juv),
+            :maturation => (:juv => :adult),
+            :adult_survival => (:adult => :adult),
+            :reproduction => (:adult => :juv))
+        dj = ContinuousProjectionDomain(0.0, 1.0, 3)
+        da = ContinuousProjectionDomain(0.0, 1.0, 3)
+        n0 = [5, 5, 5, 5, 5, 5]
+        target = DemographicIPMTarget(Dict(:juv => dj, :adult => da);
+            n0=n0, tspan=(0, 4), fecundity=[:reproduction])
+        prob = lower(net, target, Dict(
+            :growth => (z_new, z) -> 0.3,
+            :maturation => (z_new, z) -> 0.2,
+            :adult_survival => (z_new, z) -> 0.5,
+            :reproduction => (z_new, z) -> 0.4))
+        @test prob isa MPMProblem
+        A = prob.matrix.A
+        @test size(A) == (6, 6)
+        hj = 1 / 3
+        @test all(A[1:3, 1:3] .≈ hj * 0.3)   # growth within juv (P block)
+        @test all(A[4:6, 1:3] .≈ hj * 0.2)   # maturation juv -> adult (P block)
+        @test all(A[4:6, 4:6] .≈ hj * 0.5)   # adult survival (P block)
+        @test all(A[1:3, 4:6] .≈ hj * 0.4)   # reproduction adult -> juv (F block)
+
+        s1 = solve(prob, DirectIteration(); rng=Random.Xoshiro(5))
+        @test all(x -> x == round(x) && x >= 0, s1.u[end])
+
+        reps = 2500
+        tot = zeros(5)
+        detn = Float64.(n0); dt = [sum(detn)]
+        for _ in 1:4
+            detn = A * detn; push!(dt, sum(detn))
+        end
+        for _ in 1:reps
+            s = solve(prob, DirectIteration(); rng=rng)
+            for tt in 1:5
+                tot[tt] += sum(s.u[tt])
+            end
+        end
+        @test isapprox(tot ./ reps, dt; rtol=0.07)
+    end
+
     @testset "ContinuousIPMTarget output is demographic-realizable (compose)" begin
         net = LabelledProjectionNet([:size],
             :sg => (:size => :size), :fec => (:size => :size))

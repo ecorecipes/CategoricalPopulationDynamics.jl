@@ -182,45 +182,81 @@ end
 """
     lower(net::LabelledProjectionNet, target::DemographicIPMTarget, transition_data)
 
-Lower a single-state net of continuous kernels to a binned demographic-stochastic
-`MPMProblem`: the non-`fecundity` kernels are Kan-extended into a sub-stochastic
-survival/growth matrix `P` and the `fecundity` kernels into a fecundity matrix
-`F`. The discretized model is a matrix demographic model over mesh bins.
+Lower a net of continuous kernels to a binned demographic-stochastic `MPMProblem`.
+Non-`fecundity` kernels are Kan-extended into a sub-stochastic survival/growth
+matrix `P` and `fecundity` kernels into a fecundity matrix `F`; the discretized
+model is a matrix demographic model over mesh bins. For a single-state net the
+summed kernels are extended on the one domain; for a multi-state net each
+single-source/single-target transition kernel is Kan-extended into the
+`(target, source)` block of block matrices over the per-state domains in
+`sname(net)` order (matching the `n0` layout).
 """
 function CategoricalPopulationDynamics.lower(
         net::CategoricalPopulationDynamics.LabelledProjectionNet,
         target::CategoricalPopulationDynamics.DemographicIPMTarget,
         transition_data::Dict{Symbol})
     state_names = CategoricalPopulationDynamics.sname(net)
-    length(state_names) == 1 || error(
-        "DemographicIPMTarget lowering currently supports single-state models only")
-    sn = state_names[1]
-    haskey(target.domains, sn) || error("No domain for state :$sn in DemographicIPMTarget")
-    cpd = target.domains[sn]
-    tnames = CategoricalPopulationDynamics.tname(net)
+    isempty(state_names) && error("net has no states")
+    for sn in state_names
+        haskey(target.domains, sn) || error("No domain for state :$sn in DemographicIPMTarget")
+    end
     fec = Set(target.fecundity)
 
-    survival_kernel = function(z_new, z)
-        v = 0.0
-        for tn in tnames
-            tn in fec && continue
-            haskey(transition_data, tn) || error("No kernel for transition :$tn")
-            v += transition_data[tn](z_new, z)
+    if length(state_names) == 1
+        cpd = target.domains[state_names[1]]
+        tnames = CategoricalPopulationDynamics.tname(net)
+        survival_kernel = function(z_new, z)
+            v = 0.0
+            for tn in tnames
+                tn in fec && continue
+                haskey(transition_data, tn) || error("No kernel for transition :$tn")
+                v += transition_data[tn](z_new, z)
+            end
+            return v
         end
-        return v
-    end
-    fecundity_kernel = function(z_new, z)
-        v = 0.0
-        for tn in tnames
-            tn in fec || continue
-            haskey(transition_data, tn) || error("No kernel for transition :$tn")
-            v += transition_data[tn](z_new, z)
+        fecundity_kernel = function(z_new, z)
+            v = 0.0
+            for tn in tnames
+                tn in fec || continue
+                haskey(transition_data, tn) || error("No kernel for transition :$tn")
+                v += transition_data[tn](z_new, z)
+            end
+            return v
         end
-        return v
+        P = CategoricalPopulationDynamics.left_kan_extension(survival_kernel, cpd; rule = target.rule)
+        F = CategoricalPopulationDynamics.left_kan_extension(fecundity_kernel, cpd; rule = target.rule)
+        mpm = MatrixProjectionModels.MatrixProjectionModel(P, F)
+        return MatrixProjectionModels.MPMProblem(MatrixProjectionModels.Demographic(),
+            mpm, target.n0, target.tspan; p = target.p)
     end
 
-    P = CategoricalPopulationDynamics.left_kan_extension(survival_kernel, cpd; rule = target.rule)
-    F = CategoricalPopulationDynamics.left_kan_extension(fecundity_kernel, cpd; rule = target.rule)
+    # Multi-state: assemble block P / F over concatenated per-state meshes.
+    cpds = [target.domains[sn] for sn in state_names]
+    sizes = [c.n_meshpoints for c in cpds]
+    offsets = Vector{Int}(undef, length(sizes))
+    acc = 0
+    for k in eachindex(sizes)
+        offsets[k] = acc
+        acc += sizes[k]
+    end
+    N = acc
+    P = zeros(N, N)
+    F = zeros(N, N)
+    for t in 1:CategoricalPopulationDynamics.n_transitions(net)
+        tn = CategoricalPopulationDynamics.tname(net, t)
+        haskey(transition_data, tn) || error("No kernel for transition :$tn")
+        srcs = CategoricalPopulationDynamics.sources(net, t)
+        tgts = CategoricalPopulationDynamics.targets(net, t)
+        (length(srcs) == 1 && length(tgts) == 1) || error(
+            "multi-state DemographicIPMTarget lowering supports single-source, single-target " *
+            "transitions; transition :$tn has $(length(srcs)) source(s) and $(length(tgts)) target(s)")
+        i, j = srcs[1], tgts[1]
+        block = CategoricalPopulationDynamics.left_kan_extension(transition_data[tn],
+            cpds[j], cpds[i]; rule = target.rule)
+        dest = tn in fec ? F : P
+        ro, co = offsets[j], offsets[i]
+        @view(dest[(ro + 1):(ro + sizes[j]), (co + 1):(co + sizes[i])]) .+= block
+    end
     mpm = MatrixProjectionModels.MatrixProjectionModel(P, F)
     return MatrixProjectionModels.MPMProblem(MatrixProjectionModels.Demographic(),
         mpm, target.n0, target.tspan; p = target.p)
