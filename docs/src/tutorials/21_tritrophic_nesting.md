@@ -61,7 +61,7 @@ Changes in radiation or temperature at Level 1 cascade through carbon supply →
 using CategoricalPopulationDynamics
 using CategoricalPopulationDynamics: ⊕, ⊘, ⋉
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 ```
 

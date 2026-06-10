@@ -25,7 +25,7 @@ import IntegralProjectionModels
 using Catlab
 using Catlab.CategoricalAlgebra
 using LinearAlgebra
-using ProjectionModels: lambda
+using StructuredPopulationCore: lambda
 using Plots
 
 const IPM = IntegralProjectionModels

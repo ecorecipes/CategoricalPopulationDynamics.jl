@@ -50,7 +50,7 @@ println("Lagged λ = ", lambda(A_lag))
 
 ## Installation
 
-This package is not yet registered in the Julia General registry. Install directly from GitHub (the [ProjectionModels.jl](https://github.com/ecorecipes/StructuredPopulationCore.jl) dependency must be installed first):
+This package is not yet registered in the Julia General registry. Install directly from GitHub (the [StructuredPopulationCore.jl](https://github.com/ecorecipes/StructuredPopulationCore.jl) dependency must be installed first):
 
 ```julia
 using Pkg

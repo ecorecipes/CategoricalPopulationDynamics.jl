@@ -27,7 +27,7 @@ using CategoricalPopulationDynamics: ⊕, ⊘
 using Catlab
 using Catlab.CategoricalAlgebra
 using LinearAlgebra
-using ProjectionModels: lambda, expand_lag_matrix, TimeLagStructure
+using StructuredPopulationCore: lambda, expand_lag_matrix, TimeLagStructure
 using Plots
 ```
 
