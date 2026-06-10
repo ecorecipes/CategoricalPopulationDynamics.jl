@@ -105,6 +105,40 @@ function left_kan_extension(kernel_fn, domain::ContinuousDomain; kwargs...)
     return left_kan_extension(kernel_fn, cpd; kwargs...)
 end
 
+"""
+    left_kan_extension(kernel_fn, tgt_domain, src_domain; rule=:midpoint, ...)
+
+Rectangular discretisation of a kernel `kernel_fn(z_new, z)` where the source
+variable `z` ranges over `src_domain` and the target variable `z_new` over
+`tgt_domain`. Produces an `n_tgt × n_src` matrix whose quadrature weight is
+taken over the source domain (the integration variable). When
+`tgt_domain == src_domain` this reduces to the square single-domain method, and
+it is used to assemble the off-diagonal blocks of a multi-state generator.
+"""
+function left_kan_extension(kernel_fn, tgt_domain::ContinuousProjectionDomain,
+                            src_domain::ContinuousProjectionDomain;
+                            rule::Symbol=:midpoint,
+                            ensure_nonneg::Bool=false,
+                            normalize_rows::Bool=false)
+    A = if rule == :midpoint
+        _midpoint_discretise(kernel_fn, tgt_domain, src_domain)
+    elseif rule == :trapezoidal
+        _trapezoidal_discretise(kernel_fn, tgt_domain, src_domain)
+    elseif rule == :simpson
+        _simpson_discretise(kernel_fn, tgt_domain, src_domain)
+    else
+        throw(ArgumentError("Unknown quadrature rule: $rule. Use :midpoint, :trapezoidal, or :simpson."))
+    end
+    _postprocess!(A; ensure_nonneg, normalize_rows)
+    return A
+end
+
+function left_kan_extension(kernel_fn, tgt_domain, src_domain; kwargs...)
+    to_cpd(d::ContinuousProjectionDomain) = d
+    to_cpd(d::ContinuousDomain) = ContinuousProjectionDomain(d.lower, d.upper, d.n_meshpoints)
+    return left_kan_extension(kernel_fn, to_cpd(tgt_domain), to_cpd(src_domain); kwargs...)
+end
+
 # ---------------------------------------------------------------------------
 # Internal: midpoint rule (original implementation)
 # ---------------------------------------------------------------------------
@@ -173,6 +207,60 @@ function _simpson_discretise(kernel_fn, domain::ContinuousProjectionDomain)
         mj = z[j]  # midpoint = meshpoint
         for i in 1:m
             A[i, j] = h * (kernel_fn(z[i], aj) + 4 * kernel_fn(z[i], mj) + kernel_fn(z[i], bj)) / 6
+        end
+    end
+    return A
+end
+
+# ---------------------------------------------------------------------------
+# Internal: rectangular (two-domain) discretisation
+#
+# Rows index the target-domain midpoints (z_new); columns index the source
+# domain (z). The quadrature weight is taken over the source domain, since the
+# generator acts by integrating against the source variable.
+# ---------------------------------------------------------------------------
+
+function _midpoint_discretise(kernel_fn, tgt::ContinuousProjectionDomain,
+                              src::ContinuousProjectionDomain)
+    zt = meshpoints(tgt)
+    zs = meshpoints(src)
+    h = step_size(src)
+    A = zeros(length(zt), length(zs))
+    @inbounds for j in eachindex(zs)
+        for i in eachindex(zt)
+            A[i, j] = h * kernel_fn(zt[i], zs[j])
+        end
+    end
+    return A
+end
+
+function _trapezoidal_discretise(kernel_fn, tgt::ContinuousProjectionDomain,
+                                 src::ContinuousProjectionDomain)
+    zt = meshpoints(tgt)
+    edges = bounds(src)
+    h = step_size(src)
+    A = zeros(length(zt), src.n_meshpoints)
+    @inbounds for j in 1:src.n_meshpoints
+        aj, bj = edges[j], edges[j + 1]
+        for i in eachindex(zt)
+            A[i, j] = h * (kernel_fn(zt[i], aj) + kernel_fn(zt[i], bj)) / 2
+        end
+    end
+    return A
+end
+
+function _simpson_discretise(kernel_fn, tgt::ContinuousProjectionDomain,
+                             src::ContinuousProjectionDomain)
+    zt = meshpoints(tgt)
+    zs = meshpoints(src)
+    edges = bounds(src)
+    h = step_size(src)
+    A = zeros(length(zt), length(zs))
+    @inbounds for j in eachindex(zs)
+        aj, bj = edges[j], edges[j + 1]
+        mj = zs[j]
+        for i in eachindex(zt)
+            A[i, j] = h * (kernel_fn(zt[i], aj) + 4 * kernel_fn(zt[i], mj) + kernel_fn(zt[i], bj)) / 6
         end
     end
     return A

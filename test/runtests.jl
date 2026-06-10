@@ -726,6 +726,54 @@ end
     @test du ≈ [0.0, 0.0, 2.5]
 end
 
+@testset "Multi-state ContinuousIPMTarget lowering" begin
+    net = LabelledProjectionNet([:juvenile, :adult],
+        :maturation => (:juvenile => :adult),
+        :adult_survival => (:adult => :adult),
+        :reproduction => (:adult => :juvenile))
+
+    djuv = ContinuousProjectionDomain(0.0, 2.0, 3)
+    dad = ContinuousProjectionDomain(0.0, 4.0, 4)
+
+    target = ContinuousIPMTarget(
+        Dict(:juvenile => djuv, :adult => dad);
+        tspan = (0.0, 1.0),
+    )
+    prob = lower(net, target, Dict(
+        :maturation => (z_new, z) -> 0.3,
+        :adult_survival => (z_new, z) -> 0.5,
+        :reproduction => (z_new, z) -> 0.2,
+    ))
+
+    @test prob isa ContinuousIPMProblem
+    N = 3 + 4
+    @test size(prob.generator) == (N, N)
+    @test length(prob.u0) == N
+
+    G = prob.generator
+    hj = 2.0 / 3        # source step for juvenile
+    had = 4.0 / 4       # source step for adult
+    # state order [:juvenile, :adult] -> blocks rows/cols 1:3 and 4:7
+    @test all(G[4:7, 1:3] .≈ hj * 0.3)    # maturation juvenile -> adult
+    @test all(G[4:7, 4:7] .≈ had * 0.5)   # adult_survival adult -> adult
+    @test all(G[1:3, 4:7] .≈ had * 0.2)   # reproduction adult -> juvenile
+    @test all(G[1:3, 1:3] .== 0.0)        # no juvenile -> juvenile transition
+
+    odeprob = to_ode_problem(prob)
+    du = zeros(N)
+    odeprob.f(du, odeprob.u0, odeprob.p, 0.0)
+    @test du ≈ G * odeprob.u0
+
+    # kernel-function delay operators are rejected for multi-state targets
+    bad = ContinuousIPMTarget(Dict(:juvenile => djuv, :adult => dad);
+        delay_terms = [1.0 => ((z_new, z) -> 0.1)],
+        history = (p, t) -> ones(N))
+    @test_throws ArgumentError lower(net, bad, Dict(
+        :maturation => (z_new, z) -> 0.3,
+        :adult_survival => (z_new, z) -> 0.5,
+        :reproduction => (z_new, z) -> 0.2))
+end
+
 @testset "ValuedProjectionNet lowering to MPM" begin
     vnet = ValuedProjectionNet([:seed, :small, :large],
         :survival => [(:seed => :small) => 0.2, (:small => :large) => 0.4,
