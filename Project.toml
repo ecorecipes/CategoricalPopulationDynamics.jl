@@ -13,12 +13,14 @@ StructuredPopulationCore = "33358fd2-7d60-4541-bded-caea801370e0"
 [weakdeps]
 ContinuousStatePopulationDynamics = "5a68bfab-dffa-4d3c-8723-3d784ca1a3c3"
 FiniteStatePopulationDynamics = "c910fb8b-fb88-47fe-a579-bc7a7e1444df"
+IndividualBasedPopulationDynamics = "44fa53de-a3b8-4fb2-957a-7c8ba15902ba"
 IntegralProjectionModels = "00376763-44f4-49c9-a075-cdcba60854bb"
 MatrixProjectionModels = "521f12cc-5854-454d-93a2-8be28ae7cee2"
 
 [sources]
 ContinuousStatePopulationDynamics = {path = "../ContinuousStatePopulationDynamics.jl"}
 FiniteStatePopulationDynamics = {path = "../FiniteStatePopulationDynamics.jl"}
+IndividualBasedPopulationDynamics = {path = "../IndividualBasedPopulationDynamics.jl"}
 IntegralProjectionModels = {path = "../IntegralProjectionModels.jl"}
 MatrixProjectionModels = {path = "../MatrixProjectionModels.jl"}
 StructuredPopulationCore = {path = "../StructuredPopulationCore.jl"}
@@ -27,6 +29,7 @@ StructuredPopulationCore = {path = "../StructuredPopulationCore.jl"}
 CategoricalPopulationDynamicsContinuousStatePopulationDynamicsExt = "ContinuousStatePopulationDynamics"
 CategoricalPopulationDynamicsFiniteStatePopulationDynamicsExt = "FiniteStatePopulationDynamics"
 CategoricalPopulationDynamicsIPMExt = "IntegralProjectionModels"
+CategoricalPopulationDynamicsIndividualBasedExt = "IndividualBasedPopulationDynamics"
 CategoricalPopulationDynamicsMPMExt = "MatrixProjectionModels"
 
 [compat]
@@ -43,9 +46,10 @@ julia = "1.11"
 [extras]
 ContinuousStatePopulationDynamics = "5a68bfab-dffa-4d3c-8723-3d784ca1a3c3"
 FiniteStatePopulationDynamics = "c910fb8b-fb88-47fe-a579-bc7a7e1444df"
+IndividualBasedPopulationDynamics = "44fa53de-a3b8-4fb2-957a-7c8ba15902ba"
 IntegralProjectionModels = "00376763-44f4-49c9-a075-cdcba60854bb"
 MatrixProjectionModels = "521f12cc-5854-454d-93a2-8be28ae7cee2"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
 
 [targets]
-test = ["Test", "IntegralProjectionModels", "ContinuousStatePopulationDynamics", "FiniteStatePopulationDynamics", "MatrixProjectionModels"]
+test = ["Test", "IntegralProjectionModels", "ContinuousStatePopulationDynamics", "FiniteStatePopulationDynamics", "MatrixProjectionModels", "IndividualBasedPopulationDynamics"]

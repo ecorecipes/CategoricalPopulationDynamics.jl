@@ -443,6 +443,28 @@ function DemographicFiniteStateTarget(n0, tspan::Tuple{<:Real, <:Real};
         collect(Symbol, fecundity), p)
 end
 
+"""
+    IBMStageTarget(stages0; fecundity = Symbol[], death = nothing, rng = nothing)
+
+Target for lowering a `ValuedProjectionNet` of per-stage rates to an *individual-
+based* stage-structured continuous-time realization (an Ark ECS world; requires
+the IndividualBasedPopulationDynamics extension). Non-`fecundity` transitions
+become inter-stage movements, `fecundity`-tagged transitions become births
+(offspring in the target stage), and `death` is a per-stage mortality-rate vector
+(default zeros). `stages0` is the initial count per stage; one entity is spawned
+per individual. Realize with `IndividualBasedPopulationDynamics.ibm_run_stage!`.
+"""
+struct IBMStageTarget{S, D, F, R} <: AbstractLoweringTarget
+    stages0::S
+    death::D
+    fecundity::F
+    rng::R
+end
+
+function IBMStageTarget(stages0; fecundity = Symbol[], death = nothing, rng = nothing)
+    return IBMStageTarget(collect(Int, stages0), death, collect(Symbol, fecundity), rng)
+end
+
 # ---------------------------------------------------------------------------
 # Function stubs (extended by package extensions)
 # ---------------------------------------------------------------------------

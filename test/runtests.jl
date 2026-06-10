@@ -11,6 +11,7 @@ using ContinuousStatePopulationDynamics: ContinuousIPMProblem, DelayIPMProblem,
     to_sde_problem
 using MatrixProjectionModels
 using StructuredPopulationCore: lambda
+using IndividualBasedPopulationDynamics: ibm_run_stage!
 using Random
 
 # ---------------------------------------------------------------------------
@@ -1419,6 +1420,24 @@ end
         sde.f.f(du1, u, prob.p, 0.0)
         to_ode_problem(prob).f(du2, u, prob.p, 0.0)
         @test isapprox(du1, du2; atol=1e-10)                  # SDE drift = transport RHS
+    end
+end
+
+@testset "IBMStageTarget -> individual-based stage realization" begin
+    vnet = ValuedProjectionNet([:juv, :sub, :adult],
+        :maturation => [(:juv => :sub) => 0.5, (:sub => :adult) => 0.4],
+        :reproduction => [(:adult => :juv) => 0.6])
+    stages0 = [10000, 6000, 4000]
+    death = [0.1, 0.1, 0.2]
+    w = lower(vnet, IBMStageTarget(stages0; fecundity=[:reproduction], death=death,
+        rng=Random.Xoshiro(50)))
+    G = [-0.6 0.0 0.6;            # generator implied by the rates above
+          0.5 -0.5 0.0;
+          0.0 0.4 -0.2]
+    res = ibm_run_stage!(w, (0.0, 2.0); dt=0.01, saveat=0.5, n_stages=3)
+    @test res.counts[1] == stages0
+    for (t, c) in zip(res.t, res.counts)
+        @test isapprox(Float64.(c), exp(G .* t) * Float64.(stages0); rtol=0.05)
     end
 end
 
