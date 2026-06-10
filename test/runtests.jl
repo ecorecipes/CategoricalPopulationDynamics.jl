@@ -6,7 +6,8 @@ using Catlab.WiringDiagrams
 using Catlab.Programs: @relation
 import FiniteStatePopulationDynamics
 using LinearAlgebra
-using ContinuousStatePopulationDynamics: ContinuousIPMProblem, FixedMeshUpwind, PSPMIPMProblem, to_ode_problem
+using ContinuousStatePopulationDynamics: ContinuousIPMProblem, DelayIPMProblem,
+    DelayGeneratorTerm, FixedMeshUpwind, PSPMIPMProblem, to_ode_problem, to_dde_problem
 using MatrixProjectionModels
 using StructuredPopulationCore: lambda
 
@@ -652,6 +653,77 @@ end
     du = zeros(4)
     odeprob.f(du, odeprob.u0, odeprob.p, 0.0)
     @test du ≈ [-1.9, -3.9, -4.4, 0.0]
+end
+
+@testset "LabelledProjectionNet lowering to delay continuous IPM" begin
+    net = LabelledProjectionNet([:size],
+        :survival_growth => (:size => :size),
+        :fecundity => (:size => :size))
+
+    dom = ContinuousProjectionDomain(0.0, 5.0, 10)
+    n = 10
+    h = 5.0 / n
+    A_mat = zeros(n, n); A_mat[1, end] = 0.5      # matrix operator, used as-is
+    delay_kernel(z_new, z) = 0.1                  # kernel operator, Kan-extended
+
+    target = ContinuousIPMTarget(
+        :size => dom;
+        u0 = fill(1 / n, n),
+        tspan = (0.0, 2.0),
+        delay_terms = [DelayGeneratorTerm(1.0, A_mat), 0.5 => delay_kernel],
+        history = (p, t) -> fill(0.2, n),
+    )
+
+    prob = lower(net, target, Dict(
+        :survival_growth => P_kernel,
+        :fecundity => F_kernel,
+    ))
+
+    @test prob isa DelayIPMProblem
+    @test length(prob.delay_terms) == 2
+    @test prob.delay_terms[1].lag == 1.0
+    @test prob.delay_terms[1].operator == A_mat
+    @test prob.delay_terms[2].lag == 0.5
+    @test all(prob.delay_terms[2].operator .≈ h * 0.1)   # midpoint Kan extension
+
+    # requires history when delay terms are present
+    @test_throws ArgumentError ContinuousIPMTarget(:size => dom;
+        delay_terms = [DelayGeneratorTerm(1.0, A_mat)])
+
+    dde = to_dde_problem(prob)
+    du = zeros(n)
+    dde.f(du, dde.u0, dde.h, dde.p, 0.5)
+    @test all(isfinite, du)
+end
+
+@testset "LabelledProjectionNet lowering to PSPM with auxiliary state" begin
+    net = LabelledProjectionNet([:size],
+        :growth => (:size => :size),
+        :feedback => (:size => :size))
+
+    target = PSPMTarget(
+        :size => ContinuousProjectionDomain(0.0, 1.0, 2);
+        u0 = [2.0, 1.0],
+        aux0 = [0.5],
+        tspan = (0.0, 1.0),
+    )
+
+    prob = lower(net, target, Dict(
+        :growth => (velocity = 0.0,),
+        :feedback => (
+            auxiliary_rhs = (population, aux, p, t, domain) -> [sum(population) - aux[1]],
+        ),
+    ))
+
+    @test prob isa PSPMIPMProblem
+    @test prob.aux0 == [0.5]
+
+    odeprob = to_ode_problem(prob)
+    du = zeros(3)
+    odeprob.f(du, odeprob.u0, odeprob.p, 0.0)
+    # no transport/mortality/source -> population derivative 0;
+    # aux derivative = sum(pop) - aux[1] = 3 - 0.5 = 2.5
+    @test du ≈ [0.0, 0.0, 2.5]
 end
 
 @testset "ValuedProjectionNet lowering to MPM" begin

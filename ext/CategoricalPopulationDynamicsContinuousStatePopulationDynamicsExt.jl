@@ -17,6 +17,36 @@ function _apply_generator_transform(target::ContinuousIPMTarget, generator, doma
     end
 end
 
+_delay_lag_operator(term::ContinuousStatePopulationDynamics.DelayGeneratorTerm) =
+    (term.lag, term.operator)
+_delay_lag_operator(term::Pair) = (first(term), last(term))
+_delay_lag_operator(term::Tuple) = length(term) == 2 ? (term[1], term[2]) :
+    throw(ArgumentError("delay term tuple must be (lag, operator)"))
+_delay_lag_operator(term) = throw(ArgumentError(
+    "delay term $(typeof(term)) must be a DelayGeneratorTerm, `lag => operator`, or (lag, operator)"))
+
+# Normalize categorical delay specifications into backend DelayGeneratorTerms.
+# A matrix operator is used as-is; a kernel function (z_new, z) is left Kan
+# extended onto the state domain, matching how the main generator is built.
+function _normalize_continuous_delay_terms(raw, cpd, n::Int)
+    terms = ContinuousStatePopulationDynamics.DelayGeneratorTerm[]
+    for term in raw
+        lag, op = _delay_lag_operator(term)
+        op_matrix = if op isa AbstractMatrix
+            size(op) == (n, n) || throw(DimensionMismatch(
+                "delay operator has size $(size(op)); expected ($n, $n)"))
+            op
+        elseif op isa Function
+            CategoricalPopulationDynamics.left_kan_extension(op, cpd)
+        else
+            throw(ArgumentError(
+                "delay operator $(typeof(op)) must be an n×n matrix or a kernel function (z_new, z)"))
+        end
+        push!(terms, ContinuousStatePopulationDynamics.DelayGeneratorTerm(lag, op_matrix))
+    end
+    return terms
+end
+
 """
     lower(net, target::ContinuousIPMTarget, transition_data)
 
@@ -51,6 +81,18 @@ function CategoricalPopulationDynamics.lower(
     generator = _apply_generator_transform(target, generator, ipm_domain, net)
     n = cpd.n_meshpoints
     u0 = isnothing(target.u0) ? ones(n) ./ n : collect(float.(target.u0))
+
+    if target.delay_terms !== nothing && !isempty(target.delay_terms)
+        target.history === nothing && throw(ArgumentError(
+            "ContinuousIPMTarget requires `history` when `delay_terms` is non-empty"))
+        delay_terms = _normalize_continuous_delay_terms(target.delay_terms, cpd, n)
+        return ContinuousStatePopulationDynamics.DelayIPMProblem(
+            generator, delay_terms, ipm_domain, u0, target.history, target.tspan;
+            p = target.p,
+            source = target.source,
+            normalize = target.normalize)
+    end
+
     return ContinuousStatePopulationDynamics.ContinuousIPMProblem(
         generator, ipm_domain, u0, target.tspan;
         p = target.p,
@@ -118,6 +160,32 @@ function _combine_boundary_pspm_terms(terms, key::Symbol)
     end
 end
 
+function _combine_auxiliary_pspm_terms(terms)
+    components = Any[]
+    for term in terms
+        value = _pspm_term_component(term, :auxiliary_rhs, nothing)
+        value === nothing || push!(components, value)
+    end
+    isempty(components) && return nothing
+
+    return function(population, aux, p, t, domain)
+        T = isempty(aux) ? eltype(population) : promote_type(eltype(population), eltype(aux))
+        total = zeros(T, length(aux))
+        for component in components
+            total .+= ContinuousStatePopulationDynamics._evaluate_auxiliary_rhs(
+                component,
+                population,
+                aux,
+                p,
+                t,
+                domain,
+                T,
+            )
+        end
+        return total
+    end
+end
+
 """
     lower(net, target::PSPMTarget, transition_data)
 
@@ -163,6 +231,7 @@ function CategoricalPopulationDynamics.lower(
         boundary_lower = _combine_boundary_pspm_terms(terms, :boundary_lower),
         boundary_upper = _combine_boundary_pspm_terms(terms, :boundary_upper),
         aux0 = aux0,
+        auxiliary_rhs = _combine_auxiliary_pspm_terms(terms),
         discretization = discretization,
         p = target.p,
         normalize = target.normalize,

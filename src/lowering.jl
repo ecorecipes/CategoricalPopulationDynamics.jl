@@ -42,8 +42,17 @@ Keyword arguments:
 - `generator_transform`: optional transform applied to the lowered generator
 - `normalize`: whether to project derivatives onto a mass-preserving tangent
   direction
+- `delay_terms`: optional collection of delayed linear contributions. If
+  non-empty, the target lowers to a `DelayIPMProblem` instead of a
+  `ContinuousIPMProblem`. Each term may be a `DelayGeneratorTerm`, a
+  `lag => operator` pair, or a `(lag, operator)` tuple. The `operator` may be an
+  `n × n` matrix (used as-is) or a kernel function `(z_new, z) -> Real` (left
+  Kan extended onto the state domain like the main generator).
+- `history`: history function for delay problems (required when `delay_terms` is
+  non-empty). Called as `history(p, t)` and must return a state vector matching
+  `u0`.
 """
-struct ContinuousIPMTarget{U, T<:Real, P, S, F} <: AbstractLoweringTarget
+struct ContinuousIPMTarget{U, T<:Real, P, S, F, DT, H} <: AbstractLoweringTarget
     domains::Dict{Symbol, ContinuousProjectionDomain}
     u0::U
     tspan::Tuple{T, T}
@@ -51,6 +60,8 @@ struct ContinuousIPMTarget{U, T<:Real, P, S, F} <: AbstractLoweringTarget
     source::S
     generator_transform::F
     normalize::Bool
+    delay_terms::DT
+    history::H
 end
 
 function ContinuousIPMTarget(domains::AbstractDict{Symbol, <:ContinuousProjectionDomain};
@@ -59,8 +70,14 @@ function ContinuousIPMTarget(domains::AbstractDict{Symbol, <:ContinuousProjectio
         p = nothing,
         source = nothing,
         generator_transform = identity,
-        normalize::Bool = false)
+        normalize::Bool = false,
+        delay_terms = nothing,
+        history = nothing)
     tspan[2] >= tspan[1] || throw(ArgumentError("tspan must satisfy tspan[2] >= tspan[1]"))
+    if delay_terms !== nothing && !isempty(delay_terms) && history === nothing
+        throw(ArgumentError(
+            "ContinuousIPMTarget requires `history` when `delay_terms` is non-empty"))
+    end
     return ContinuousIPMTarget(
         Dict{Symbol, ContinuousProjectionDomain}(name => domain for (name, domain) in pairs(domains)),
         u0,
@@ -68,7 +85,9 @@ function ContinuousIPMTarget(domains::AbstractDict{Symbol, <:ContinuousProjectio
         p,
         source,
         generator_transform,
-        normalize)
+        normalize,
+        delay_terms,
+        history)
 end
 
 function ContinuousIPMTarget(pairs::Pair...; kwargs...)
@@ -89,6 +108,11 @@ dictionaries with any of:
 - `source`
 - `boundary_lower`
 - `boundary_upper`
+- `auxiliary_rhs` — derivative of the coupled auxiliary ODE state, called as
+  `(population, aux, p, t, domain)` and returning a vector matching `aux0`
+  (other backend-supported signatures are also accepted)
+
+Contributions for each key are summed additively across transitions.
 
 Keyword arguments:
 
@@ -289,7 +313,8 @@ struct ProjectionNetTarget <: AbstractLoweringTarget end
 Lower a categorical projection net specification to a concrete model object.
 
 - `IPMTarget`: produces an `IPMProblem` (requires IntegralProjectionModels extension)
-- `ContinuousIPMTarget`: produces a `ContinuousIPMProblem`
+- `ContinuousIPMTarget`: produces a `ContinuousIPMProblem`, or a
+  `DelayIPMProblem` when `delay_terms` are supplied
   (requires ContinuousStatePopulationDynamics extension)
 - `PSPMTarget`: produces a `PSPMIPMProblem`
   (requires ContinuousStatePopulationDynamics extension)
