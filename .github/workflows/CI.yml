@@ -104,6 +104,11 @@ jobs:
         with:
           repository: ecorecipes/ContinuousStatePopulationDynamics.jl
           path: ContinuousStatePopulationDynamics.jl
+      - name: Checkout IndividualBasedPopulationDynamics.jl
+        uses: actions/checkout@v4
+        with:
+          repository: ecorecipes/IndividualBasedPopulationDynamics.jl
+          path: IndividualBasedPopulationDynamics.jl
       - uses: julia-actions/setup-julia@v2
         with:
           version: '1'
@@ -116,6 +121,7 @@ jobs:
             using Pkg
             Pkg.develop([
               PackageSpec(path="StructuredPopulationCore.jl"),
+              PackageSpec(path="IndividualBasedPopulationDynamics.jl"),
               PackageSpec(path="CategoricalPopulationDynamics.jl"),
             ])
             Pkg.instantiate()'

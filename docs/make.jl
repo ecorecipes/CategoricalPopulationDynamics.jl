@@ -2,6 +2,9 @@ using Documenter
 using CategoricalPopulationDynamics
 using StructuredPopulationCore
 
+# Headless plotting for runnable @example tutorials (GR).
+ENV["GKSwstype"] = "100"
+
 makedocs(;
     modules = [CategoricalPopulationDynamics, StructuredPopulationCore],
     warnonly = true,
@@ -52,6 +55,7 @@ makedocs(;
             "Open Projection Nets: Structured Cospans and Pushout Composition" => "tutorials/25_open_nets_cospans.md",
             "Physiologically-Structured Populations: Advection, Mortality, and Boundary Influx" => "tutorials/26_pspm_size_structured.md",
             "Time Reparametrization Morphisms" => "tutorials/27_time_reparametrization.md",
+            "Lowering to Individual-Based Models" => "tutorials/28_individual_based.md",
         ],
     ],
 )
