@@ -29,20 +29,26 @@ end
 """
     lift(mpm::MatrixProjectionModel, target::ProjectionNetTarget)
 
-Lift a MatrixProjectionModel back to a LabelledProjectionNet.
+Lift a MatrixProjectionModel back to a `ValuedProjectionNet`.
 
-Creates a single state `:stage` and a single transition `:A` since
-the decomposition into sub-transitions is not recoverable from a matrix alone.
+The aggregate transition decomposition is not recoverable from `A` alone, so
+the lifted net stores the full projection matrix under a single `:projection`
+transition while preserving the model's stage names.
 """
 function CategoricalPopulationDynamics.lift(
-        mpm::MatrixProjectionModels.MatrixProjectionModel,
-        target::ProjectionNetTarget)
-    # Create a net with one aggregate state and one transition
-    # (sub-transition decomposition is not recoverable from the aggregated matrix)
-    net = CategoricalPopulationDynamics.LabelledProjectionNet(
-        [:population],
-        :projection => (:population => :population))
-    return net
+       mpm::MatrixProjectionModels.MatrixProjectionModel,
+       target::ProjectionNetTarget)
+   entries = Pair{Pair{Symbol, Symbol}, eltype(mpm.A)}[]
+   for from_idx in axes(mpm.A, 2)
+       for to_idx in axes(mpm.A, 1)
+           value = mpm.A[to_idx, from_idx]
+           iszero(value) && continue
+           push!(entries, (mpm.stage_names[from_idx] => mpm.stage_names[to_idx]) => value)
+       end
+   end
+   return CategoricalPopulationDynamics.ValuedProjectionNet(
+       copy(mpm.stage_names),
+       :projection => entries)
 end
 
 """

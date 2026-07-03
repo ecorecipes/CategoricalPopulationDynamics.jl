@@ -35,24 +35,27 @@ function lag_expand(pn::LabelledProjectionNet,
         end
     end
 
-    # Build expanded transitions
-    transitions = Pair{Symbol, Pair{Symbol, Symbol}}[]
+    expanded = LabelledProjectionNet()
+    state_ids = Dict{Symbol, Int}()
+    for s in expanded_states
+        state_ids[s] = add_part!(expanded, :S; sname=s)
+    end
 
-    # Original transitions placed at their lag offset
-    n_t = n_transitions(pn)
-    for t_idx in 1:n_t
+    # Original transitions placed at their lag offset, preserving all source and
+    # target incidences on the same transition.
+    for t_idx in 1:n_transitions(pn)
         t_name = tname(pn, t_idx)
         lag_k = get(lag_assignment, t_name, 0)
-        src_states = sources(pn, t_idx)
-        tgt_states = targets(pn, t_idx)
-        for (si, ti) in zip(src_states, tgt_states)
-            src_name = sname(pn, si)
-            tgt_name = sname(pn, ti)
-            # Source from lag_k copy, target to lag_0 copy
-            expanded_src = Symbol(src_name, :_lag, lag_k)
-            expanded_tgt = Symbol(tgt_name, :_lag, 0)
-            expanded_tname = lag_k == 0 ? Symbol(t_name, :_lag0) : Symbol(t_name, :_lag, lag_k)
-            push!(transitions, expanded_tname => (expanded_src => expanded_tgt))
+        expanded_tname = lag_k == 0 ? Symbol(t_name, :_lag0) : Symbol(t_name, :_lag, lag_k)
+        tid = add_part!(expanded, :T; tname=expanded_tname)
+
+        for src_idx in sources(pn, t_idx)
+            src_name = Symbol(sname(pn, src_idx), :_lag, lag_k)
+            add_part!(expanded, :Src; src_t=tid, src_s=state_ids[src_name])
+        end
+        for tgt_idx in targets(pn, t_idx)
+            tgt_name = Symbol(sname(pn, tgt_idx), :_lag, 0)
+            add_part!(expanded, :Tgt; tgt_t=tid, tgt_s=state_ids[tgt_name])
         end
     end
 
@@ -62,11 +65,13 @@ function lag_expand(pn::LabelledProjectionNet,
             src = Symbol(s, :_lag, k)
             tgt = Symbol(s, :_lag, k + 1)
             shift_name = Symbol(:shift_, s, :_lag, k, :_to_, k + 1)
-            push!(transitions, shift_name => (src => tgt))
+            tid = add_part!(expanded, :T; tname=shift_name)
+            add_part!(expanded, :Src; src_t=tid, src_s=state_ids[src])
+            add_part!(expanded, :Tgt; tgt_t=tid, tgt_s=state_ids[tgt])
         end
     end
 
-    return LabelledProjectionNet(expanded_states, transitions...)
+    return expanded
 end
 
 """

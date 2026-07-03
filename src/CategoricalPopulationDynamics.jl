@@ -5,7 +5,7 @@ import Base: collect
 using Catlab
 using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
-using Catlab.WiringDiagrams.UndirectedWiringDiagrams: AbstractUWD
+using Catlab.WiringDiagrams.UndirectedWiringDiagrams: AbstractUWD, ports_with_junction, ports
 using LinearAlgebra
 using StructuredPopulationCore: lambda, ContinuousDomain,
        DemographicReaction, DemographicReactionSystem

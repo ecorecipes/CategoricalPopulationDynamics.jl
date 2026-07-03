@@ -266,6 +266,12 @@ end
     @testset "Coarsening validation" begin
         bad_domain = ContinuousProjectionDomain(0.0, 5.0, 30)
         @test_throws ArgumentError coarsen(A_fine, fine_domain, bad_domain)
+        rect = ones(4, 5)
+        f = FinFunction([1, 1, 2, 2], 2)
+        d4 = ContinuousProjectionDomain(0.0, 1.0, 4)
+        d2 = ContinuousProjectionDomain(0.0, 1.0, 2)
+        @test_throws DimensionMismatch coarsen(rect, f)
+        @test_throws DimensionMismatch coarsen(rect, d4, d2)
     end
 end
 
@@ -286,8 +292,17 @@ end
         errs = adjunction_errors(P_kernel, domain; n_quad=200)
         @test errs.unit < 1e-10
         @test errs.counit > 0
-        @test errs.lambda_kernel ≈ errs.lambda_matrix
+        @test errs.lambda_kernel > 0
         @test errs.lambda_matrix > 0
+        @test abs(errs.lambda_kernel - errs.lambda_matrix) < 0.05
+    end
+
+    @testset "adjunction_errors uses independent kernel reference" begin
+        coarse_domain = ContinuousProjectionDomain(0.0, 5.0, 12)
+        errs = adjunction_errors(P_kernel, coarse_domain; rule=:midpoint, reference_n=200)
+        @test errs.lambda_kernel > 0
+        @test errs.lambda_matrix > 0
+        @test abs(errs.lambda_kernel - errs.lambda_matrix) > 1e-4
     end
 end
 
@@ -321,6 +336,8 @@ end
 @testset "Composition" begin
     A_P = left_kan_extension(P_kernel, domain)
     A_F = left_kan_extension(F_kernel, domain)
+    A_small_P = [0.1 0.0; 0.2 0.3]
+    A_small_F = [0.0 1.5; 0.0 0.1]
 
     @testset "compose_transitions" begin
         K = compose_transitions(Dict(:P => A_P, :F => A_F))
@@ -328,28 +345,50 @@ end
     end
 
     @testset "oapply with UWD" begin
-        uwd = @relation (z, z_new) begin
-            survive_grow(z, z_new)
-            reproduce(z, z_new)
+        uwd = @relation (shared, sink) begin
+            survive_grow(shared, sink)
+            reproduce(shared, sink)
         end
 
-        ps_P = ProjectionSharer(A_P)
-        ps_F = ProjectionSharer(A_F)
+        ps_P = ProjectionSharer{Float64}(2, 2, A_small_P, [1, 2])
+        ps_F = ProjectionSharer{Float64}(2, 2, A_small_F, [1, 2])
         result = oapply(uwd, [ps_P, ps_F])
-        @test result.matrix ≈ A_P + A_F
+        @test result.matrix ≈ A_small_P + A_small_F
+    end
+
+    @testset "oapply merges shared states via junctions and portmaps" begin
+        uwd = Catlab.WiringDiagrams.UndirectedWiringDiagrams.UntypedUWD(3)
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.add_box!(uwd, 2)
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.add_box!(uwd, 2)
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.add_junctions!(uwd, 3)
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.set_junction!(uwd, [1, 2, 3], outer=true)
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.set_junction!(uwd, (1, 1), 1)  # shared
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.set_junction!(uwd, (1, 2), 2)  # left-only sink
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.set_junction!(uwd, (2, 1), 1)  # shared
+        Catlab.WiringDiagrams.UndirectedWiringDiagrams.set_junction!(uwd, (2, 2), 3)  # right-only sink
+
+        left = ProjectionSharer{Float64}(2, 2, [0.0 2.0; 0.0 0.0], [2, 1])
+        right = ProjectionSharer{Float64}(2, 2, [0.0 0.0; 3.0 0.0], [1, 2])
+
+        result = oapply(uwd, [left, right])
+        @test result.nstates == 3
+        @test result.portmap == [2, 1, 3]
+        @test result.matrix ≈ [0.0 2.0 0.0;
+                                0.0 0.0 0.0;
+                                0.0 3.0 0.0]
     end
 
     @testset "oapply with Dict" begin
-        uwd = @relation (z, z_new) begin
-            survive_grow(z, z_new)
-            reproduce(z, z_new)
+        uwd = @relation (shared, sink) begin
+            survive_grow(shared, sink)
+            reproduce(shared, sink)
         end
 
         sharers = Dict(
-            :survive_grow => ProjectionSharer(A_P),
-            :reproduce => ProjectionSharer(A_F))
+            :survive_grow => ProjectionSharer{Float64}(2, 2, A_small_P, [1, 2]),
+            :reproduce => ProjectionSharer{Float64}(2, 2, A_small_F, [1, 2]))
         result = oapply(uwd, sharers)
-        @test result.matrix ≈ A_P + A_F
+        @test result.matrix ≈ A_small_P + A_small_F
     end
 
     @testset "compose_from_uwd" begin
@@ -370,24 +409,25 @@ end
 end
 
 @testset "Integration: compose → discretise → lambda" begin
-    # Compose via UWD and check lambda matches direct computation
-    full_kernel(z_new, z) = P_kernel(z_new, z) + F_kernel(z_new, z)
-    A_direct = left_kan_extension(full_kernel, domain)
+    A_small_P = [0.1 0.0; 0.2 0.3]
+    A_small_F = [0.0 1.5; 0.0 0.1]
+    A_direct = A_small_P + A_small_F
     λ_direct = lambda(A_direct)
 
     # Via compose_transitions
-    A_P = left_kan_extension(P_kernel, domain)
-    A_F = left_kan_extension(F_kernel, domain)
-    K_composed = compose_transitions(Dict(:P => A_P, :F => A_F))
+    K_composed = compose_transitions(Dict(:P => A_small_P, :F => A_small_F))
     λ_composed = lambda(K_composed)
     @test λ_composed ≈ λ_direct
 
     # Via oapply
-    uwd = @relation (z, z_new) begin
-        P(z, z_new)
-        F(z, z_new)
+    uwd = @relation (shared, sink) begin
+        P(shared, sink)
+        F(shared, sink)
     end
-    result = oapply(uwd, [ProjectionSharer(A_P), ProjectionSharer(A_F)])
+    result = oapply(uwd, [
+        ProjectionSharer{Float64}(2, 2, A_small_P, [1, 2]),
+        ProjectionSharer{Float64}(2, 2, A_small_F, [1, 2]),
+    ])
     λ_oapply = lambda(result.matrix)
     @test λ_oapply ≈ λ_direct
 end
@@ -795,6 +835,19 @@ end
                 0.2 0.3 0.0;
                 0.0 0.4 0.7]
     @test mpm.A ≈ A_manual
+end
+
+@testset "MatrixProjectionModel lifting preserves stage names and weights" begin
+    A = [0.1 1.5 0.0;
+         0.4 0.2 0.0;
+         0.0 0.3 0.8]
+    mpm = MatrixProjectionModel(A; stage_names=[:seed, :juvenile, :adult])
+
+    lifted = CategoricalPopulationDynamics.lift(mpm, ProjectionNetTarget())
+    @test lifted isa ValuedProjectionNet
+    @test stage_names(lifted) == [:seed, :juvenile, :adult]
+    @test Set(transition_names(lifted)) == Set([:projection])
+    @test to_matrix(lifted) ≈ A
 end
 
 @testset "ValuedProjectionNet lowering to finite-state dynamics" begin

@@ -23,7 +23,7 @@ FiniteStatePopulationDynamics = {path = "../FiniteStatePopulationDynamics.jl"}
 IndividualBasedPopulationDynamics = {path = "../IndividualBasedPopulationDynamics.jl"}
 IntegralProjectionModels = {path = "../IntegralProjectionModels.jl"}
 MatrixProjectionModels = {path = "../MatrixProjectionModels.jl"}
-StructuredPopulationCore = {path = "../StructuredPopulationCore.jl"}
+StructuredPopulationCore = {path = "../ProjectionModels.jl"}
 
 [extensions]
 CategoricalPopulationDynamicsContinuousStatePopulationDynamicsExt = "ContinuousStatePopulationDynamics"

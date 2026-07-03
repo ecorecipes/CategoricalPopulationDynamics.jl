@@ -5,6 +5,8 @@ and concrete projection model objects.
 Concrete implementations are provided by package extensions
 (`CategoricalPopulationDynamicsIPMExt`,
 `CategoricalPopulationDynamicsContinuousStatePopulationDynamicsExt`, and
+`CategoricalPopulationDynamicsFiniteStatePopulationDynamicsExt`,
+`CategoricalPopulationDynamicsIndividualBasedExt`, and
 `CategoricalPopulationDynamicsMPMExt`).
 """
 

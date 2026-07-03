@@ -54,12 +54,16 @@ end
 """
     adjunction_errors(kernel_fn, domain::ContinuousProjectionDomain; rule=:midpoint, n_quad=1000)
 
-Compute both unit and counit errors, plus lambda comparison.
+Compute both unit and counit errors, plus a growth-rate comparison between the
+requested discretisation and an independent higher-resolution reference
+discretisation of the kernel.
 
 Returns a NamedTuple `(unit, counit, lambda_kernel, lambda_matrix, rule)`.
 """
 function adjunction_errors(kernel_fn, domain::ContinuousProjectionDomain;
-                           rule::Symbol=:midpoint, n_quad::Int=1000)
+                           rule::Symbol=:midpoint, n_quad::Int=1000,
+                           reference_rule::Symbol=:simpson,
+                           reference_n::Union{Nothing, Int}=nothing)
     A = left_kan_extension(kernel_fn, domain; rule=rule)
     K_pw = right_kan_extension(A, domain)
     A_roundtrip = left_kan_extension(K_pw, domain; rule=rule)
@@ -68,7 +72,9 @@ function adjunction_errors(kernel_fn, domain::ContinuousProjectionDomain;
     ue = nA == 0 ? 0.0 : norm(A_roundtrip - A) / nA
     ce = counit_error(kernel_fn, domain; rule=rule, n_quad=n_quad)
     λ_matrix = lambda(A)
-    λ_kernel = lambda(left_kan_extension(kernel_fn, domain; rule=rule))
+    ref_n = isnothing(reference_n) ? max(4 * domain.n_meshpoints, 200) : reference_n
+    ref_domain = ContinuousProjectionDomain(domain.lower, domain.upper, ref_n)
+    λ_kernel = lambda(left_kan_extension(kernel_fn, ref_domain; rule=reference_rule))
 
     return (unit=ue, counit=ce, lambda_kernel=λ_kernel, lambda_matrix=λ_matrix, rule=rule)
 end
@@ -89,12 +95,13 @@ Returns a NamedTuple with fields:
 function convergence_analysis(kernel_fn, domain_template::ContinuousProjectionDomain,
                               mesh_sizes::AbstractVector{Int};
                               rule::Symbol=:midpoint,
+                              reference_rule::Symbol=:simpson,
                               reference_n::Int=500)
     lo, hi = domain_template.lower, domain_template.upper
 
-    # Reference solution at high resolution with Simpson
+    # Reference solution at high resolution
     ref_domain = ContinuousProjectionDomain(lo, hi, reference_n)
-    A_ref = left_kan_extension(kernel_fn, ref_domain; rule=:simpson)
+    A_ref = left_kan_extension(kernel_fn, ref_domain; rule=reference_rule)
     λ_ref = lambda(A_ref)
 
     lambdas = Float64[]

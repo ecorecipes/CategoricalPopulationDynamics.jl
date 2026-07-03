@@ -94,16 +94,24 @@ transition_names(vnet::ValuedProjectionNet) = collect(keys(vnet.transition_value
 Materialize a single transition's sparse entries to a dense matrix.
 Convention: `(from => to) => value` sets `M[to_idx, from_idx] = value`.
 """
-function transition_matrix(vnet::ValuedProjectionNet{T}, tname_val::Symbol) where {T}
+function _stage_index(vnet::ValuedProjectionNet)
+    Dict(s => i for (i, s) in enumerate(vnet.stage_names))
+end
+
+function _transition_matrix(vnet::ValuedProjectionNet{T}, tname_val::Symbol,
+        stage_idx::AbstractDict{Symbol, Int}) where {T}
     haskey(vnet.transition_values, tname_val) ||
         throw(ArgumentError("Unknown transition :$tname_val"))
     n = length(vnet.stage_names)
-    stage_idx = Dict(s => i for (i, s) in enumerate(vnet.stage_names))
     M = zeros(T, n, n)
     for ((from, to), val) in vnet.transition_values[tname_val]
         M[stage_idx[to], stage_idx[from]] += val
     end
     return M
+end
+
+function transition_matrix(vnet::ValuedProjectionNet{T}, tname_val::Symbol) where {T}
+    _transition_matrix(vnet, tname_val, _stage_index(vnet))
 end
 
 """
@@ -114,8 +122,9 @@ Materialize the sum of all transition matrices.
 function to_matrix(vnet::ValuedProjectionNet{T}) where {T}
     n = length(vnet.stage_names)
     A = zeros(T, n, n)
+    stage_idx = _stage_index(vnet)
     for tname_val in keys(vnet.transition_values)
-        A .+= transition_matrix(vnet, tname_val)
+        A .+= _transition_matrix(vnet, tname_val, stage_idx)
     end
     return A
 end

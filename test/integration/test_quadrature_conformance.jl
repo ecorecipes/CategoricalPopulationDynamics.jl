@@ -107,12 +107,12 @@ K(z_new, z) = P_kernel(z_new, z) + F_kernel(z_new, z)
         A = left_kan_extension(K, d; rule=:simpson, ensure_nonneg=true)
         @test all(A .>= 0)
 
-        # With normalization, row sums should be preserved
+        # With normalization, column sums should be preserved under M[to, from]
         A_raw = left_kan_extension(K, d; rule=:simpson)
         A_safe = left_kan_extension(K, d; rule=:simpson,
                                     ensure_nonneg=true, normalize_rows=true)
-        raw_sums = vec(sum(A_raw; dims=2))
-        safe_sums = vec(sum(A_safe; dims=2))
+        raw_sums = vec(sum(A_raw; dims=1))
+        safe_sums = vec(sum(A_safe; dims=1))
         @test isapprox(raw_sums, safe_sums; rtol=1e-10)
     end
 
@@ -124,6 +124,10 @@ K(z_new, z) = P_kernel(z_new, z) + F_kernel(z_new, z)
         @test length(ca.errors) == 5
         @test ca.estimated_order > 1.5  # should be ≈ 2.0
         @test ca.estimated_order < 3.0
+
+        ca_trap = convergence_analysis(K, d, [10, 20, 40]; rule=:midpoint,
+                                       reference_rule=:trapezoidal, reference_n=400)
+        @test length(ca_trap.errors) == 3
     end
 
     # -----------------------------------------------------------------

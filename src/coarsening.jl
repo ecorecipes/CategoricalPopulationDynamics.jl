@@ -12,7 +12,13 @@ Coarsen a transition matrix via pushforward along a Catlab `FinFunction`.
 The FinFunction `f: FinSet(n_fine) → FinSet(n_coarse)` maps fine bin
 indices to coarse bin indices.
 """
+function _check_square_matrix(A::AbstractMatrix)
+    size(A, 1) == size(A, 2) || throw(DimensionMismatch(
+        "coarsen expects a square matrix, got size $(size(A))"))
+end
+
 function coarsen(A::AbstractMatrix, f::FinFunction)
+    _check_square_matrix(A)
     n_fine = length(dom(f))
     n_coarse = length(codom(f))
     n_fine == size(A, 1) || throw(DimensionMismatch(
@@ -43,6 +49,7 @@ Constructs the FinFunction internally from the domain pair.
 function coarsen(A::AbstractMatrix,
         from::ContinuousProjectionDomain,
         to::ContinuousProjectionDomain)
+    _check_square_matrix(A)
     n_fine = from.n_meshpoints
     n_coarse = to.n_meshpoints
     n_fine == size(A, 1) || throw(DimensionMismatch(

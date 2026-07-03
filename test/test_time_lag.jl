@@ -57,6 +57,26 @@
         @test_throws ArgumentError lag_expand(net, Dict(:P => 0))
     end
 
+    @testset "lag_expand preserves multi-incidence transitions" begin
+        net = LabelledProjectionNet()
+        add_part!(net, :S; sname=:juvenile)
+        add_part!(net, :S; sname=:adult)
+        add_part!(net, :S; sname=:seedbank)
+        tid = add_part!(net, :T; tname=:reproduction)
+        add_part!(net, :Src; src_t=tid, src_s=1)
+        add_part!(net, :Src; src_t=tid, src_s=2)
+        add_part!(net, :Tgt; tgt_t=tid, tgt_s=3)
+
+        lag_net = lag_expand(net, Dict(:reproduction => 1))
+        reproduction_idx = findfirst(==(Symbol(:reproduction, :_lag1)), tname(lag_net))
+
+        @test reproduction_idx !== nothing
+        @test Set(sname(lag_net, s) for s in sources(lag_net, reproduction_idx)) ==
+              Set([:juvenile_lag1, :adult_lag1])
+        @test Set(sname(lag_net, s) for s in targets(lag_net, reproduction_idx)) ==
+              Set([:seedbank_lag0])
+    end
+
     @testset "lag_expand ValuedProjectionNet" begin
         vnet = ValuedProjectionNet([:seed, :small, :large],
             :survival => [(:seed => :small) => 0.2, (:small => :large) => 0.4,

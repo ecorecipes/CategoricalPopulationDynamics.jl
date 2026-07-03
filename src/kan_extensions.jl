@@ -17,7 +17,7 @@ Lean formalization (`kan_markov_bridge`):
 
 **Note on stochastic kernels:** Higher-order rules (especially Simpson's) can
 produce negative matrix entries for non-smooth kernels. Use `ensure_nonneg=true`
-to clamp negative values and `normalize_rows=true` to restore row-sum structure
+to clamp negative values and `normalize_rows=true` to restore column-sum structure
 when constructing Markov transition matrices.
 """
 
@@ -78,10 +78,11 @@ Discretise a continuous kernel `kernel_fn(z_new, z)` into a matrix.
 ## Positivity options
 
 - `ensure_nonneg=true`: clamp negative entries to zero (Simpson can produce negatives)
-- `normalize_rows=true`: rescale each row so entries sum to the original row sum
+- `normalize_rows=true`: rescale each column so entries sum to the original column sum
 
 These options are essential when constructing Markov transition matrices where
-positivity and row-sum structure must be preserved.
+positivity and column-sum structure must be preserved under the package's
+`M[to, from]` convention.
 """
 function left_kan_extension(kernel_fn, domain::ContinuousProjectionDomain;
                             rule::Symbol=:midpoint,
@@ -272,13 +273,13 @@ end
 
 function _postprocess!(A::AbstractMatrix; ensure_nonneg::Bool=false, normalize_rows::Bool=false)
     if ensure_nonneg
-        row_sums_before = normalize_rows ? vec(sum(A; dims=2)) : nothing
+        column_sums_before = normalize_rows ? vec(sum(A; dims=1)) : nothing
         @. A = max(A, 0.0)
-        if normalize_rows && row_sums_before !== nothing
-            for i in axes(A, 1)
-                s = sum(@view A[i, :])
-                if s > 0 && row_sums_before[i] > 0
-                    A[i, :] .*= row_sums_before[i] / s
+        if normalize_rows && column_sums_before !== nothing
+            for j in axes(A, 2)
+                s = sum(@view A[:, j])
+                if s > 0 && column_sums_before[j] > 0
+                    A[:, j] .*= column_sums_before[j] / s
                 end
             end
         end
