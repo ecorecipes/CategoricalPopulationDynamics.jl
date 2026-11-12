@@ -72,6 +72,16 @@ include("valued.jl")
 include("systems.jl")
 include("lowering.jl")
 
+# Stage durations and stratification of named nets
+include("stage_structure.jl")
+export expand_stage, expand_stages, stratum_stage, stratum_transition
+
+# Responsive nets and pooled systems (communities)
+include("responsive.jl")
+export StageVector, ResponseContext, ResponsiveProjectionNet,
+       respond, inflow, after_step, births, context,
+       Pool, PooledProjectionSystem, pool_names, pool_totals, advance, trajectory
+
 # Time-lagged models
 include("time_lag.jl")
 export lag_expand, lag_stratify

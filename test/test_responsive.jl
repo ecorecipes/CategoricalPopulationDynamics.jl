@@ -1,0 +1,189 @@
+# Stage durations, stratification of named nets, responsive nets and pooled systems.
+
+@testset "expand_stage" begin
+    life = ValuedProjectionNet([:egg, :larva, :adult],
+        :hatching => [(:egg => :larva) => 0.5],
+        :maturing => [(:larva => :adult) => 0.4],
+        :surviving => [(:adult => :adult) => 0.8],
+        :laying => [(:adult => :egg) => 10.0])
+    daily = expand_stage(life, :egg, 3; ageing = 0.9)
+    @test stage_names(daily) == [:egg1, :egg2, :egg3, :larva, :adult]
+    @test :egg_ageing in transition_names(daily)
+    A = to_matrix(daily)
+    @test A == [0 0 0 0 10.0;
+                0.9 0 0 0 0;
+                0 0.9 0 0 0;
+                0 0 0.5 0 0;
+                0 0 0 0.4 0.8]
+    # per-step ageing values, and several stages at once
+    v = expand_stage(life, :larva, 3; ageing = [0.7, 0.6], name = :larval_growth)
+    @test transition_matrix(v, :larval_growth)[3:4, 2:3] == [0.7 0; 0 0.6]
+    both = expand_stages(life, :egg => 3, :larva => 2; ageing = Dict(:egg => 0.9))
+    @test stage_names(both) == [:egg1, :egg2, :egg3, :larva1, :larva2, :adult]
+    @test to_matrix(both)[5, 4] == 1.0 && to_matrix(both)[2, 1] == 0.9
+    # three ageing steps plus the four original transitions
+    @test count(!iszero, to_matrix(both)) == 7
+    @test_throws ArgumentError expand_stage(life, :adult, 3)       # adults persist in place
+    @test_throws ArgumentError expand_stage(life, :pupa, 3)
+    @test_throws ArgumentError expand_stage(life, :egg, 1)
+    @test_throws DimensionMismatch expand_stage(life, :egg, 3; ageing = [0.9])
+    @test_throws ArgumentError expand_stage(life, :egg, 3; name = :laying)
+end
+
+@testset "stratify a valued net" begin
+    life = ValuedProjectionNet([:juvenile, :adult],
+        :maturing => [(:juvenile => :adult) => 0.3],
+        :surviving => [(:adult => :adult) => 0.5],
+        :breeding => [(:adult => :juvenile) => 2.0])
+    two = stratify(life, [:north, :south])
+    @test stage_names(two) == [:juvenile_north, :adult_north, :juvenile_south, :adult_south]
+    @test Set(transition_names(two)) == Set([:maturing_north, :maturing_south, :surviving_north,
+                                             :surviving_south, :breeding_north, :breeding_south])
+    @test to_matrix(two) == stratify(to_matrix(life), Matrix(1.0I, 2, 2))
+
+    D = [0.9 0.2; 0.1 0.8]
+    mixed = stratify(life, [:north, :south]; coupling = Dict(:breeding => D))
+    @test :breeding_north_to_south in transition_names(mixed)
+    @test :breeding_south_to_north in transition_names(mixed)
+    expected = stratify(transition_matrix(life, :maturing), Matrix(1.0I, 2, 2)) +
+               stratify(transition_matrix(life, :surviving), Matrix(1.0I, 2, 2)) +
+               stratify(transition_matrix(life, :breeding), D)
+    @test to_matrix(mixed) ≈ expected
+    # one-way coupling adds only the one cross-stratum transition
+    oneway = stratify(life, [:healthy, :infected]; coupling = Dict(:maturing => [1.0 0; 1.0 1.0]))
+    @test :maturing_healthy_to_infected in transition_names(oneway)
+    @test !(:maturing_infected_to_healthy in transition_names(oneway))
+    @test stratum_stage(:adult, :infected) == :adult_infected
+    @test stratum_transition(:maturing, :healthy, :infected) == :maturing_healthy_to_infected
+    @test stratum_transition(:maturing, :healthy, :healthy) == :maturing_healthy
+    @test_throws ArgumentError stratify(life, [:a, :a])
+    @test_throws ArgumentError stratify(life, [:a, :b]; coupling = Dict(:missing => D))
+    @test_throws DimensionMismatch stratify(life, [:a, :b]; coupling = Dict(:breeding => ones(3, 3)))
+end
+
+@testset "responsive nets" begin
+    K = 1000.0
+    life = ValuedProjectionNet([:juvenile, :adult],
+        :maturing => [(:juvenile => :adult) => 0.3],
+        :surviving => [(:adult => :adult) => 0.5],
+        :breeding => [(:adult => :juvenile) => 6.0])
+    crowding(ctx) = max(0.0, 1 - ctx.pool.space / K)
+    plant = births(respond(life, :breeding => crowding), :breeding)
+    @test plant isa ResponsiveProjectionNet
+    @test stage_names(plant) == [:juvenile, :adult] && to_matrix(plant) == to_matrix(life)
+
+    ctx = context(plant, [10.0, 20.0], (space = 400.0,), nothing)
+    @test ctx.n[:adult] == 20.0 && ctx.n[2] == 20.0 && ctx.pool.space == 400.0
+    @test to_matrix(plant, ctx) ≈ [0 3.6; 0.3 0.5]
+    U, F = survival_fecundity_matrices(plant, ctx)
+    @test U == [0 0; 0.3 0.5] && F ≈ [0 3.6; 0 0]
+    frozen = evaluate(plant, ctx)
+    @test frozen isa ValuedProjectionNet && to_matrix(frozen) ≈ to_matrix(plant, ctx)
+    @test transition_matrix(frozen, :breeding) ≈ [0 3.6; 0 0]
+
+    # responses multiply, and may scale entries individually
+    twice = respond(plant, :breeding => ctx -> 0.5, :surviving => ctx -> ((from, to) -> from === :adult ? 0.1 : 1.0))
+    @test to_matrix(twice, ctx) ≈ [0 1.8; 0.3 0.05]
+    @test_throws ArgumentError respond(life, :flying => ctx -> 1.0)
+
+    # modules combine, carrying their responses
+    survive = ValuedProjectionNet([:juvenile, :adult], :maturing => [(:juvenile => :adult) => 0.3],
+                                  :surviving => [(:adult => :adult) => 0.5])
+    breed = respond(ValuedProjectionNet([:juvenile, :adult], :breeding => [(:adult => :juvenile) => 6.0]),
+                    :breeding => crowding)
+    @test to_matrix(survive ⊕ breed, ctx) ≈ to_matrix(plant, ctx)
+    @test to_matrix(merge(breed, survive), ctx) ≈ to_matrix(plant, ctx)
+
+    # refining the life cycle keeps the responses, and old names still work as totals
+    aged = expand_stage(plant, :juvenile, 3; ageing = 0.9)
+    c3 = context(aged, [1.0, 2.0, 3.0, 20.0], (space = 400.0,), nothing)
+    @test c3.n[:juvenile] == 6.0 && c3.n[:juvenile2] == 2.0 && c3.n[:adult] == 20.0
+    @test to_matrix(aged, c3)[1, 4] ≈ 3.6
+    strat = stratify(aged, [:healthy, :infected]; coupling = Dict(:maturing => [1.0 0; 0.5 1.0]))
+    c8 = context(strat, collect(1.0:8.0), (space = 400.0,), nothing)
+    @test c8.n[:adult] == 4.0 + 8.0 && c8.n[:adult_infected] == 8.0
+    @test c8.n[:juvenile] == 1 + 2 + 3 + 5 + 6 + 7 && c8.n[:juvenile_healthy] == 6.0
+    @test c8.n[:infected] == 5 + 6 + 7 + 8 && c8.n[:juvenile2_infected] == 6.0
+    As = to_matrix(strat, c8)
+    @test As[1, 4] ≈ 3.6 && As[5, 8] ≈ 3.6               # breeding responds in both strata
+    @test As[8, 3] ≈ 0.15                                 # healthy juveniles maturing into the infected stratum
+    @test :breeding_infected in strat.fecundity
+    @test As ≈ sum(survival_fecundity_matrices(strat, c8))
+
+    # inflows and after-step maps
+    seeded = after_step(inflow(plant, :juvenile => ctx -> 0.01 * ctx.pool.space), n -> floor.(n))
+    sys = PooledProjectionSystem(:plant => seeded; pools = [Pool(:space, :plant => [:adult => 1.0])])
+    next = advance(sys, Dict(:plant => [10.0, 400.0]), nothing)
+    @test next[:plant] == floor.([0 6.0 * (1 - 400.0 / K); 0.3 0.5] * [10.0, 400.0] .+ [4.0, 0.0])
+    @test stage_names(expand_stage(seeded, :juvenile, 2)) == [:juvenile1, :juvenile2, :adult]
+    @test first(expand_stage(seeded, :juvenile, 2).inflows).first == :juvenile1
+    @test first(stratify(seeded, [:a, :b]).inflows).first == :juvenile_a
+end
+
+@testset "pooled systems" begin
+    K = 1000.0
+    crowding(ctx) = max(0.0, 1 - ctx.pool.space / K)
+    grass = respond(ValuedProjectionNet([:seedling, :adult],
+            :establishing => [(:seedling => :adult) => 0.30],
+            :persisting => [(:adult => :adult) => 0.50],
+            :seeding => [(:adult => :seedling) => 6.0]), :seeding => crowding)
+    shrub = respond(ValuedProjectionNet([:seedling, :juvenile, :adult],
+            :establishing => [(:seedling => :juvenile) => 0.30],
+            :maturing => [(:juvenile => :adult) => 0.50],
+            :persisting => [(:adult => :adult) => 0.95],
+            :seeding => [(:adult => :seedling) => 3.0]), :seeding => crowding)
+    space = Pool(:space, :grass => [:seedling => 0.1, :adult => 1.0], :shrub => [0.1, 1.0, 4.0])
+    com = PooledProjectionSystem(:grass => grass, :shrub => shrub; pools = [space])
+    @test component_names(com) == [:grass, :shrub] && pool_names(com) == [:space]
+    @test stage_names(com, :shrub) == [:seedling, :juvenile, :adult]
+
+    state = Dict(:grass => [50.0, 10.0], :shrub => [5.0, 0.0, 1.0])
+    @test pool_totals(com, state, nothing).space ≈ 0.1 * 50 + 10 + 0.1 * 5 + 4
+    c = 1 - 19.5 / K
+    next = advance(com, state, nothing)
+    @test next[:grass] ≈ [6.0 * c * 10, 0.3 * 50 + 0.5 * 10]
+    @test next[:shrub] ≈ [3.0 * c * 1, 0.3 * 5, 0.95 * 1]
+
+    out = trajectory(com, state, fill(nothing, 400))
+    @test length(out.states) == 401 && length(out.pools) == 400
+    final = out.states[end]
+    # the shrub replaces itself at crowding 1/9, the grass needs 1/3.6: the shrub wins
+    @test pool_totals(com, final, nothing).space ≈ K * (1 - 1 / 9) rtol = 1e-6
+    @test sum(final[:grass]) < 1e-6
+
+    # contributions: a number, a function of stages and environment
+    counts = Pool(:individuals, :grass => 1.0, :shrub => (n, env) -> env * n[:adult])
+    sys2 = PooledProjectionSystem(:grass => grass, :shrub => shrub; pools = [space, counts])
+    @test pool_totals(sys2, state, 2.0).individuals == 60.0 + 2.0
+    @test_throws ArgumentError PooledProjectionSystem(:grass => grass; pools = [Pool(:space, :shrub => 1.0)])
+    @test_throws DimensionMismatch PooledProjectionSystem(:grass => grass; pools = [Pool(:space, :grass => [1.0])])
+    @test_throws ArgumentError PooledProjectionSystem(:grass => grass, :grass => grass)
+
+    @testset "lowering to MatrixProjectionModels" begin
+        target = StateDependentMPMTarget(state, (0, 400); p = nothing)
+        prob = lower(com, target)
+        @test prob isa CoupledMPMProblem
+        sol = solve(prob, DirectIteration())
+        for k in (1, 2, 50, 401), name in (:grass, :shrub)
+            @test sol.u[k][name] == out.states[k][name]
+        end
+        @test sol.substep_log[:pools][1].space == out.pools[1].space
+        @test sol.substep_log[:pools][400].space == out.pools[400].space
+        # the component's model is a MatrixProjectionModel with births kept apart
+        marked = PooledProjectionSystem(:grass => births(grass, :seeding), :shrub => shrub; pools = [space])
+        sol2 = solve(lower(marked, target), DirectIteration())
+        @test sol2.u[401][:shrub] == out.states[401][:shrub]
+
+        # environments, inflows and after-step maps go through the solver too
+        seasonal = respond(grass, :persisting => ctx -> ctx.env ? 0.5 : 1.0)
+        rain = after_step(inflow(seasonal, :seedling => ctx -> 2.0), n -> [x < 1 ? 0.0 : x for x in n])
+        sys3 = PooledProjectionSystem(:grass => rain, :shrub => shrub; pools = [space])
+        envs = [isodd(t) for t in 1:60]
+        native = trajectory(sys3, state, envs)
+        lowered = solve(lower(sys3, StateDependentMPMTarget(state, (0, 60); p = envs)), DirectIteration())
+        for k in 1:61, name in (:grass, :shrub)
+            @test lowered.u[k][name] ≈ native.states[k][name] rtol = 1e-13
+        end
+        @test_throws ArgumentError lower(com, StateDependentMPMTarget(Dict(:grass => [1.0, 1.0]), (0, 5)))
+    end
+end
