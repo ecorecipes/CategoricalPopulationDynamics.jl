@@ -73,9 +73,13 @@ end
 A [`ValuedProjectionNet`](@ref) whose transitions respond to a context.
 
 - `responses`: pairs `transition => f`. Each time step the values of `transition` are
-  multiplied by `f(ctx)`, where `ctx` is a [`ResponseContext`](@ref). `f(ctx)` returns a
-  number, or a function `(from, to) -> number` to scale entries individually. Several
-  responses on one transition multiply.
+  multiplied by `f(ctx)`, where `ctx` is a [`ResponseContext`](@ref). `f(ctx)` returns
+  - a number, which scales every entry of the transition;
+  - a matrix `M` with one row and one column per stage, laid out like `to_matrix(net)`:
+    the entry from stage `j` to stage `i` is multiplied by `M[i, j]`;
+  - a function `(from, to) -> number` of the stage names, called for each entry.
+
+  Several responses on one transition multiply.
 - `inflows`: pairs `stage => f`; `f(ctx)` individuals are added to `stage` each step,
   whatever the component's own abundance (immigration, or recruitment from a seed rain).
 - `after`: functions applied to the new stage vector, in order, after the step (for
@@ -86,6 +90,13 @@ A [`ValuedProjectionNet`](@ref) whose transitions respond to a context.
 
 Build one with [`respond`](@ref), [`inflow`](@ref) and [`after_step`](@ref). Responsive
 nets combine with `⊕`, and `expand_stage` and `stratify` carry their responses along.
+
+A matrix is the cheap way to scale many entries individually, for example a transition
+among the cells of a discretised trait. Any `AbstractMatrix` will do, and its values where
+the transition has no entry are ignored: a response scales a transition, it does not add
+to it. The matrix refers to the stages the net has when the response is attached. After
+`expand_stage` or `stratify` it need not change: every entry of the refined net takes the
+factor of the entry it derives from.
 """
 struct ResponsiveProjectionNet
     base::ValuedProjectionNet{Float64}
@@ -209,27 +220,61 @@ The [`ResponseContext`](@ref) of `net` for stage vector `n`.
 context(net::ResponsiveProjectionNet, n::AbstractVector, pool, env) =
     ResponseContext(StageVector(n, net.groups), pool, env)
 
-_factor(m::Number, from, to) = m
-_factor(m, from, to) = m(from, to)
+# Multiply the values `v` of the entries of transition `t` by what one of its responses
+# returned: a number, a matrix laid out like the projection matrix of the net (`k` stages), or
+# a function of the stage names. `rows` and `cols` are the positions of the entries in the
+# projection matrix, `froms` and `tos` the names of their stages. One method per kind of
+# value, so that the loop over the entries is compiled for the value at hand.
+function _scale!(v::Vector{Float64}, m::Number, t, k, rows, cols, froms, tos)
+    v .*= m
+    return v
+end
+
+function _scale!(v::Vector{Float64}, m::AbstractMatrix, t, k, rows, cols, froms, tos)
+    size(m) == (k, k) || throw(DimensionMismatch(
+        "the response on :$t returned a $(size(m, 1))×$(size(m, 2)) matrix; it needs one row and one " *
+        "column for each of the net's $k stages, like `to_matrix(net)`"))
+    for e in eachindex(v)
+        v[e] *= m[rows[e], cols[e]]
+    end
+    return v
+end
+
+_scale!(v::Vector{Float64}, m::AbstractArray, t, k, rows, cols, froms, tos) = throw(ArgumentError(
+    "the response on :$t returned a $(typeof(m)); a response returns a number, a matrix with one row " *
+    "and one column per stage, or a function (from, to) -> number"))
+
+function _scale!(v::Vector{Float64}, m, t, k, rows, cols, froms, tos)
+    for e in eachindex(v)
+        v[e] *= m(froms[e], tos[e])
+    end
+    return v
+end
+
+# The values of the entries of one compiled transition, with its responses evaluated at `ctx`.
+function _transition_values(net::ResponsiveProjectionNet, ctx, entry)
+    t, rows, cols, vals, froms, tos = entry
+    fs = get(net.by_transition, t, nothing)
+    fs === nothing && return vals
+    k = length(stage_names(net))
+    v = copy(vals)
+    for f in fs
+        _scale!(v, f(ctx), t, k, rows, cols, froms, tos)
+    end
+    return v
+end
+
+function _add_entries!(A, rows, cols, values)
+    for e in eachindex(values)
+        A[rows[e], cols[e]] += values[e]
+    end
+    return A
+end
 
 function _fill_matrix!(A, net::ResponsiveProjectionNet, ctx, keep)
-    for (t, rows, cols, vals, froms, tos) in net.compiled
-        keep(t) || continue
-        fs = get(net.by_transition, t, nothing)
-        if fs === nothing
-            for k in eachindex(vals)
-                A[rows[k], cols[k]] += vals[k]
-            end
-        else
-            ms = [f(ctx) for f in fs]
-            for k in eachindex(vals)
-                v = vals[k]
-                for m in ms
-                    v *= _factor(m, froms[k], tos[k])
-                end
-                A[rows[k], cols[k]] += v
-            end
-        end
+    for entry in net.compiled
+        keep(entry[1]) || continue
+        _add_entries!(A, entry[2], entry[3], _transition_values(net, ctx, entry))
     end
     return A
 end
@@ -265,18 +310,56 @@ The plain [`ValuedProjectionNet`](@ref) obtained by evaluating the responses of 
 transition.
 """
 function evaluate(net::ResponsiveProjectionNet, ctx::ResponseContext)
-    result = net.base
-    for (t, fs) in net.by_transition
-        ms = [f(ctx) for f in fs]
-        result = map_values(result, t) do (from, to), val
-            for m in ms
-                val *= _factor(m, from, to)
-            end
-            val
+    base = net.base
+    isempty(net.by_transition) && return base
+    values = copy(base.transition_values)
+    for entry in net.compiled
+        t = entry[1]
+        old = base.transition_values[t]
+        values[t] = if haskey(net.by_transition, t)
+            v = _transition_values(net, ctx, entry)
+            [old[e].first => v[e] for e in eachindex(old)]
+        else
+            copy(old)
         end
     end
-    return result
+    return ValuedProjectionNet{Float64}(base.net, copy(base.stage_names), values)
 end
+
+# ---------------------------------------------------------------------------
+# Responses of a net whose stages have been refined
+# ---------------------------------------------------------------------------
+
+# A matrix laid out over the stages a net had before it was refined, read over the stages it
+# has now: `parent[i]` is the position, among the earlier stages, of the stage that stage `i`
+# descends from.
+struct _PulledBack{M <: AbstractMatrix} <: AbstractMatrix{Float64}
+    matrix::M
+    parent::Vector{Int}
+end
+Base.size(p::_PulledBack) = (length(p.parent), length(p.parent))
+Base.getindex(p::_PulledBack, i::Int, j::Int) = Float64(p.matrix[p.parent[i], p.parent[j]])
+
+# A response attached before the net was refined by `expand_stage` or `stratify`. A matrix it
+# returns is laid out over the `stages` stages the net had then, and is read through `parent`
+# (see `_PulledBack`). Numbers and functions of stage names pass through unchanged.
+struct _RefinedResponse
+    f::Any
+    parent::Vector{Int}
+    stages::Int
+end
+(r::_RefinedResponse)(ctx) = _pull_back(r.f(ctx), r)
+_pull_back(m, r::_RefinedResponse) = m
+function _pull_back(m::AbstractMatrix, r::_RefinedResponse)
+    size(m) == (r.stages, r.stages) || throw(DimensionMismatch(
+        "a response returned a $(size(m, 1))×$(size(m, 2)) matrix, but the net had $(r.stages) stages when " *
+        "the response was attached (its stages have since been refined by `expand_stage` or `stratify`)"))
+    return _PulledBack(m, r.parent)
+end
+
+# `parent[i]`: the position, among the `stages` stages the net had, of the one stage `i` descends from.
+_refine(f, parent::Vector{Int}, stages::Int) = _RefinedResponse(f, parent, stages)
+_refine(r::_RefinedResponse, parent::Vector{Int}, stages::Int) = _RefinedResponse(r.f, r.parent[parent], r.stages)
 
 function _merge_two(a::ResponsiveProjectionNet, b::ResponsiveProjectionNet)
     base = _merge_two(a.base, b.base)
@@ -305,7 +388,13 @@ function expand_stage(net::ResponsiveProjectionNet, stage::Symbol, n::Integer;
     groups = Dict{Symbol, Vector{Int}}(g => reduce(vcat, [remap(i) for i in idx]; init = Int[])
                                        for (g, idx) in net.groups)
     inflows = Pair{Symbol, Any}[(s === stage ? Symbol(stage, 1) : s) => f for (s, f) in net.inflows]
-    return ResponsiveProjectionNet(base; responses = net.responses, inflows, after = net.after,
+    # every age class descends from `stage`; matrices returned by the responses are read accordingly
+    parent = Int[]
+    for (i, s) in enumerate(old)
+        append!(parent, fill(i, s === stage ? n : 1))
+    end
+    responses = Pair{Symbol, Any}[t => _refine(f, parent, length(old)) for (t, f) in net.responses]
+    return ResponsiveProjectionNet(base; responses, inflows, after = net.after,
         fecundity = net.fecundity, groups)
 end
 
@@ -326,7 +415,9 @@ function stratify(net::ResponsiveProjectionNet, strata::AbstractVector{Symbol};
     # a response on a transition applies to every transition derived from it
     names_from(t) = [stratum_transition(t, kf, kt; sep) for kf in strata for kt in strata
                      if stratum_transition(t, kf, kt; sep) in derived]
-    responses = Pair{Symbol, Any}[d => f for (t, f) in net.responses for d in names_from(t)]
+    # stage (j - 1) * m + i is stage i in stratum j; matrices returned by the responses are read accordingly
+    parent = repeat(1:m, length(strata))
+    responses = Pair{Symbol, Any}[d => _refine(f, parent, m) for (t, f) in net.responses for d in names_from(t)]
     fecundity = Symbol[d for t in net.fecundity for d in names_from(t)]
     groups = Dict{Symbol, Vector{Int}}()
     for (g, idx) in net.groups

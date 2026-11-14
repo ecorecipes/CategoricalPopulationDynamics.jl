@@ -120,6 +120,107 @@ end
     @test first(stratify(seeded, [:a, :b]).inflows).first == :juvenile_a
 end
 
+@testset "matrix-valued responses" begin
+    life = ValuedProjectionNet([:egg, :juvenile, :adult],
+        :hatching => [(:egg => :juvenile) => 0.5],
+        :maturing => [(:juvenile => :adult) => 0.3],
+        :surviving => [(:juvenile => :juvenile) => 0.2, (:adult => :adult) => 0.5],
+        :breeding => [(:adult => :egg) => 6.0])
+    position = Dict(:egg => 1, :juvenile => 2, :adult => 3)
+    M = [0.9 0.6 0.4; 0.7 0.8 0.3; 0.2 0.1 0.5]            # M[to, from], like the projection matrix
+    by_matrix = respond(life, :surviving => ctx -> M, :hatching => ctx -> M,
+                        :breeding => ctx -> ctx.pool.space .* M)
+    by_name = respond(life, :surviving => ctx -> ((from, to) -> M[position[to], position[from]]),
+                      :hatching => ctx -> ((from, to) -> M[position[to], position[from]]),
+                      :breeding => ctx -> ((from, to) -> ctx.pool.space * M[position[to], position[from]]))
+    ctx = context(by_matrix, [10.0, 20.0, 30.0], (space = 0.5,), nothing)
+    A = to_matrix(by_matrix, ctx)
+    @test A == [0 0 6.0 * (0.5 * 0.4); 0.5 * 0.7 0.2 * 0.8 0; 0 0.3 0.5 * 0.5]
+    @test A == to_matrix(by_name, ctx)
+    @test survival_fecundity_matrices(births(by_matrix, :breeding), ctx) ==
+          survival_fecundity_matrices(births(by_name, :breeding), ctx)
+    frozen = evaluate(by_matrix, ctx)
+    @test frozen isa ValuedProjectionNet && to_matrix(frozen) == A
+    @test transition_matrix(frozen, :breeding) == transition_matrix(evaluate(by_name, ctx), :breeding)
+    @test transition_matrix(frozen, :maturing) == transition_matrix(life, :maturing)
+
+    # the three kinds of response multiply
+    mixed = respond(by_matrix, :breeding => ctx -> 0.5, :breeding => ctx -> ((from, to) -> 2.0))
+    @test to_matrix(mixed, ctx) == A
+    # a response scales the entries of its transition; it does not add entries
+    @test to_matrix(respond(life, :maturing => ctx -> fill(2.0, 3, 3)), ctx) == [0 0 6.0; 0.5 0.2 0; 0 0.3 * 2.0 0.5]
+    # any AbstractMatrix will do
+    @test to_matrix(respond(life, :surviving => ctx -> Diagonal([7.0, 3.0, 0.5])), ctx) ==
+          [0 0 6.0; 0.5 0.2 * 3.0 0; 0 0.3 0.5 * 0.5]
+    @test to_matrix(respond(life, :breeding => ctx -> transpose(M)), ctx)[1, 3] == 6.0 * M[3, 1]
+    # the matrix must be laid out over the stages of the net
+    @test_throws DimensionMismatch to_matrix(respond(life, :breeding => ctx -> ones(2, 2)), ctx)
+    @test_throws DimensionMismatch evaluate(respond(life, :breeding => ctx -> ones(3, 4)), ctx)
+    @test_throws ArgumentError to_matrix(respond(life, :breeding => ctx -> [1.0, 2.0, 3.0]), ctx)
+
+    # modules combine, carrying their matrices
+    rest = ValuedProjectionNet([:egg, :juvenile, :adult], :maturing => [(:juvenile => :adult) => 0.3],
+        :surviving => [(:juvenile => :juvenile) => 0.2, (:adult => :adult) => 0.5])
+    start = respond(ValuedProjectionNet([:egg, :juvenile, :adult], :hatching => [(:egg => :juvenile) => 0.5],
+        :breeding => [(:adult => :egg) => 6.0]), :hatching => ctx -> M, :breeding => ctx -> ctx.pool.space .* M)
+    @test to_matrix(respond(rest, :surviving => ctx -> M) ⊕ start, ctx) == A
+
+    # Refining the life cycle keeps a matrix written for the unrefined one: every entry takes the factor of
+    # the entry it derives from. Eggs now last three steps.
+    aged = expand_stage(by_matrix, :egg, 3; ageing = 0.9)
+    @test stage_names(aged) == [:egg1, :egg2, :egg3, :juvenile, :adult]
+    c5 = context(aged, collect(1.0:5.0), (space = 0.5,), nothing)
+    expected = zeros(5, 5)
+    expected[2, 1] = expected[3, 2] = 0.9                   # ageing: no response
+    expected[4, 3] = 0.5 * M[2, 1]                          # hatching, now from the last egg class
+    expected[5, 4] = 0.3                                    # maturing: no response
+    expected[4, 4], expected[5, 5] = 0.2 * M[2, 2], 0.5 * M[3, 3]
+    expected[1, 5] = 6.0 * (0.5 * M[1, 3])                  # breeding, now into the first egg class
+    @test to_matrix(aged, c5) == expected
+    @test to_matrix(evaluate(aged, c5)) == expected
+    # a response attached to the refined net is laid out over the refined stages
+    slower = respond(aged, :egg_ageing => ctx -> fill(0.5, 5, 5))
+    @test to_matrix(slower, c5)[2, 1] == 0.9 * 0.5 && to_matrix(slower, c5)[1, 5] == expected[1, 5]
+    @test_throws DimensionMismatch to_matrix(respond(aged, :egg_ageing => ctx -> fill(0.5, 3, 3)), c5)
+
+    # ... and then replicated across two strata, with half of the hatchlings of healthy eggs infected
+    C = [1.0 0.0; 0.5 1.0]
+    strat = stratify(aged, [:healthy, :infected]; coupling = Dict(:hatching => C))
+    c10 = context(strat, collect(1.0:10.0), (space = 0.5,), nothing)
+    hatching = transition_matrix(evaluate(aged, c5), :hatching)
+    @test to_matrix(strat, c10) ≈ kron(Matrix(1.0I, 2, 2), expected - hatching) + kron(C, hatching)
+    @test to_matrix(strat, c10)[9, 3] == 0.5 * 0.5 * M[2, 1]   # healthy egg3 to infected juvenile
+    @test to_matrix(strat, c10) ≈ sum(survival_fecundity_matrices(births(strat, :breeding_healthy, :breeding_infected), c10))
+    # the other way round: strata first, then age classes in one of them
+    other = expand_stage(stratify(by_matrix, [:healthy, :infected]), :egg_infected, 2)
+    @test stage_names(other) == [:egg_healthy, :juvenile_healthy, :adult_healthy, :egg_infected1, :egg_infected2,
+                                 :juvenile_infected, :adult_infected]
+    c7 = context(other, collect(1.0:7.0), (space = 0.5,), nothing)
+    B = to_matrix(other, c7)
+    @test B[2, 1] == 0.5 * M[2, 1] && B[6, 5] == 0.5 * M[2, 1] && B[5, 4] == 1.0
+    @test B[1, 3] == 6.0 * (0.5 * M[1, 3]) && B[4, 7] == 6.0 * (0.5 * M[1, 3]) && B[7, 7] == 0.5 * M[3, 3]
+    # a matrix of the wrong size is reported against the stages the response was written for
+    wrong = expand_stage(respond(life, :breeding => ctx -> ones(2, 2)), :egg, 3)
+    @test_throws DimensionMismatch to_matrix(wrong, c5)
+    # numbers and functions of stage names pass through refinement as before
+    named = stratify(respond(life, :surviving => ctx -> ((from, to) -> from === :adult_infected ? 0.1 : 1.0),
+                             :breeding => ctx -> 0.5), [:healthy, :infected])
+    N = to_matrix(named, context(named, ones(6), (space = 0.5,), nothing))
+    @test N[3, 3] == 0.5 && N[6, 6] ≈ 0.05 && N[1, 3] == 3.0 && N[4, 6] == 3.0
+
+    # in a pooled system, natively and through the solver
+    pools = [Pool(:space, :plant => [:adult => 0.01])]
+    sys_matrix = PooledProjectionSystem(:plant => births(by_matrix, :breeding); pools)
+    sys_name = PooledProjectionSystem(:plant => births(by_name, :breeding); pools)
+    state = Dict(:plant => [10.0, 20.0, 30.0])
+    a = trajectory(sys_matrix, state, fill(nothing, 30))
+    b = trajectory(sys_name, state, fill(nothing, 30))
+    @test all(a.states[k][:plant] == b.states[k][:plant] for k in 1:31)
+    @test a.states[31][:plant] != state[:plant] && all(isfinite, a.states[31][:plant])
+    sol = solve(lower(sys_matrix, StateDependentMPMTarget(state, (0, 30); p = nothing)), DirectIteration())
+    @test all(sol.u[k][:plant] == a.states[k][:plant] for k in 1:31)
+end
+
 @testset "pooled systems" begin
     K = 1000.0
     crowding(ctx) = max(0.0, 1 - ctx.pool.space / K)
