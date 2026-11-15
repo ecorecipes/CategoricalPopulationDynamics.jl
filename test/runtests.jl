@@ -10,6 +10,7 @@ using ContinuousStatePopulationDynamics: ContinuousIPMProblem, DelayIPMProblem,
     DelayGeneratorTerm, FixedMeshUpwind, PSPMIPMProblem, to_ode_problem, to_dde_problem,
     to_sde_problem
 using MatrixProjectionModels
+import StructuredPopulationCore
 using StructuredPopulationCore: lambda
 using IndividualBasedPopulationDynamics: ibm_run_stage!
 using Random
@@ -97,6 +98,40 @@ end
         @test length(b) == 101
         @test b[1] ≈ 0.0
         @test b[end] ≈ 10.0
+    end
+
+    @testset "functions shared with the core package" begin
+        # one function each, extended here for this package's types, not two functions of the same name
+        shared = (:meshpoints, :step_size, :bounds, :n_states, :stochastic_growth_rate, :left_kan_extension,
+                  :right_kan_extension, :stratify, :coarsen, :compose_from_uwd)
+        both = Module()
+        Core.eval(both, :(using CategoricalPopulationDynamics, StructuredPopulationCore))
+        for name in shared
+            @test getfield(CategoricalPopulationDynamics, name) === getfield(StructuredPopulationCore, name)
+            @test Core.eval(both, name) === getfield(StructuredPopulationCore, name)   # usable unqualified with both loaded
+        end
+        # nothing that both packages export means two different things
+        common = intersect(names(CategoricalPopulationDynamics), names(StructuredPopulationCore))
+        @test all(n -> getfield(CategoricalPopulationDynamics, n) === getfield(StructuredPopulationCore, n), common)
+
+        # the same results on the core package's domain as on this package's
+        core = StructuredPopulationCore.ContinuousDomain(0.0, 10.0, 100)
+        here = ContinuousProjectionDomain(0.0, 10.0, 100)
+        @test meshpoints(core) == meshpoints(here) && step_size(core) == step_size(here) && bounds(core) == bounds(here)
+        k(y, x) = exp(-(y - 0.9x)^2)
+        A = left_kan_extension(k, here)
+        @test left_kan_extension(k, core) == A
+        # keyword options on the core domain are handled by this package
+        @test left_kan_extension(k, core; rule = :simpson) == left_kan_extension(k, here; rule = :simpson)
+        @test left_kan_extension(k, core; rule = :trapezoidal, ensure_nonneg = true) ==
+              left_kan_extension(k, here; rule = :trapezoidal, ensure_nonneg = true)
+        @test left_kan_extension(k, core, core; rule = :simpson) == left_kan_extension(k, here; rule = :simpson)
+        z = meshpoints(here)
+        @test right_kan_extension(A, core)(z[3], z[70]) == right_kan_extension(A, here)(z[3], z[70])
+        @test coarsen(A, core, StructuredPopulationCore.ContinuousDomain(0.0, 10.0, 25)) ==
+              coarsen(A, here, ContinuousProjectionDomain(0.0, 10.0, 25))
+        D = [0.9 0.2; 0.1 0.8]
+        @test stratify(A[1:3, 1:3], D) == kron(D, A[1:3, 1:3])
     end
 
     @testset "ContinuousProjectionDomain promotion" begin

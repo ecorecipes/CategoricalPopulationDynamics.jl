@@ -4,33 +4,9 @@ Stratification: replicate local demography across strata weighted by a coupling 
 In the categorical framework, this is a pullback in a slice category.
 """
 
-"""
-    stratify(A_local::AbstractMatrix, coupling::AbstractMatrix)
-
-Construct a block-structured matrix from a single local transition matrix
-and a coupling (dispersal) matrix.  Every stratum shares the same local dynamics.
-
-``A_{strat}[(s_{to}, i), (s_{from}, j)] = D[s_{to}, s_{from}] \\cdot A_{local}[i, j]``
-"""
-function stratify(A_local::AbstractMatrix, coupling::AbstractMatrix)
-    size(A_local, 1) == size(A_local, 2) ||
-        throw(DimensionMismatch("local matrix must be square, got $(size(A_local))"))
-    size(coupling, 1) == size(coupling, 2) ||
-        throw(DimensionMismatch("coupling matrix must be square, got $(size(coupling))"))
-    n_bins = size(A_local, 1)
-    n_strata = size(coupling, 1)
-    n_total = n_bins * n_strata
-    T = promote_type(eltype(A_local), eltype(coupling))
-    A_strat = zeros(T, n_total, n_total)
-    for s_to in 1:n_strata
-        for s_from in 1:n_strata
-            rows = ((s_to - 1) * n_bins + 1):(s_to * n_bins)
-            cols = ((s_from - 1) * n_bins + 1):(s_from * n_bins)
-            A_strat[rows, cols] .= coupling[s_to, s_from] .* A_local
-        end
-    end
-    return A_strat
-end
+# `stratify(A_local::AbstractMatrix, coupling::AbstractMatrix)`, one local matrix shared by
+# every stratum, is StructuredPopulationCore's method: `stratify` is one function across the
+# stack, and this package adds the methods below and those for valued and responsive nets.
 
 """
     stratify(A_locals::AbstractVector{<:AbstractMatrix}, coupling::AbstractMatrix)

@@ -12,6 +12,14 @@ using StructuredPopulationCore: lambda, ContinuousDomain,
 
 import Catlab.WiringDiagrams: oapply
 import Catlab: ⊕, evaluate
+# Functions that the core package also has are extended here, for this package's domains, nets
+# and Catlab types, instead of being defined again under the same name. Each is then one
+# function across the stack, usable unqualified whichever packages are loaded together:
+# the accessors of a discretised domain, the count of states, the stochastic growth rate, and
+# the operations between kernels and matrices (whose methods for the core package's own
+# `ContinuousDomain` and for plain matrices live in StructuredPopulationCore).
+import StructuredPopulationCore: meshpoints, step_size, bounds, n_states, stochastic_growth_rate,
+    left_kan_extension, right_kan_extension, stratify, coarsen, compose_from_uwd, discretise_kernel
 
 # Schemas
 export SchProjectionNet, SchLabelledProjectionNet,

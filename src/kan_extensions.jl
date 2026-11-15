@@ -101,9 +101,13 @@ function left_kan_extension(kernel_fn, domain::ContinuousProjectionDomain;
     return A
 end
 
-function left_kan_extension(kernel_fn, domain::ContinuousDomain; kwargs...)
+# On the core package's `ContinuousDomain`, `left_kan_extension(kernel_fn, domain)` is
+# StructuredPopulationCore's method (the midpoint rule, the same matrix as above). When it is
+# called with keyword options it hands over to this method, so the quadrature rules and the
+# positivity options work on that domain too.
+function discretise_kernel(kernel_fn, domain::ContinuousDomain; options...)
     cpd = ContinuousProjectionDomain(domain.lower, domain.upper, domain.n_meshpoints)
-    return left_kan_extension(kernel_fn, cpd; kwargs...)
+    return left_kan_extension(kernel_fn, cpd; options...)
 end
 
 """
@@ -309,8 +313,4 @@ function right_kan_extension(A::AbstractMatrix, domain::ContinuousProjectionDoma
     end
     return piecewise_kernel
 end
-
-function right_kan_extension(A::AbstractMatrix, domain::ContinuousDomain)
-    cpd = ContinuousProjectionDomain(domain.lower, domain.upper, domain.n_meshpoints)
-    return right_kan_extension(A, cpd)
-end
+# (for the core package's `ContinuousDomain` the method is StructuredPopulationCore's, with the same result)

@@ -94,9 +94,13 @@ nets combine with `⊕`, and `expand_stage` and `stratify` carry their responses
 A matrix is the cheap way to scale many entries individually, for example a transition
 among the cells of a discretised trait. Any `AbstractMatrix` will do, and its values where
 the transition has no entry are ignored: a response scales a transition, it does not add
-to it. The matrix refers to the stages the net has when the response is attached. After
-`expand_stage` or `stratify` it need not change: every entry of the refined net takes the
-factor of the entry it derives from.
+to it.
+
+A matrix or a function of stage names refers to the stages the net has when the response
+is attached. After `expand_stage` or `stratify` neither needs to change: every entry of
+the refined net takes the factor of the entry it derives from, so a function is still
+called with the names it was written for (`:egg`, not `:egg3` or `:egg_infected`). A
+response attached after the refinement sees the refined stages.
 """
 struct ResponsiveProjectionNet
     base::ValuedProjectionNet{Float64}
@@ -340,26 +344,50 @@ end
 Base.size(p::_PulledBack) = (length(p.parent), length(p.parent))
 Base.getindex(p::_PulledBack, i::Int, j::Int) = Float64(p.matrix[p.parent[i], p.parent[j]])
 
-# A response attached before the net was refined by `expand_stage` or `stratify`. A matrix it
-# returns is laid out over the `stages` stages the net had then, and is read through `parent`
-# (see `_PulledBack`). Numbers and functions of stage names pass through unchanged.
+# A function of stage names written for the stages a net had before it was refined. For stage
+# `i` of the net as it is now, it is given `names[parent[i]]`: the name of the stage that `i`
+# descends from.
+struct _WrittenFor{F}
+    f::F
+    names::Vector{Symbol}
+    parent::Vector{Int}
+end
+
+function _scale!(v::Vector{Float64}, m::_WrittenFor, t, k, rows, cols, froms, tos)
+    names, parent = m.names, m.parent
+    for e in eachindex(v)
+        v[e] *= m.f(names[parent[cols[e]]], names[parent[rows[e]]])
+    end
+    return v
+end
+
+# A response attached before the net was refined by `expand_stage` or `stratify`. What it
+# returns refers to the stages the net had then, `names`: a matrix is laid out over them and a
+# function is called with them. Both are read through `parent` (see `_PulledBack` and
+# `_WrittenFor`). A number needs no translation.
 struct _RefinedResponse
     f::Any
     parent::Vector{Int}
-    stages::Int
+    names::Vector{Symbol}
 end
 (r::_RefinedResponse)(ctx) = _pull_back(r.f(ctx), r)
-_pull_back(m, r::_RefinedResponse) = m
+_pull_back(m::Number, r::_RefinedResponse) = m
+_pull_back(m::AbstractArray, r::_RefinedResponse) = m       # not a matrix: `_scale!` reports it
 function _pull_back(m::AbstractMatrix, r::_RefinedResponse)
-    size(m) == (r.stages, r.stages) || throw(DimensionMismatch(
-        "a response returned a $(size(m, 1))×$(size(m, 2)) matrix, but the net had $(r.stages) stages when " *
+    k = length(r.names)
+    size(m) == (k, k) || throw(DimensionMismatch(
+        "a response returned a $(size(m, 1))×$(size(m, 2)) matrix, but the net had $k stages when " *
         "the response was attached (its stages have since been refined by `expand_stage` or `stratify`)"))
     return _PulledBack(m, r.parent)
 end
+# refined again after being wrapped by something else: compose the two maps
+_pull_back(m::_WrittenFor, r::_RefinedResponse) = _WrittenFor(m.f, m.names, m.parent[r.parent])
+_pull_back(m, r::_RefinedResponse) = _WrittenFor(m, r.names, r.parent)
 
-# `parent[i]`: the position, among the `stages` stages the net had, of the one stage `i` descends from.
-_refine(f, parent::Vector{Int}, stages::Int) = _RefinedResponse(f, parent, stages)
-_refine(r::_RefinedResponse, parent::Vector{Int}, stages::Int) = _RefinedResponse(r.f, r.parent[parent], r.stages)
+# `parent[i]`: the position, among the stages `names` the net had, of the one stage `i` descends from.
+_refine(f, parent::Vector{Int}, names::Vector{Symbol}) = _RefinedResponse(f, parent, names)
+_refine(r::_RefinedResponse, parent::Vector{Int}, names::Vector{Symbol}) =
+    _RefinedResponse(r.f, r.parent[parent], r.names)
 
 function _merge_two(a::ResponsiveProjectionNet, b::ResponsiveProjectionNet)
     base = _merge_two(a.base, b.base)
@@ -388,12 +416,12 @@ function expand_stage(net::ResponsiveProjectionNet, stage::Symbol, n::Integer;
     groups = Dict{Symbol, Vector{Int}}(g => reduce(vcat, [remap(i) for i in idx]; init = Int[])
                                        for (g, idx) in net.groups)
     inflows = Pair{Symbol, Any}[(s === stage ? Symbol(stage, 1) : s) => f for (s, f) in net.inflows]
-    # every age class descends from `stage`; matrices returned by the responses are read accordingly
+    # every age class descends from `stage`; what the responses return is read accordingly
     parent = Int[]
     for (i, s) in enumerate(old)
         append!(parent, fill(i, s === stage ? n : 1))
     end
-    responses = Pair{Symbol, Any}[t => _refine(f, parent, length(old)) for (t, f) in net.responses]
+    responses = Pair{Symbol, Any}[t => _refine(f, parent, old) for (t, f) in net.responses]
     return ResponsiveProjectionNet(base; responses, inflows, after = net.after,
         fecundity = net.fecundity, groups)
 end
@@ -415,9 +443,10 @@ function stratify(net::ResponsiveProjectionNet, strata::AbstractVector{Symbol};
     # a response on a transition applies to every transition derived from it
     names_from(t) = [stratum_transition(t, kf, kt; sep) for kf in strata for kt in strata
                      if stratum_transition(t, kf, kt; sep) in derived]
-    # stage (j - 1) * m + i is stage i in stratum j; matrices returned by the responses are read accordingly
+    # stage (j - 1) * m + i is stage i in stratum j; what the responses return is read accordingly
     parent = repeat(1:m, length(strata))
-    responses = Pair{Symbol, Any}[d => _refine(f, parent, m) for (t, f) in net.responses for d in names_from(t)]
+    old = stage_names(net)
+    responses = Pair{Symbol, Any}[d => _refine(f, parent, old) for (t, f) in net.responses for d in names_from(t)]
     fecundity = Symbol[d for t in net.fecundity for d in names_from(t)]
     groups = Dict{Symbol, Vector{Int}}()
     for (g, idx) in net.groups

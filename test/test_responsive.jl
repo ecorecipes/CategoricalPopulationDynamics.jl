@@ -202,11 +202,35 @@ end
     # a matrix of the wrong size is reported against the stages the response was written for
     wrong = expand_stage(respond(life, :breeding => ctx -> ones(2, 2)), :egg, 3)
     @test_throws DimensionMismatch to_matrix(wrong, c5)
-    # numbers and functions of stage names pass through refinement as before
-    named = stratify(respond(life, :surviving => ctx -> ((from, to) -> from === :adult_infected ? 0.1 : 1.0),
-                             :breeding => ctx -> 0.5), [:healthy, :infected])
-    N = to_matrix(named, context(named, ones(6), (space = 0.5,), nothing))
-    @test N[3, 3] == 0.5 && N[6, 6] ≈ 0.05 && N[1, 3] == 3.0 && N[4, 6] == 3.0
+    # A function of stage names is called with the names its stages had when the response was attached, so
+    # one written for the simple life cycle keeps working once the life cycle is refined
+    named = respond(life, :surviving => ctx -> ((from, to) -> from === :adult ? 0.1 : 1.0), :breeding => ctx -> 0.5)
+    strata = stratify(named, [:healthy, :infected])
+    c6 = context(strata, ones(6), (space = 0.5,), nothing)
+    N = to_matrix(strata, c6)
+    @test N[3, 3] ≈ 0.05 && N[6, 6] ≈ 0.05 && N[2, 2] == 0.2 && N[5, 5] == 0.2     # adults, in both strata
+    @test N[1, 3] == 3.0 && N[4, 6] == 3.0
+    @test to_matrix(evaluate(strata, c6)) == N
+    # through two refinements, for the entries that expand_stage moves to the first and last age class
+    by_stage = respond(life, :hatching => ctx -> ((from, to) -> from === :egg && to === :juvenile ? 0.5 : 2.0),
+                       :breeding => ctx -> ((from, to) -> to === :egg ? 0.25 : 1.0))
+    refined = stratify(expand_stage(by_stage, :egg, 3), [:a, :b])
+    R = to_matrix(refined, context(refined, ones(10), (space = 0.5,), nothing))
+    @test R[4, 3] == 0.25 && R[9, 8] == 0.25             # hatching, 0.5 * 0.5: from the last egg class
+    @test R[1, 5] == 1.5 && R[6, 10] == 1.5              # breeding, 6.0 * 0.25: into the first egg class
+    plain = stratify(expand_stage(respond(life, :hatching => ctx -> 0.5, :breeding => ctx -> 0.25), :egg, 3), [:a, :b])
+    @test R == to_matrix(plain, context(plain, ones(10), (space = 0.5,), nothing))
+    # a response attached after the refinement sees the refined names
+    late = respond(strata, :surviving_infected => ctx -> ((from, to) -> from === :adult_infected ? 0.5 : 1.0))
+    L = to_matrix(late, context(late, ones(6), (space = 0.5,), nothing))
+    @test L[6, 6] ≈ 0.025 && L[3, 3] ≈ 0.05 && L[5, 5] == 0.2
+    # the same response wrapped by another function, as a community does to rename pools, and refined again
+    wrapped = ResponsiveProjectionNet(strata.base; responses = [t => (ctx -> f(ctx)) for (t, f) in strata.responses],
+                                      groups = strata.groups)
+    twice = expand_stage(wrapped, :egg_healthy, 2)
+    @test stage_names(twice)[[1, 2, 4, 7]] == [:egg_healthy1, :egg_healthy2, :adult_healthy, :adult_infected]
+    T2 = to_matrix(twice, context(twice, ones(7), (space = 0.5,), nothing))
+    @test T2[4, 4] ≈ 0.05 && T2[7, 7] ≈ 0.05 && T2[3, 3] == 0.2 && T2[6, 6] == 0.2 && T2[1, 4] == 3.0
 
     # in a pooled system, natively and through the solver
     pools = [Pool(:space, :plant => [:adult => 0.01])]
