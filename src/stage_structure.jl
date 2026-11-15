@@ -11,7 +11,7 @@ readable: `expand_stage` turns `:pupa` into `:pupa1 … :pupa12`, and `stratify`
     expand_stage(vnet, stage, n; ageing = 1.0, name = Symbol(stage, :_ageing))
 
 Give `stage` a fixed duration of `n` time steps by replacing it with the age classes
-`stage1, …, stagen`.
+`stage1, …, stagen`. `n` must be at least 2.
 
 Transitions into `stage` now enter `stage1`; transitions out of `stage` now leave
 `stagen`. A new transition called `name` moves individuals from each class to the next,
@@ -114,7 +114,9 @@ life = ValuedProjectionNet([:juvenile, :adult],
     :breeding => [(:adult => :juvenile) => 2.0])
 # two patches; a tenth of the young settle in the other patch
 two = stratify(life, [:north, :south]; coupling = Dict(:breeding => [0.9 0.1; 0.1 0.9]))
-transition_names(two)   # :maturing_north, :breeding_north, :breeding_north_to_south, …
+sort(transition_names(two))
+# [:breeding_north, :breeding_north_to_south, :breeding_south, :breeding_south_to_north,
+#  :maturing_north, :maturing_south]
 ```
 
 The matrix of the result equals the sum over transitions of the matrix form

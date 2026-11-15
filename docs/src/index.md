@@ -44,7 +44,7 @@ This package is not yet registered in the Julia General registry. Install direct
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/ecorecipes/StructuredPopulationCore.jl")
+Pkg.add(url="https://github.com/ecorecipes/ProjectionModels.jl")   # the package StructuredPopulationCore
 Pkg.add(url="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl")
 ```
 
@@ -57,7 +57,7 @@ Pkg.add(url="https://github.com/ecorecipes/IntegralProjectionModels.jl")
 
 ## Related Packages
 
-- [StructuredPopulationCore.jl](https://github.com/ecorecipes/StructuredPopulationCore.jl) — shared abstractions for projection models
+- [ProjectionModels.jl](https://github.com/ecorecipes/ProjectionModels.jl) — the package StructuredPopulationCore: shared abstractions for projection models
 - [MatrixProjectionModels.jl](https://github.com/ecorecipes/MatrixProjectionModels.jl) — discrete-stage matrix population models
 - [IntegralProjectionModels.jl](https://github.com/ecorecipes/IntegralProjectionModels.jl) — continuous-state integral projection models
 - [Catlab.jl](https://github.com/AlgebraicJulia/Catlab.jl) — applied category theory in Julia

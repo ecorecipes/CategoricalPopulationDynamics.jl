@@ -84,16 +84,11 @@ stage_names(vnet::ValuedProjectionNet) = vnet.stage_names
 """
     transition_names(vnet::ValuedProjectionNet)
 
-Return the transition names.
+Return the transition names. The names are stored in a `Dict`, so their order is not
+fixed; use `sort(transition_names(vnet))` for a reproducible order.
 """
 transition_names(vnet::ValuedProjectionNet) = collect(keys(vnet.transition_values))
 
-"""
-    transition_matrix(vnet::ValuedProjectionNet, tname::Symbol)
-
-Materialize a single transition's sparse entries to a dense matrix.
-Convention: `(from => to) => value` sets `M[to_idx, from_idx] = value`.
-"""
 function _stage_index(vnet::ValuedProjectionNet)
     Dict(s => i for (i, s) in enumerate(vnet.stage_names))
 end
@@ -110,6 +105,12 @@ function _transition_matrix(vnet::ValuedProjectionNet{T}, tname_val::Symbol,
     return M
 end
 
+"""
+    transition_matrix(vnet::ValuedProjectionNet, tname::Symbol)
+
+Materialize a single transition's sparse entries to a dense matrix.
+Convention: `(from => to) => value` sets `M[to_idx, from_idx] = value`.
+"""
 function transition_matrix(vnet::ValuedProjectionNet{T}, tname_val::Symbol) where {T}
     _transition_matrix(vnet, tname_val, _stage_index(vnet))
 end
@@ -133,26 +134,6 @@ end
 # merge: compose ValuedProjectionNets from smaller pieces
 # ---------------------------------------------------------------------------
 
-"""
-    merge(a::ValuedProjectionNet, b::ValuedProjectionNet)
-
-Combine two `ValuedProjectionNet`s that share the **same stage names** (same order)
-but have **disjoint transition names** into a single net containing all transitions.
-
-This lets you build complex models from small, readable pieces:
-
-```julia
-surv = ValuedProjectionNet([:egg, :larva, :adult],
-    :survival => [(:egg => :larva) => 0.5, (:larva => :adult) => 0.3])
-fec  = ValuedProjectionNet([:egg, :larva, :adult],
-    :fecundity => [(:adult => :egg) => 10.0])
-full = merge(surv, fec)          # contains both :survival and :fecundity
-to_matrix(full) == to_matrix(surv) + to_matrix(fec)  # true
-```
-
-Errors if the stage names differ or if any transition name appears in both nets.
-Supports variadic calls: `merge(a, b, c, ...)`.
-"""
 function _merge_two(a::ValuedProjectionNet{Ta}, b::ValuedProjectionNet{Tb}) where {Ta, Tb}
     a.stage_names == b.stage_names || throw(ArgumentError(
         "Cannot merge ValuedProjectionNets with different stage names: " *
@@ -180,6 +161,26 @@ function _merge_two(a::ValuedProjectionNet{Ta}, b::ValuedProjectionNet{Tb}) wher
     return ValuedProjectionNet{T}(net, copy(a.stage_names), merged_tv)
 end
 
+"""
+    merge(a::ValuedProjectionNet, b::ValuedProjectionNet)
+
+Combine two `ValuedProjectionNet`s that share the **same stage names** (same order)
+but have **disjoint transition names** into a single net containing all transitions.
+
+This lets you build complex models from small, readable pieces:
+
+```julia
+surv = ValuedProjectionNet([:egg, :larva, :adult],
+    :survival => [(:egg => :larva) => 0.5, (:larva => :adult) => 0.3])
+fec  = ValuedProjectionNet([:egg, :larva, :adult],
+    :fecundity => [(:adult => :egg) => 10.0])
+full = merge(surv, fec)          # contains both :survival and :fecundity
+to_matrix(full) == to_matrix(surv) + to_matrix(fec)  # true
+```
+
+Errors if the stage names differ or if any transition name appears in both nets.
+Supports variadic calls: `merge(a, b, c, ...)`.
+"""
 function Base.merge(a::ValuedProjectionNet{Ta}, b::ValuedProjectionNet{Tb}) where {Ta, Tb}
     _merge_two(a, b)
 end

@@ -211,9 +211,12 @@ stage_names(net::ResponsiveProjectionNet) = stage_names(net.base)
 transition_names(net::ResponsiveProjectionNet) = _ordered_transition_names(net.base)
 to_matrix(net::ResponsiveProjectionNet) = to_matrix(net.base)
 
+_count(k, one, many) = string(k, " ", k == 1 ? one : many)
+
 function Base.show(io::IO, net::ResponsiveProjectionNet)
-    print(io, "ResponsiveProjectionNet(", length(stage_names(net)), " stages, ",
-          length(net.compiled), " transitions, ", length(net.responses), " responses)")
+    print(io, "ResponsiveProjectionNet(", _count(length(stage_names(net)), "stage", "stages"), ", ",
+          _count(length(net.compiled), "transition", "transitions"), ", ",
+          _count(length(net.responses), "response", "responses"), ")")
 end
 
 """
@@ -406,6 +409,33 @@ Base.merge(a::ResponsiveProjectionNet, b::_AnyNet, rest::_AnyNet...) = foldl(_me
 Base.merge(a::ValuedProjectionNet, b::ResponsiveProjectionNet, rest::_AnyNet...) =
     foldl(_merge_two, rest; init = _merge_two(a, b))
 
+"""
+    expand_stage(net::ResponsiveProjectionNet, stage, n; ageing = 1.0, name = Symbol(stage, :_ageing))
+
+Give `stage` a fixed duration of `n` time steps (`n` at least 2) and return a responsive
+net. The stages, transitions and values are those that the valued method of
+[`expand_stage`](@ref) gives for the net underneath: `stage` becomes `stage1, …, stagen`,
+and a new transition `name` moves individuals from each age class to the next. What is
+attached to `net` is carried along:
+
+- **Responses** stay on their transitions, whose names do not change. The new transition
+  `name` has no response. A response attached before the expansion is read against the
+  stages it was written for. If it returns a matrix, the matrix is laid out over those
+  earlier stages, and the entry of the expanded net from stage `j` to stage `i` is
+  multiplied by `M[p(i), p(j)]`, where `p` gives the earlier stage that a stage descends
+  from (`p(stagek) = stage`). If it returns a function of stage names, the function is
+  called with the earlier names (`stage`, not `stage1`). If it returns a number, the number
+  is used unchanged. This holds through any number of refinements by `expand_stage` and
+  [`stratify`](@ref).
+- **Inflows** into `stage` enter its first age class, `stage1`. Other inflows are unchanged.
+- **Births**: transitions marked by [`births`](@ref) stay marked. The new transition is
+  not a birth.
+- **After-step maps** are kept as they are.
+- **Group totals**: in `ctx.n` and in pool contributions written with stage names,
+  `stage` now stands for the total of its `n` age classes, and every other name that was
+  valid before still stands for the same stages, with `stage` counted as all its age
+  classes. The age classes can also be read one by one.
+"""
 function expand_stage(net::ResponsiveProjectionNet, stage::Symbol, n::Integer;
         ageing = 1.0, name::Symbol = Symbol(stage, :_ageing))
     old = stage_names(net)
@@ -426,6 +456,14 @@ function expand_stage(net::ResponsiveProjectionNet, stage::Symbol, n::Integer;
         fecundity = net.fecundity, groups)
 end
 
+"""
+    expand_stages(net::ResponsiveProjectionNet, stage => n, ...; ageing = Dict())
+
+Apply the responsive method of [`expand_stage`](@ref) to several stages in turn, with the
+default transition name for each. `ageing` maps a stage to its ageing value (default 1.0).
+Responses, inflows, births, after-step maps and group totals are carried along as by
+`expand_stage`.
+"""
 function expand_stages(net::ResponsiveProjectionNet, durations::Pair{Symbol, <:Integer}...;
         ageing::AbstractDict = Dict{Symbol, Any}())
     result = net
@@ -435,6 +473,35 @@ function expand_stages(net::ResponsiveProjectionNet, durations::Pair{Symbol, <:I
     return result
 end
 
+"""
+    stratify(net::ResponsiveProjectionNet, strata; coupling = Dict(), sep = "_")
+
+Replicate a responsive net across `strata` and return a responsive net. The stages,
+transitions and values are those that the valued method of [`stratify`](@ref) gives for
+the net underneath: stage `s` becomes `s_k` in each stratum `k`, transition `t` becomes
+`t_k` within stratum `k`, and `coupling` adds transitions `t_from_to_to` between strata.
+What is attached to `net` is carried along:
+
+- **Responses**: a response on `t` applies to every transition derived from `t`, within
+  each stratum and between strata. A response attached before the stratification is read
+  against the stages it was written for. If it returns a matrix, the matrix is laid out
+  over those earlier stages, and the entry of the stratified net from stage `j` to stage
+  `i` is multiplied by `M[p(i), p(j)]`, where `p` gives the earlier stage of which a stage
+  is a copy, in any stratum (`p(s_k) = s`). If it returns a function of stage names, the
+  function is called with the earlier names (`:adult`, not `:adult_infected`). If it
+  returns a number, the number is used unchanged. This holds through any number of
+  refinements by `stratify` and [`expand_stage`](@ref).
+- **Inflows** into a stage `s` enter its copy in the first stratum, `s_k` with
+  `k = first(strata)`.
+- **Births**: every transition derived from a transition marked by [`births`](@ref) is
+  marked.
+- **After-step maps** are kept as they are, and receive the stage vector of the
+  stratified net.
+- **Group totals**: in `ctx.n` and in pool contributions written with stage names, every
+  name that was valid before now stands for its total over all strata (`ctx.n[:adult]` is
+  the adults of every stratum). `name_k` gives that total within stratum `k`, and the name
+  of a stratum, `k`, gives everything in that stratum unless the name was already in use.
+"""
 function stratify(net::ResponsiveProjectionNet, strata::AbstractVector{Symbol};
         coupling::AbstractDict = Dict{Symbol, Any}(), sep = "_")
     base = stratify(net.base, strata; coupling, sep)

@@ -8,6 +8,8 @@ stage_names
 transition_names
 transition_matrix
 to_matrix
+Base.merge(::ValuedProjectionNet{Ta}, ::ValuedProjectionNet{Tb}) where {Ta, Tb}
+⊕(::ValuedProjectionNet, ::ValuedProjectionNet)
 ```
 
 ```@example catpd

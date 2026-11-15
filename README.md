@@ -50,11 +50,11 @@ println("Lagged λ = ", lambda(A_lag))
 
 ## Installation
 
-This package is not yet registered in the Julia General registry. Install directly from GitHub (the [StructuredPopulationCore.jl](https://github.com/ecorecipes/StructuredPopulationCore.jl) dependency must be installed first):
+This package is not yet registered in the Julia General registry. Install directly from GitHub (the StructuredPopulationCore dependency, from the [ProjectionModels.jl](https://github.com/ecorecipes/ProjectionModels.jl) repository, must be installed first):
 
 ```julia
 using Pkg
-Pkg.add(url="https://github.com/ecorecipes/StructuredPopulationCore.jl")
+Pkg.add(url="https://github.com/ecorecipes/ProjectionModels.jl")   # the package StructuredPopulationCore
 Pkg.add(url="https://github.com/ecorecipes/CategoricalPopulationDynamics.jl")
 ```
 
@@ -67,7 +67,7 @@ Pkg.add(url="https://github.com/ecorecipes/IntegralProjectionModels.jl")
 
 ## Related
 
-- [StructuredPopulationCore.jl](https://github.com/ecorecipes/StructuredPopulationCore.jl) — shared abstractions
+- [ProjectionModels.jl](https://github.com/ecorecipes/ProjectionModels.jl) — the package StructuredPopulationCore: shared abstractions
 - [MatrixProjectionModels.jl](https://github.com/ecorecipes/MatrixProjectionModels.jl) — discrete-stage matrix models
 - [IntegralProjectionModels.jl](https://github.com/ecorecipes/IntegralProjectionModels.jl) — continuous-state IPMs
 - [FiniteStatePopulationDynamics.jl](https://github.com/ecorecipes/FiniteStatePopulationDynamics.jl) — discrete-state continuous-time dynamics (finite-state lowering target)

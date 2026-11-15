@@ -7,11 +7,19 @@ Both take a named net and return a named net, so they can be applied one after t
 The method of `stratify` listed here acts on a named net. The methods that act on matrices are under [Stratification & Coarsening](stratification.md).
 
 ```@docs
-expand_stage
-expand_stages
+expand_stage(::ValuedProjectionNet{T}, ::Symbol, ::Integer) where {T}
+expand_stages(::ValuedProjectionNet, ::Pair{Symbol, <:Integer}...)
 stratify(::ValuedProjectionNet, ::AbstractVector{Symbol})
 stratum_stage
 stratum_transition
+```
+
+The methods for responsive nets carry along what is attached to the net. They are described more fully, with examples, under [Responsive Nets & Pooled Systems](responsive.md#Refining-the-life-cycle).
+
+```@docs
+expand_stage(::ResponsiveProjectionNet, ::Symbol, ::Integer)
+expand_stages(::ResponsiveProjectionNet, ::Pair{Symbol, <:Integer}...)
+stratify(::ResponsiveProjectionNet, ::AbstractVector{Symbol})
 ```
 
 ## A stage with a fixed duration
