@@ -24,6 +24,8 @@ makedocs(;
             "Diagnostics" => "api/diagnostics.md",
             "Composition" => "api/composition.md",
             "Valued Projection Nets" => "api/valued.md",
+            "Stage Durations & Strata" => "api/stage_structure.md",
+            "Responsive Nets & Pooled Systems" => "api/responsive.md",
             "Lowering & Lifting" => "api/lowering.md",
             "Time-Lag Models" => "api/time_lag.md",
         ],

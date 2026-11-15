@@ -2,8 +2,11 @@
 
 Stratification creates structured population models over multiple patches or environments by taking Kronecker products of projection nets. Coarsening reverses this operation, collapsing a stratified model back to a simpler one.
 
+The methods of `stratify` listed here act on matrices. The method that acts on a named net, and keeps the names of its stages and transitions, is under [Stage Durations & Strata](stage_structure.md).
+
 ```@docs
-stratify
+stratify(::AbstractMatrix, ::AbstractMatrix)
+stratify(::AbstractVector{<:AbstractMatrix}, ::AbstractMatrix)
 coarsen
 ```
 

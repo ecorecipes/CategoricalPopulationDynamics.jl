@@ -13,6 +13,7 @@ Key capabilities include:
 - **Stratification**: spatial or environmental stratification via Kronecker products, with commutativity guarantees.
 - **Composition**: assemble complex models from simpler components using undirected wiring diagrams and structured cospans.
 - **Time-lagged models**: functorial lag expansion (`lag_expand`) with a delay endofunctor for modelling reproductive delays.
+- **Responsive nets and pooled systems**: named transitions that respond to a context (`respond`), pools shared by the components of a community (`Pool`, `PooledProjectionSystem`), and refinement of a life cycle by stage durations and strata (`expand_stage`, `stratify`) that keeps names and responses.
 - **Lowering and lifting**: convert between categorical nets and concrete matrix population models or integral projection models.
 
 ## Quick Start
