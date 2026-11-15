@@ -5,6 +5,7 @@ Left and right Kan extensions provide a principled way to change the resolution 
 ```@docs
 left_kan_extension
 right_kan_extension
+StructuredPopulationCore.discretise_kernel
 ```
 
 ```@example catpd

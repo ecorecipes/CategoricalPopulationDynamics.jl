@@ -46,6 +46,13 @@ function bounds(d::ContinuousProjectionDomain)
     collect(range(d.lower, d.upper; length=d.n_meshpoints + 1))
 end
 
+"""
+    n_meshpoints(domain)
+
+Number of states of a domain: the number of bins (mesh points) of a
+[`ContinuousProjectionDomain`](@ref), or the number of classes of a
+[`DiscreteProjectionDomain`](@ref).
+"""
 n_meshpoints(d::ContinuousProjectionDomain) = d.n_meshpoints
 
 # ---------------------------------------------------------------------------

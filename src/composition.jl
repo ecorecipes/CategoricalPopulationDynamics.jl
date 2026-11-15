@@ -10,19 +10,7 @@ Composition operators for projection models.
 # oapply: UWD composition of ProjectionSharers
 # ---------------------------------------------------------------------------
 
-"""
-    oapply(d::AbstractUWD, sharers::Vector{ProjectionSharer{T}})
-
-Compose ProjectionSharers according to an undirected wiring diagram.
-
-For projection models, composition is additive: sub-kernels sharing the
-same state variables sum their contributions.
-
-Each box in the UWD corresponds to a sharer; junctions identify shared
-state variables. `ProjectionSharer.portmap` determines which local state each
-box port exposes, and states attached to the same junction are quotient-merged
-in the composed result.
-"""
+# union-find over the states of the sharers, for merging the states on one junction
 function _find_root!(parent::Vector{Int}, i::Int)
     while parent[i] != i
         parent[i] = parent[parent[i]]
@@ -44,6 +32,19 @@ function _union_roots!(parent::Vector{Int}, i::Int, j::Int)
     end
 end
 
+"""
+    oapply(d::AbstractUWD, sharers::Vector{ProjectionSharer{T}})
+
+Compose ProjectionSharers according to an undirected wiring diagram.
+
+For projection models, composition is additive: sub-kernels sharing the
+same state variables sum their contributions.
+
+Each box in the UWD corresponds to a sharer; junctions identify shared
+state variables. `ProjectionSharer.portmap` determines which local state each
+box port exposes, and states attached to the same junction are quotient-merged
+in the composed result.
+"""
 function oapply(d::AbstractUWD, sharers::Vector{ProjectionSharer{T}}) where {T}
     nboxes_d = nparts(d, :Box)
     length(sharers) == nboxes_d || throw(ArgumentError(

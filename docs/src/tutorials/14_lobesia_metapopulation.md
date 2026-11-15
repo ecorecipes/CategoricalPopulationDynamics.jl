@@ -10,7 +10,7 @@ Simon Frost
 
 The European grape moth (*Lobesia botrana*) is a major viticultural pest across the Mediterranean basin and beyond. Its lifecycle — egg → larva → pupa → adult — is driven by temperature-dependent development rates, so populations at different latitudes experience fundamentally different demography.
 
-A common modelling approach is to run the same lifecycle model independently at each latitude (as in [PhysiologicallyBasedDemographicModels.jl vignette 05](../../PhysiologicallyBasedDemographicModels.jl/vignettes/05_lobesia_overwintering/05_lobesia_overwintering.qmd)). But grape moths disperse: adults can fly tens of kilometres, and wind-assisted long-range dispersal connects distant vineyards. Independent single-patch models cannot capture the **source-sink dynamics** that emerge when productive southern populations subsidise marginal northern ones.
+A common modelling approach is to run the same lifecycle model independently at each latitude (as in [PhysiologicallyBasedDemographicModels.jl vignette 05](https://github.com/ecorecipes/PhysiologicallyBasedDemographicModels.jl/blob/main/vignettes/05_lobesia_overwintering/05_lobesia_overwintering.qmd)). But grape moths disperse: adults can fly tens of kilometres, and wind-assisted long-range dispersal connects distant vineyards. Independent single-patch models cannot capture the **source-sink dynamics** that emerge when productive southern populations subsidise marginal northern ones.
 
 **Categorical stratification** provides the right framework. We:
 

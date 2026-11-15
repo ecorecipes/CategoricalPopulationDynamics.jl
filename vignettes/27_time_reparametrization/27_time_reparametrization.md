@@ -221,9 +221,9 @@ proper generator for a sub-Markovian process.
 
 We use a simple sinusoidal temperature model for a temperate climate:
 
-$$
-T(t) = \bar{T} + A \sin\\\Bigl(\frac{2\pi(t - t_0)}{365}\Bigr)
-$$
+```math
+T(t) = \bar{T} + A \sin\,\Bigl(\frac{2\pi(t - t_0)}{365}\Bigr)
+```
 
 where *T̄* = 18 °C is the annual mean, *A* = 12 °C is the amplitude, and
 *t*<sub>0</sub> = 80 (late March) is the phase shift so that the warmest
@@ -439,11 +439,11 @@ computations apply the **same** matrix exponential
 *e*<sup>*Δ**τ*(*t*) *G*</sup> at each step. This is not an approximation
 — it is the mathematical identity:
 
-$$
-\prod\_{d=0}^{t-1} e^{\Delta\tau(d)\\G}
-= e^{\bigl(\sum\_{d=0}^{t-1}\Delta\tau(d)\bigr)\\G}
-= e^{\tau(t)\\G}
-$$
+```math
+\prod_{d=0}^{t-1} e^{\Delta\tau(d)\,G}
+= e^{\bigl(\sum_{d=0}^{t-1}\Delta\tau(d)\bigr)\,G}
+= e^{\tau(t)\,G}
+```
 
 which holds because *G* commutes with itself. Calendar-time dynamics is
 literally physiological-time dynamics composed with the time-change map.
