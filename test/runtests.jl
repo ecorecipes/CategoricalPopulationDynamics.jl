@@ -1530,6 +1530,7 @@ end
 end
 
 include("test_responsive.jl")
+include("test_open_communities.jl")
 
 # ---------------------------------------------------------------------------
 end # top-level testset

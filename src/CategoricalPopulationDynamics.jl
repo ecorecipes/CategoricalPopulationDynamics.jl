@@ -14,6 +14,12 @@ import StructuredPopulationCore
 
 import Catlab.WiringDiagrams: oapply
 import Catlab: ⊕, evaluate
+# Open communities compose along undirected wiring diagrams with a method of Catlab's
+# `compose`, and report the diagram with a method of Catlab's `diagram`, so that the names
+# mean one function whether or not Catlab is loaded alongside.
+import Catlab: compose, diagram
+using Catlab: UndirectedWiringDiagram, RelationDiagram, nparts, subpart, junction,
+              add_box!, add_junctions!, set_junction!
 # Functions that the core package also has are extended here, for this package's domains, nets
 # and Catlab types, instead of being defined again under the same name. Each is then one
 # function across the stack, usable unqualified whichever packages are loaded together:
@@ -91,6 +97,11 @@ include("responsive.jl")
 export StageVector, ResponseContext, ResponsiveProjectionNet,
        respond, inflow, after_step, births, context, meshes, state_layout,
        Pool, PooledProjectionSystem, pool_names, pool_totals, advance, trajectory
+
+# Open communities: pooled systems composed along undirected wiring diagrams
+include("open_communities.jl")
+export OpenCommunity, species, community, compose, system, species_names, diagram,
+       subcommunity, state_vector
 
 # Time-lagged models
 include("time_lag.jl")

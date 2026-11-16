@@ -2,6 +2,8 @@
 
 Compositional model construction assembles complex population models from simpler components. Models are composed via undirected wiring diagrams using the structured cospan machinery provided by Catlab.jl.
 
+`oapply` on sharers merges states and adds constant matrices. Composition in which each box keeps its own states and its rates depend on the totals of the junctions it shares, as in a community of species competing for space, is described under [Open communities](@ref) on the page on responsive nets.
+
 ```@docs
 ProjectionSharer
 oapply

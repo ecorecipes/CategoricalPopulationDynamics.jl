@@ -396,6 +396,60 @@ to_matrix(late, c6)
 
 The two operations can be applied in either order and more than once. Each response goes on being read against the stages of the net it was attached to.
 
+## Open communities
+
+A pooled system is closed: its components and pools are fixed when it is built. An *open community* is a pooled system with ports. Each species says which pools it occupies, and how much of each, and which it only reads; those pools are its ports. Open communities compose along an undirected wiring diagram, as in matrix community models (Lytle & Tonkin 2023): each box is filled by a community, each junction is one pool whose total is the sum of what every attached species contributes, and the outer ports of the diagram are the pools of the composite. Composites nest, and every species keeps its own stages and responses, written with its own names for the pools. Flattened, a community is a `PooledProjectionSystem`, and its state is a flat vector with one block of stages per species.
+
+```@docs
+OpenCommunity
+species
+community
+compose(::CategoricalPopulationDynamics.UndirectedWiringDiagram, ::AbstractVector{<:OpenCommunity})
+subcommunity
+system
+species_names
+diagram(::OpenCommunity)
+state_vector
+```
+
+`stage_names`, `pool_names`, `pool_totals` and `advance` also take a community; their methods are listed with the others above. The two plants of the section on pools, as species:
+
+```@example catpd
+g = species(:grass, grass; occupies = [:space => [:seedling => 0.1, :adult => 1.0]])
+s = species(:shrub, shrub; occupies = [:space => [0.1, 1.0, 4.0]])
+meadow2 = community(g, s)
+```
+
+`community` joins species that share pools by name. The result is the system built by hand above, and one step of it is one step of that system:
+
+```@example catpd
+n = state_vector(meadow2, :grass => [50.0, 10.0], :shrub => [5.0, 0.0, 1.0])
+(pool_totals(meadow2, n, nothing), advance(meadow2, n, nothing) == vcat(next[:grass], next[:shrub]))
+```
+
+A wiring diagram says what is shared explicitly. Here the junction is called `:ground`, while each species' responses go on reading it as `ctx.pool.space`; a diagram without outer ports keeps the pool inside the composite, under a private name.
+
+```@example catpd
+using Catlab.Programs: @relation
+
+d = @relation (ground,) begin
+    grass(ground)
+    shrub(ground)
+end
+on_ground = compose(d, [g, s])
+(pool_names(on_ground), advance(on_ground, n, nothing) == advance(meadow2, n, nothing))
+```
+
+```@example catpd
+closed = compose((@relation () begin
+    grass(space)
+    shrub(space)
+end), [g, s])
+(pool_names(closed), pool_names(closed; internal = true))
+```
+
+`compose` and `diagram` are methods of Catlab's functions of those names, so loading Catlab alongside this package does not hide them. `advance(c, n, env; rng)` steps a community with demographic stochasticity, and `system(c)` lowers like any pooled system.
+
 ## Lowering to MatrixProjectionModels.jl
 
 With MatrixProjectionModels.jl loaded, `lower` turns a pooled system into a `CoupledMPMProblem`. The block below is not run on this page, because these pages are built without that package.
