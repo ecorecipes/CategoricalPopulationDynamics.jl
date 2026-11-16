@@ -29,7 +29,7 @@ function coarsen(A::AbstractMatrix, f::FinFunction)
         fibre_sizes[f(i)] += 1
     end
 
-    A_coarse = zeros(eltype(A), n_coarse, n_coarse)
+    A_coarse = zeros(float(eltype(A)), n_coarse, n_coarse)    # as the core package's method
     for j_fine in 1:n_fine
         c_j = f(j_fine)
         for i_fine in 1:n_fine

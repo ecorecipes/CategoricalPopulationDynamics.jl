@@ -65,15 +65,7 @@ function CategoricalPopulationDynamics.lower(
     return MatrixProjectionModels.MatrixProjectionModel(A; stage_names=snames)
 end
 
-function _metadata_get(meta::NamedTuple, key::Symbol, default)
-    hasproperty(meta, key) ? getproperty(meta, key) : default
-end
-
-function _metadata_get(meta::AbstractDict, key::Symbol, default)
-    get(meta, key, default)
-end
-
-_metadata_get(meta, key::Symbol, default) = default
+const _metadata_get = CategoricalPopulationDynamics._metadata_get
 
 function _single_component_name(target::CategoricalPopulationDynamics.StateDependentMPMTarget)
     names = collect(keys(target.initial_populations))
@@ -130,11 +122,6 @@ function CategoricalPopulationDynamics.lower(
         normalize = target.normalize)
 end
 
-# Environment of a day: `p` is a sequence of environments starting at the first day, or
-# a single environment used every day.
-_environment(p::Union{AbstractVector, AbstractRange, Tuple}, day::Int, t0::Int) = p[day - t0 + 1]
-_environment(p, day::Int, t0::Int) = p
-
 """
     lower(sys::PooledProjectionSystem, target::StateDependentMPMTarget)
 
@@ -153,56 +140,31 @@ function CategoricalPopulationDynamics.lower(
         target::CategoricalPopulationDynamics.StateDependentMPMTarget)
     CPD = CategoricalPopulationDynamics
     MPM = MatrixProjectionModels
-    names = CPD.component_names(sys)
-    Set(names) == Set(keys(target.initial_populations)) || throw(ArgumentError(
-        "components $(names) do not match initial_populations keys $(collect(keys(target.initial_populations)))"))
-    t0 = target.tspan[1]
-    env(p, day) = _environment(p, day, t0)
-    state_of(s) = Dict{Symbol, Vector{Float64}}(name => s[name].population for name in names)
-
-    pools_substep = MPM.CustomSubstep(:pools, (s, day, p) -> begin
-        state = state_of(s)
-        pool = CPD.pool_totals(sys, state, env(p, day))
-        MPM.set_state!(s, :pools, pool)
-        MPM.set_state!(s, :inflows, Dict{Symbol, Vector{Float64}}(
-            name => CPD._inflows(sys[name], CPD.context(sys[name], state[name], pool, env(p, day)))
-            for name in names if !isempty(sys[name].inflows)))
-        pool
-    end)
+    pieces = CPD._coupled_pieces(sys, target.initial_populations, target.tspan[1])
 
     components = Any[]
-    rules = Any[]
-    for name in names
+    for name in CPD.component_names(sys)
         net = sys[name]
         snames = CPD.stage_names(net)
+        matrices = pieces.matrices[name]
         model = (s, day, p) -> begin
-            ctx = CPD.context(net, s[name].population, MPM.get_state(s, :pools), env(p, day))
-            U, F = CPD.survival_fecundity_matrices(net, ctx)
+            U, F = matrices(s, day, p)
             MPM.MatrixProjectionModel(U, F; stage_names = snames)
         end
         metadata = get(target.metadata, name, NamedTuple())
         push!(components, name => MPM.PopulationComponent(model, target.initial_populations[name];
             stage_names = snames,
-            species = _metadata_get(metadata, :species, name),
-            type = _metadata_get(metadata, :type, :default),
-            patch = _metadata_get(metadata, :patch, :default)))
-        if !isempty(net.inflows) || !isempty(net.after)
-            push!(rules, MPM.CustomRule(Symbol(name, :_inflow_and_after), (s, day, p) -> begin
-                stepped = s[name].population
-                wanted = isempty(net.inflows) ? stepped : stepped .+ MPM.get_state(s, :inflows)[name]
-                wanted = CPD._after(net, wanted)
-                [MPM.StageFlux(name, i, wanted[i] - stepped[i]) for i in eachindex(stepped) if wanted[i] != stepped[i]]
-            end))
-        end
+            species = CPD._metadata_get(metadata, :species, name),
+            type = CPD._metadata_get(metadata, :type, :default),
+            patch = CPD._metadata_get(metadata, :patch, :default)))
     end
 
-    state = merge(Dict{Symbol, Any}(:pools => NamedTuple(), :inflows => Dict{Symbol, Vector{Float64}}()),
-                  Dict{Symbol, Any}(pairs(target.state)))
+    state = merge(pieces.state, Dict{Symbol, Any}(pairs(target.state)))
     pop_system = MPM.PopulationSystem(components...; state = state)
     return MPM.CoupledMPMProblem(pop_system, target.tspan;
         p = target.p,
-        substeps = Any[pools_substep, target.substeps...],
-        rules = Any[rules..., target.rules...],
+        substeps = Any[pieces.substep, target.substeps...],
+        rules = Any[pieces.rules..., target.rules...],
         events = collect(target.events),
         observables = collect(target.observables),
         normalize = target.normalize)

@@ -299,6 +299,75 @@ function StateDependentMPMTarget(tspan::Tuple{Int, Int},
 end
 
 """
+    CoupledIPMTarget(initial_populations, tspan; kwargs...)
+
+Target for lowering a `PooledProjectionSystem` to a `CoupledIPMProblem` in
+`IntegralProjectionModels.jl` (requires the IntegralProjectionModels extension). The keyword
+arguments are those of [`StateDependentMPMTarget`](@ref), and
+
+- `stochasticity`: `Deterministic()` (the default) or `Demographic()`. With `Demographic()`
+  the inflows of the components are handed to the problem as its `inflows`, so that its
+  demographic mode draws them as Poisson numbers; the deterministic problem adds them by
+  rules, exactly as the `CoupledMPMProblem` of the same system does.
+
+Each component becomes a `PopulationComponent` whose model returns, each day, a
+`DiscretizedKernel` of its net evaluated at the day's pools: its survival and fecundity
+matrices laid out by [`state_layout`](@ref), each mesh of the net a continuous state and every
+other stage a discrete one.
+"""
+struct CoupledIPMTarget{N, P, S, R, E, O, M, St, C, T} <: AbstractLoweringTarget
+    initial_populations::N
+    tspan::Tuple{Int, Int}
+    p::P
+    substeps::S
+    rules::R
+    events::E
+    observables::O
+    metadata::M
+    state::St
+    component_transforms::C
+    normalize::Bool
+    stochasticity::T
+end
+
+function CoupledIPMTarget(initial_populations::AbstractDict{Symbol, <:AbstractVector},
+        tspan::Tuple{Int, Int};
+        p = nothing,
+        substeps = (),
+        rules = (),
+        events = (),
+        observables = (),
+        metadata = Dict{Symbol, NamedTuple}(),
+        state = NamedTuple(),
+        component_transforms = Dict{Symbol, Function}(),
+        normalize::Bool = false,
+        stochasticity::AbstractStochasticity = Deterministic())
+    tspan[2] >= tspan[1] || throw(ArgumentError("tspan must satisfy tspan[2] >= tspan[1]"))
+    stochasticity isa Union{Deterministic, Demographic} || throw(ArgumentError(
+        "stochasticity must be Deterministic() or Demographic(), got $(typeof(stochasticity))"))
+    copied_populations = Dict{Symbol, AbstractVector}(name => copy(pop) for (name, pop) in pairs(initial_populations))
+    return CoupledIPMTarget(
+        copied_populations,
+        tspan,
+        p,
+        collect(substeps),
+        collect(rules),
+        collect(events),
+        collect(observables),
+        metadata,
+        state,
+        component_transforms,
+        normalize,
+        stochasticity)
+end
+
+function CoupledIPMTarget(tspan::Tuple{Int, Int},
+        populations::Pair{Symbol, <:AbstractVector}...;
+        kwargs...)
+    return CoupledIPMTarget(Dict(populations), tspan; kwargs...)
+end
+
+"""
     ProjectionNetTarget
 
 Target for lifting a concrete model back to a `LabelledProjectionNet`.
@@ -486,6 +555,7 @@ Lower a categorical projection net specification to a concrete model object.
   (requires FiniteStatePopulationDynamics extension)
 - `MPMTarget`: produces a `MatrixProjectionModel` (requires MatrixProjectionModels extension)
 - `StateDependentMPMTarget`: produces a `CoupledMPMProblem` (requires MatrixProjectionModels extension)
+- `CoupledIPMTarget`: produces a `CoupledIPMProblem` (requires IntegralProjectionModels extension)
 """
 function lower end
 

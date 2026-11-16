@@ -1,5 +1,16 @@
 # Stage durations, stratification of named nets, responsive nets and pooled systems.
 
+# Loaded here rather than with the other packages: its Catlab extension adds a method of
+# `coarsen` for `(::Matrix, ::FinFunction)` that would take over from this package's in the
+# coarsening tests of runtests.jl, which run before this file.
+import IntegralProjectionModels
+
+# Two layouts of states are the same if they have the same names, levels and meshes
+# (`DiscreteDomain` compares its levels by identity).
+same_layout(a::NamedTuple, b::NamedTuple) = keys(a) == keys(b) &&
+    all(x isa StructuredPopulationCore.DiscreteDomain ? (y isa StructuredPopulationCore.DiscreteDomain && x.labels == y.labels) : x == y
+        for (x, y) in zip(values(a), values(b)))
+
 @testset "expand_stage" begin
     life = ValuedProjectionNet([:egg, :larva, :adult],
         :hatching => [(:egg => :larva) => 0.5],
@@ -311,4 +322,98 @@ end
         end
         @test_throws ArgumentError lower(com, StateDependentMPMTarget(Dict(:grass => [1.0, 1.0]), (0, 5)))
     end
+
+    @testset "lowering to IntegralProjectionModels" begin
+        IPM = IntegralProjectionModels
+        SPC = StructuredPopulationCore
+        # a species whose plants are in three size classes of a continuous trait, beside a seed bank
+        d = SPC.ContinuousDomain(0.0, 3.0, 3)
+        sized_base = ValuedProjectionNet([:seed, :z1, :z2, :z3],
+            :growing => [(:z1 => :z2) => 0.5, (:z2 => :z3) => 0.5, (:z3 => :z3) => 0.8],
+            :sprouting => [(:seed => :z1) => 0.2, (:seed => :seed) => 0.3],
+            :seeding => [(:z3 => :seed) => 4.0])
+        sized = births(respond(ResponsiveProjectionNet(sized_base; meshes = [(name = :size, domain = d, cells = [:z1, :z2, :z3])]),
+                               :seeding => crowding), :seeding)
+        @test same_layout(state_layout(sized), (seed = SPC.DiscreteDomain([:seed]), size = d))
+        seasonal = respond(grass, :persisting => ctx -> ctx.env ? 0.5 : 1.0)
+        rain = after_step(inflow(seasonal, :seedling => ctx -> 2.0), n -> [x < 1 ? 0.0 : x for x in n])
+        space4 = Pool(:space, :grass => [:seedling => 0.1, :adult => 1.0], :shrub => [0.1, 1.0, 4.0], :sized => [0.0, 0.5, 1.0, 2.0])
+        sys4 = PooledProjectionSystem(:grass => births(rain, :seeding), :shrub => births(shrub, :seeding), :sized => sized;
+                                      pools = [space4])
+        state4 = Dict(:grass => [50.0, 10.0], :shrub => [5.0, 0.0, 1.0], :sized => [10.0, 4.0, 2.0, 1.0])
+        envs = [isodd(t) for t in 1:60]
+
+        # the same system under both targets: the same steps, to the last bit
+        a = solve(lower(sys4, StateDependentMPMTarget(state4, (0, 60); p = envs)), DirectIteration())
+        prob = lower(sys4, CoupledIPMTarget(state4, (0, 60); p = envs))
+        @test prob isa IPM.CoupledIPMProblem && isempty(prob.inflows)
+        b = IPM.solve(prob, IPM.DirectIteration())
+        @test b.u == a.u
+        @test b.substep_log == a.substep_log && b.rule_log == a.rule_log
+        @test b.component_matrices == a.component_matrices
+        SPC.set_state!(prob.system, :pools, (space = 10.0,))
+        kernel = prob.system[:sized].model(prob.system, 0, envs)
+        @test kernel isa IPM.DiscretizedKernel && same_layout(kernel.states, state_layout(sized))
+        @test CoupledIPMTarget((0, 3), :grass => [1.0, 2.0]).stochasticity isa SPC.Deterministic
+        @test_throws ArgumentError CoupledIPMTarget((0, 3), :grass => [1.0, 2.0]; stochasticity = SPC.StochasticKernelResampled())
+        @test_throws ArgumentError lower(com, CoupledIPMTarget(Dict(:grass => [1.0, 1.0]), (0, 5)))
+
+        # whole individuals: for each component in turn, survival and births, then Poisson inflows, then the maps
+        whole = Dict(k => round.(v) for (k, v) in state4)
+        demographic = lower(sys4, CoupledIPMTarget(whole, (0, 30); p = envs, stochasticity = SPC.Demographic()))
+        @test collect(keys(demographic.inflows)) == [:grass]
+        x = IPM.solve(demographic; rng = Xoshiro(5))
+        rng = Xoshiro(5)
+        current = Dict(k => copy(v) for (k, v) in whole)
+        for k in 1:30
+            pool = pool_totals(sys4, current, envs[k])
+            next = Dict{Symbol, Vector{Float64}}()
+            for name in component_names(sys4)
+                net = sys4[name]
+                ctx = context(net, current[name], pool, envs[k])
+                U, F = survival_fecundity_matrices(net, ctx)
+                drawn = Float64.(SPC.demographic_step!(rng, zeros(Int, length(current[name])), round.(Int, current[name]), U, F))
+                for (i, r) in enumerate(CategoricalPopulationDynamics._inflows(net, ctx))
+                    r > 0 && (drawn[i] += SPC.rand_poisson(rng, r))
+                end
+                next[name] = collect(Float64, CategoricalPopulationDynamics._after(net, drawn))
+            end
+            current = next
+            @test all(x.u[k + 1][name] == current[name] for name in component_names(sys4))
+        end
+    end
+end
+
+@testset "meshes" begin
+    SPC = StructuredPopulationCore
+    d = SPC.ContinuousDomain(0.0, 3.0, 3)
+    base = ValuedProjectionNet([:seed, :z1, :z2, :z3],
+        :growing => [(:z1 => :z2) => 0.5, (:z2 => :z3) => 0.5, (:z3 => :z3) => 0.8],
+        :sprouting => [(:seed => :z1) => 0.2],
+        :seeding => [(:z3 => :seed) => 4.0])
+    net = ResponsiveProjectionNet(base; meshes = [(name = :size, domain = d, cells = [:z1, :z2, :z3])])
+    @test meshes(net) == [(name = :size, domain = d, cells = [:z1, :z2, :z3])]
+    @test isempty(meshes(base)) && isempty(meshes(ResponsiveProjectionNet(base)))
+    @test to_matrix(net) == to_matrix(base)                                       # metadata only
+    # carried by the verbs, by ⊕ and through refinement
+    @test meshes(births(respond(net, :growing => ctx -> 1.0), :seeding)) == meshes(net)
+    @test meshes(after_step(inflow(net, :seed => ctx -> 1.0), identity)) == meshes(net)
+    dying = ResponsiveProjectionNet(ValuedProjectionNet([:seed, :z1, :z2, :z3], :dying => [(:z1 => :z1) => 0.1]))
+    @test meshes(net ⊕ dying) == meshes(net) && meshes(dying ⊕ net) == meshes(net)
+    @test meshes(expand_stage(net, :seed, 2)) == meshes(net)
+    @test meshes(expand_stages(net, :seed => 3)) == meshes(net)
+    @test isempty(meshes(expand_stage(net, :z2, 2)))                              # its cells are no longer one stage each
+    two = stratify(net, [:north, :south])
+    @test [m.name for m in meshes(two)] == [:size_north, :size_south]
+    @test meshes(two)[2].cells == [:z1_south, :z2_south, :z3_south] && meshes(two)[2].domain == d
+    @test same_layout(state_layout(two), (seed_north = SPC.DiscreteDomain([:seed_north]), size_north = d,
+                                          seed_south = SPC.DiscreteDomain([:seed_south]), size_south = d))
+    @test keys(state_layout(stratify(two, [:young, :old]))) ==
+          (:seed_north_young, :size_north_young, :seed_south_young, :size_south_young,
+           :seed_north_old, :size_north_old, :seed_south_old, :size_south_old)
+    # a mesh must have one cell per mesh point, each a stage; one whose cells are not consecutive is no state
+    @test_throws ArgumentError ResponsiveProjectionNet(base; meshes = [(name = :size, domain = d, cells = [:z1, :z2])])
+    @test_throws ArgumentError ResponsiveProjectionNet(base; meshes = [(name = :size, domain = d, cells = [:z1, :z2, :w])])
+    shuffled = ResponsiveProjectionNet(base; meshes = [(:size, d, [:z1, :z3, :z2])])
+    @test keys(state_layout(shuffled)) == (:seed, :z1, :z2, :z3)
 end

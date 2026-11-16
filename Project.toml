@@ -1,6 +1,6 @@
 name = "CategoricalPopulationDynamics"
 uuid = "04a5e6ed-5bdd-4eeb-ad4c-515b60df3359"
-version = "0.1.2"
+version = "0.1.3"
 authors = ["Simon Frost"]
 
 [deps]
@@ -36,11 +36,12 @@ CategoricalPopulationDynamicsMPMExt = "MatrixProjectionModels"
 Catlab = "0.17"
 ContinuousStatePopulationDynamics = "0.1.0"
 FiniteStatePopulationDynamics = "0.1.0"
-IntegralProjectionModels = "0.1.0"
+IntegralProjectionModels = "0.1.2"
 LinearAlgebra = "1"
-MatrixProjectionModels = "0.1.0"
+MatrixProjectionModels = "0.1.4"
 Plots = "1"
 Random = "1.11.0"
+StructuredPopulationCore = "0.1.4"
 julia = "1.11"
 
 [extras]

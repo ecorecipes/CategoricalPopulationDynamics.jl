@@ -42,4 +42,58 @@ function CategoricalPopulationDynamics.lower(
         kernel, ipm_domain, n0, (0, 100))
 end
 
+"""
+    lower(sys::PooledProjectionSystem, target::CoupledIPMTarget)
+
+Lower a pooled system to a `CoupledIPMProblem`. `target.p` holds the environments: a
+vector with one environment per time step, or a single value used throughout.
+
+Each component becomes a `PopulationComponent` whose model returns, each day, a
+`DiscretizedKernel` of its net evaluated at the day's pools: its survival and fecundity
+matrices, laid out by `state_layout(net)`. The pools, the inflows and the after-step maps
+are handled as by the lowering to a `CoupledMPMProblem` (a substep named `:pools` and one
+rule per component), so the two problems step the system identically. With
+`stochasticity = Demographic()` the inflows are instead given to the problem as its
+`inflows`, for its demographic mode to draw. Any substeps, rules, events and observables of
+the target are kept, after these.
+"""
+function CategoricalPopulationDynamics.lower(
+        sys::CategoricalPopulationDynamics.PooledProjectionSystem,
+        target::CategoricalPopulationDynamics.CoupledIPMTarget)
+    CPD = CategoricalPopulationDynamics
+    IPM = IntegralProjectionModels
+    demographic = target.stochasticity isa IPM.Demographic
+    pieces = CPD._coupled_pieces(sys, target.initial_populations, target.tspan[1]; separate_inflows = demographic)
+
+    components = Any[]
+    for name in CPD.component_names(sys)
+        net = sys[name]
+        snames = CPD.stage_names(net)
+        layout = CPD.state_layout(net)
+        matrices = pieces.matrices[name]
+        model = (s, day, p) -> begin
+            U, F = matrices(s, day, p)
+            IPM.DiscretizedKernel(U, F, layout)
+        end
+        metadata = get(target.metadata, name, NamedTuple())
+        push!(components, name => IPM.PopulationComponent(model, target.initial_populations[name];
+            stage_names = snames,
+            species = CPD._metadata_get(metadata, :species, name),
+            type = CPD._metadata_get(metadata, :type, :default),
+            patch = CPD._metadata_get(metadata, :patch, :default)))
+    end
+
+    state = merge(pieces.state, Dict{Symbol, Any}(pairs(target.state)))
+    pop_system = IPM.PopulationSystem(components...; state = state)
+    return IPM.CoupledIPMProblem(pop_system, target.tspan;
+        p = target.p,
+        substeps = Any[pieces.substep, target.substeps...],
+        rules = Any[pieces.rules..., target.rules...],
+        events = collect(target.events),
+        observables = collect(target.observables),
+        normalize = target.normalize,
+        inflows = pieces.inflows,
+        stochasticity = target.stochasticity)
+end
+
 end # module

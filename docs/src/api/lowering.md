@@ -6,6 +6,7 @@ Lowering converts a categorical projection net into a concrete computational mod
 AbstractLoweringTarget
 IPMTarget
 MPMTarget
+CoupledIPMTarget
 ProjectionNetTarget
 lower
 lift

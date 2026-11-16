@@ -6,7 +6,7 @@ A `ValuedProjectionNet` holds numbers. In a community, some of those numbers dep
 - A **pool** is a named total, such as the space taken, to which components contribute and which responses can read.
 - A **pooled system** is a set of named components together with the pools that link them. This is a community: no component refers to another directly, only to the pools.
 
-A pooled system has a definite meaning for one time step, given by [`advance`](@ref), and with MatrixProjectionModels.jl it lowers to a `CoupledMPMProblem` that has the same dynamics.
+A pooled system has a definite meaning for one time step, given by [`advance`](@ref), and with MatrixProjectionModels.jl it lowers to a `CoupledMPMProblem` that has the same dynamics; with IntegralProjectionModels.jl, to a `CoupledIPMProblem` that has them too.
 
 ## A life cycle that responds to a pool
 
@@ -400,3 +400,14 @@ In the lowered problem:
 - substeps, rules, events and observables given to the target are kept, and its substeps and rules run after these.
 
 The solution is the one that [`trajectory`](@ref) computes: `solution.u[k]` holds the same stage vectors as `out.states[k]`.
+
+## Lowering to IntegralProjectionModels.jl
+
+When some stages of a net are the mesh cells of a continuous trait, the net can record them as *meshes*: each a name, a `ContinuousDomain` and the cells in the order of their mesh points. This is metadata, carried through `respond`, `⊕`, `expand_stage` and `stratify`, and it does not change the net's matrices. `state_layout` reads the stages of a net as the states of an integral projection model: each mesh whose cells are consecutive is a continuous state, and every other stage a discrete state of its own.
+
+```@docs
+meshes
+state_layout
+```
+
+With IntegralProjectionModels.jl loaded, `lower(com, CoupledIPMTarget(state, (0, 400); p = nothing))` turns a pooled system into a `CoupledIPMProblem`. Each component's model returns, at each step, a `DiscretizedKernel` of its net evaluated at the pools of that step: its survival and fecundity matrices laid out by `state_layout`. The pools, inflows and after-step maps are handled exactly as for a `CoupledMPMProblem`, so the two problems give the same trajectory. With `stochasticity = Demographic()` the inflows are handed to the problem for its demographic mode to draw as Poisson numbers, each component's after its own survival and births.

@@ -13,7 +13,8 @@ the level of named transitions, without writing a simulation loop:
 - a [`PooledProjectionSystem`](@ref): named components plus the pools that link them.
 
 The system has a definite one-step semantics ([`advance`](@ref)) and lowers to a
-`CoupledMPMProblem` in MatrixProjectionModels.jl through `StateDependentMPMTarget`.
+`CoupledMPMProblem` in MatrixProjectionModels.jl through `StateDependentMPMTarget`, or to a
+`CoupledIPMProblem` in IntegralProjectionModels.jl through `CoupledIPMTarget`.
 """
 
 # ---------------------------------------------------------------------------
@@ -87,9 +88,15 @@ A [`ValuedProjectionNet`](@ref) whose transitions respond to a context.
   stages, so that they survive [`expand_stage`](@ref) and [`stratify`](@ref).
 - `fecundity`: names of the transitions that are births, used to split the matrix into
   survival and fecundity parts.
+- `meshes`: the stages that are mesh cells of a continuous trait, as a list of
+  `(name = mesh, domain = ContinuousDomain(lower, upper, cells), cells = [stage, ...])`, the
+  cells in the order of their mesh points. This is metadata: it does not change the net's
+  matrices, and tells a lowering such as `CoupledIPMTarget` which stages form a continuous
+  state. See [`meshes`](@ref).
 
 Build one with [`respond`](@ref), [`inflow`](@ref) and [`after_step`](@ref). Responsive
-nets combine with `⊕`, and `expand_stage` and `stratify` carry their responses along.
+nets combine with `⊕`, and `expand_stage` and `stratify` carry their responses (and meshes)
+along.
 
 A matrix is the cheap way to scale many entries individually, for example a transition
 among the cells of a discretised trait. Any `AbstractMatrix` will do, and its values where
@@ -112,6 +119,21 @@ struct ResponsiveProjectionNet
     # per transition: name, rows, columns, values, source and target stage names
     compiled::Vector{Tuple{Symbol, Vector{Int}, Vector{Int}, Vector{Float64}, Vector{Symbol}, Vector{Symbol}}}
     by_transition::Dict{Symbol, Vector{Any}}
+    meshes::Vector{NamedTuple{(:name, :domain, :cells), Tuple{Symbol, ContinuousDomain{Float64}, Vector{Symbol}}}}
+end
+
+const _Mesh = NamedTuple{(:name, :domain, :cells), Tuple{Symbol, ContinuousDomain{Float64}, Vector{Symbol}}}
+
+function _mesh(m, stages::AbstractVector{Symbol})
+    name, domain, cells = m isa NamedTuple ? (m.name, m.domain, m.cells) : (m[1], m[2], m[3])
+    d = ContinuousDomain(Float64(domain.lower), Float64(domain.upper), domain.n_meshpoints)
+    cells = collect(Symbol, cells)
+    length(cells) == d.n_meshpoints || throw(ArgumentError(
+        "mesh :$name has $(d.n_meshpoints) mesh points but $(length(cells)) cells"))
+    for c in cells
+        c in stages || throw(ArgumentError("cell :$c of mesh :$name is not a stage of the net"))
+    end
+    return _Mesh((Symbol(name), d, cells))
 end
 
 function _float_net(vnet::ValuedProjectionNet)
@@ -123,7 +145,7 @@ end
 
 function ResponsiveProjectionNet(vnet::ValuedProjectionNet;
         responses = Pair{Symbol, Any}[], inflows = Pair{Symbol, Any}[], after = Any[],
-        fecundity = Symbol[], groups = nothing)
+        fecundity = Symbol[], groups = nothing, meshes = _Mesh[])
     base = _float_net(vnet)
     idx = Dict(s => i for (i, s) in enumerate(base.stage_names))
     g = groups === nothing ? Dict{Symbol, Vector{Int}}(s => [i] for (s, i) in idx) : groups
@@ -149,16 +171,71 @@ function ResponsiveProjectionNet(vnet::ValuedProjectionNet;
     for (t, f) in responses
         push!(get!(by_transition, t, Any[]), f)
     end
+    mesh_list = _Mesh[_mesh(m, base.stage_names) for m in meshes]
+    allunique(m.name for m in mesh_list) || throw(ArgumentError("mesh names must be unique"))
     return ResponsiveProjectionNet(base, Pair{Symbol, Any}[p.first => p.second for p in responses],
         Pair{Symbol, Any}[p.first => p.second for p in inflows], collect(Any, after),
-        collect(Symbol, fecundity), g, compiled, by_transition)
+        collect(Symbol, fecundity), g, compiled, by_transition, mesh_list)
 end
 
 ResponsiveProjectionNet(net::ResponsiveProjectionNet) = net
 
 _rebuild(net::ResponsiveProjectionNet; base = net.base, responses = net.responses, inflows = net.inflows,
-         after = net.after, fecundity = net.fecundity, groups = net.groups) =
-    ResponsiveProjectionNet(base; responses, inflows, after, fecundity, groups)
+         after = net.after, fecundity = net.fecundity, groups = net.groups, meshes = net.meshes) =
+    ResponsiveProjectionNet(base; responses, inflows, after, fecundity, groups, meshes)
+
+"""
+    meshes(net)
+
+The meshes of a responsive net: the stages that are the cells of a continuous trait, as a
+vector of `(name, domain, cells)` named tuples (see [`ResponsiveProjectionNet`](@ref)). Empty
+for a net without them, and for a `ValuedProjectionNet`. They are carried through `respond`,
+`births`, `inflow`, `after_step`, `⊕`, [`expand_stage`](@ref) (a mesh one of whose cells is
+expanded is dropped, since its cells are no longer one stage each) and [`stratify`](@ref)
+(each mesh is copied into every stratum, named as the stages are: `stratum_stage(name,
+stratum)`).
+"""
+meshes(net::ResponsiveProjectionNet) = net.meshes
+meshes(net::ValuedProjectionNet) = _Mesh[]
+
+"""
+    state_layout(net)
+
+The stages of `net` as the states of an integral projection model, in stage order: a
+`NamedTuple` whose entries are a `ContinuousDomain` for each mesh (see [`meshes`](@ref))
+whose cells are consecutive stages, under the mesh's name, and a `DiscreteDomain` with one
+level for every other stage, under the stage's name. The domains count the stages: their
+`n_states` add up to the number of stages.
+"""
+function state_layout(net::ResponsiveProjectionNet)
+    stages = stage_names(net)
+    taken = Set(stages)
+    starts = Dict{Int, _Mesh}()
+    position = Dict(s => i for (i, s) in enumerate(stages))
+    for m in net.meshes
+        i = position[first(m.cells)]
+        j = i + length(m.cells) - 1
+        # a mesh is a continuous state if its cells are consecutive and its name is free
+        j <= length(stages) && stages[i:j] == m.cells && !(m.name in taken) || continue
+        starts[i] = m
+        push!(taken, m.name)
+    end
+    names, domains = Symbol[], Any[]
+    i = 1
+    while i <= length(stages)
+        m = get(starts, i, nothing)
+        if m === nothing
+            push!(names, stages[i])
+            push!(domains, DiscreteDomain([stages[i]]))
+            i += 1
+        else
+            push!(names, m.name)
+            push!(domains, m.domain)
+            i += length(m.cells)
+        end
+    end
+    return NamedTuple{Tuple(names)}(Tuple(domains))
+end
 
 """
     respond(net, transition => f, ...)
@@ -397,7 +474,7 @@ function _merge_two(a::ResponsiveProjectionNet, b::ResponsiveProjectionNet)
     groups = merge(a.groups, b.groups)
     return ResponsiveProjectionNet(base; responses = vcat(a.responses, b.responses),
         inflows = vcat(a.inflows, b.inflows), after = vcat(a.after, b.after),
-        fecundity = union(a.fecundity, b.fecundity), groups = groups)
+        fecundity = union(a.fecundity, b.fecundity), groups = groups, meshes = vcat(a.meshes, b.meshes))
 end
 _merge_two(a::ResponsiveProjectionNet, b::ValuedProjectionNet) = _merge_two(a, ResponsiveProjectionNet(b))
 _merge_two(a::ValuedProjectionNet, b::ResponsiveProjectionNet) = _merge_two(ResponsiveProjectionNet(a), b)
@@ -431,6 +508,7 @@ attached to `net` is carried along:
 - **Births**: transitions marked by [`births`](@ref) stay marked. The new transition is
   not a birth.
 - **After-step maps** are kept as they are.
+- **Meshes** are kept, except one with `stage` among its cells, which is dropped.
 - **Group totals**: in `ctx.n` and in pool contributions written with stage names,
   `stage` now stands for the total of its `n` age classes, and every other name that was
   valid before still stands for the same stages, with `stage` counted as all its age
@@ -452,8 +530,9 @@ function expand_stage(net::ResponsiveProjectionNet, stage::Symbol, n::Integer;
         append!(parent, fill(i, s === stage ? n : 1))
     end
     responses = Pair{Symbol, Any}[t => _refine(f, parent, old) for (t, f) in net.responses]
+    kept = _Mesh[m for m in net.meshes if !(stage in m.cells)]
     return ResponsiveProjectionNet(base; responses, inflows, after = net.after,
-        fecundity = net.fecundity, groups)
+        fecundity = net.fecundity, groups, meshes = kept)
 end
 
 """
@@ -461,8 +540,8 @@ end
 
 Apply the responsive method of [`expand_stage`](@ref) to several stages in turn, with the
 default transition name for each. `ageing` maps a stage to its ageing value (default 1.0).
-Responses, inflows, births, after-step maps and group totals are carried along as by
-`expand_stage`.
+Responses, inflows, births, after-step maps, meshes and group totals are carried along as
+by `expand_stage`.
 """
 function expand_stages(net::ResponsiveProjectionNet, durations::Pair{Symbol, <:Integer}...;
         ageing::AbstractDict = Dict{Symbol, Any}())
@@ -497,6 +576,8 @@ What is attached to `net` is carried along:
   marked.
 - **After-step maps** are kept as they are, and receive the stage vector of the
   stratified net.
+- **Meshes**: each mesh `m` becomes one mesh per stratum `k`, `stratum_stage(m, k)`, whose
+  cells are the copies of its cells in that stratum.
 - **Group totals**: in `ctx.n` and in pool contributions written with stage names, every
   name that was valid before now stands for its total over all strata (`ctx.n[:adult]` is
   the adults of every stratum). `name_k` gives that total within stratum `k`, and the name
@@ -527,7 +608,9 @@ function stratify(net::ResponsiveProjectionNet, strata::AbstractVector{Symbol};
     end
     # inflows enter the first stratum
     inflows = Pair{Symbol, Any}[stratum_stage(s, first(strata); sep) => f for (s, f) in net.inflows]
-    return ResponsiveProjectionNet(base; responses, inflows, after = net.after, fecundity, groups)
+    meshes = _Mesh[_Mesh((stratum_stage(m.name, k; sep), m.domain, [stratum_stage(c, k; sep) for c in m.cells]))
+                   for k in strata for m in net.meshes]
+    return ResponsiveProjectionNet(base; responses, inflows, after = net.after, fecundity, groups, meshes)
 end
 
 # ---------------------------------------------------------------------------
@@ -579,7 +662,10 @@ listed components contribute. No component refers to another directly.
 
 One time step is defined by [`advance`](@ref); [`trajectory`](@ref) iterates it. With
 MatrixProjectionModels.jl loaded, `lower(system, StateDependentMPMTarget(n0, tspan; p =
-environments))` gives a `CoupledMPMProblem` with the same dynamics.
+environments))` gives a `CoupledMPMProblem` with the same dynamics; with
+IntegralProjectionModels.jl loaded, `lower(system, CoupledIPMTarget(n0, tspan; p =
+environments))` gives a `CoupledIPMProblem` with the same dynamics, whose components are
+laid out by [`state_layout`](@ref).
 """
 struct PooledProjectionSystem
     order::Vector{Symbol}
@@ -697,4 +783,73 @@ function trajectory(sys::PooledProjectionSystem, state::AbstractDict, envs)
         push!(states, current)
     end
     return (states = states, pools = pools)
+end
+
+# ---------------------------------------------------------------------------
+# A pooled system on a coupled problem
+# ---------------------------------------------------------------------------
+
+# Environment of a day: `p` is a sequence of environments starting at the first day, or
+# a single environment used every day.
+_environment(p::Union{AbstractVector, AbstractRange, Tuple}, day::Int, t0::Int) = p[day - t0 + 1]
+_environment(p, day::Int, t0::Int) = p
+
+_metadata_get(meta::NamedTuple, key::Symbol, default) = hasproperty(meta, key) ? getproperty(meta, key) : default
+_metadata_get(meta::AbstractDict, key::Symbol, default) = get(meta, key, default)
+_metadata_get(meta, key::Symbol, default) = default
+
+# What a pooled system needs to run on the coupled-system engine of StructuredPopulationCore,
+# whichever package steps the components. Returns
+#
+# - `substep`: a substep named `:pools` that computes the pool totals (and the inflows) from the
+#   state at the start of the day and stores them in the system state under `:pools` and
+#   `:inflows`, so that `sol.substep_log[:pools]` is the pool trajectory;
+# - `matrices[name]`: a function `(system, day, p) -> (U, F)`, the survival and fecundity
+#   matrices of the component's net evaluated at the day's pools;
+# - `rules`: one rule per component with inflows or after-step maps, which adds the inflows and
+#   applies the maps to the stepped component;
+# - `inflows[name]`: with `separate_inflows`, a function `(system, day, p)` returning the day's
+#   inflows of the component, for a solver that adds them itself; the rules then apply only the
+#   after-step maps;
+# - `state`: the initial entries of the system state.
+#
+# `t0` is the first day: `p` holds the environments of the days from `t0` on, or one environment.
+function _coupled_pieces(sys::PooledProjectionSystem, initial_populations, t0::Int; separate_inflows::Bool = false)
+    SPC = StructuredPopulationCore
+    names = component_names(sys)
+    Set(names) == Set(keys(initial_populations)) || throw(ArgumentError(
+        "components $(names) do not match initial_populations keys $(collect(keys(initial_populations)))"))
+    env(p, day) = _environment(p, day, t0)
+    state_of(s) = Dict{Symbol, Vector{Float64}}(name => s[name].population for name in names)
+
+    pools_substep = SPC.CustomSubstep(:pools, (s, day, p) -> begin
+        state = state_of(s)
+        pool = pool_totals(sys, state, env(p, day))
+        SPC.set_state!(s, :pools, pool)
+        SPC.set_state!(s, :inflows, Dict{Symbol, Vector{Float64}}(
+            name => _inflows(sys[name], context(sys[name], state[name], pool, env(p, day)))
+            for name in names if !isempty(sys[name].inflows)))
+        pool
+    end)
+
+    matrices = Dict{Symbol, Any}()
+    rules = Any[]
+    inflows = Dict{Symbol, Any}()
+    for name in names
+        net = sys[name]
+        matrices[name] = (s, day, p) -> survival_fecundity_matrices(net,
+            context(net, s[name].population, SPC.get_state(s, :pools), env(p, day)))
+        separate = separate_inflows && !isempty(net.inflows)
+        separate && (inflows[name] = (s, day, p) -> SPC.get_state(s, :inflows)[name])
+        if (!isempty(net.inflows) && !separate) || !isempty(net.after)
+            push!(rules, SPC.CustomRule(Symbol(name, :_inflow_and_after), (s, day, p) -> begin
+                stepped = s[name].population
+                wanted = (separate || isempty(net.inflows)) ? stepped : stepped .+ SPC.get_state(s, :inflows)[name]
+                wanted = _after(net, wanted)
+                [SPC.StageFlux(name, i, wanted[i] - stepped[i]) for i in eachindex(stepped) if wanted[i] != stepped[i]]
+            end))
+        end
+    end
+    state = Dict{Symbol, Any}(:pools => NamedTuple(), :inflows => Dict{Symbol, Vector{Float64}}())
+    return (substep = pools_substep, matrices = matrices, rules = rules, inflows = inflows, state = state)
 end

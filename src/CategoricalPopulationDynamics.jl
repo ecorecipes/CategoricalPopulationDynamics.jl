@@ -7,8 +7,10 @@ using Catlab.CategoricalAlgebra
 using Catlab.WiringDiagrams
 using Catlab.WiringDiagrams.UndirectedWiringDiagrams: AbstractUWD, ports_with_junction, ports
 using LinearAlgebra
-using StructuredPopulationCore: lambda, ContinuousDomain,
-       DemographicReaction, DemographicReactionSystem
+using StructuredPopulationCore: lambda, ContinuousDomain, DiscreteDomain,
+       DemographicReaction, DemographicReactionSystem,
+       AbstractStochasticity, Deterministic, Demographic
+import StructuredPopulationCore
 
 import Catlab.WiringDiagrams: oapply
 import Catlab: ⊕, evaluate
@@ -59,7 +61,7 @@ export ProjectionSystemNet, component_names
 # Lowering/lifting
 export AbstractLoweringTarget, IPMTarget, ContinuousIPMTarget, PSPMTarget,
        FiniteStateDynamicsTarget,
-       MPMTarget, StateDependentMPMTarget, ProjectionNetTarget,
+       MPMTarget, StateDependentMPMTarget, CoupledIPMTarget, ProjectionNetTarget,
        lower, lift
 
 # Demographic stochasticity lowering
@@ -87,7 +89,7 @@ export expand_stage, expand_stages, stratum_stage, stratum_transition
 # Responsive nets and pooled systems (communities)
 include("responsive.jl")
 export StageVector, ResponseContext, ResponsiveProjectionNet,
-       respond, inflow, after_step, births, context,
+       respond, inflow, after_step, births, context, meshes, state_layout,
        Pool, PooledProjectionSystem, pool_names, pool_totals, advance, trajectory
 
 # Time-lagged models
