@@ -1,6 +1,6 @@
 name = "CategoricalPopulationDynamics"
 uuid = "04a5e6ed-5bdd-4eeb-ad4c-515b60df3359"
-version = "0.1.3"
+version = "0.1.4"
 authors = ["Simon Frost"]
 
 [deps]

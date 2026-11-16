@@ -384,6 +384,79 @@ end
     end
 end
 
+@testset "pools with a value for each class" begin
+    # Two size classes of shade: grass adults are small, shrub juveniles small and shrub adults large. Each
+    # plant's seeding falls with the shade in the class above its own adults.
+    grass_life = ValuedProjectionNet([:seedling, :adult],
+        :establishing => [(:seedling => :adult) => 0.30],
+        :persisting => [(:adult => :adult) => 0.50],
+        :seeding => [(:adult => :seedling) => 6.0])
+    shrub_life = ValuedProjectionNet([:seedling, :juvenile, :adult],
+        :establishing => [(:seedling => :juvenile) => 0.30],
+        :maturing => [(:juvenile => :adult) => 0.50],
+        :persisting => [(:adult => :adult) => 0.95],
+        :seeding => [(:adult => :seedling) => 3.0])
+    grass = respond(grass_life, :seeding => ctx -> exp(-ctx.pool.shade[2] / 100))
+    shrub = respond(shrub_life, :seeding => ctx -> exp(-ctx.pool.shade[2] / 1000))
+    W_grass = [0.0 1.0; 0.0 0.0]
+    W_shrub = [0.0 1.0 0.0; 0.0 0.0 4.0]
+    shade = Pool(:shade, :grass => W_grass, :shrub => W_shrub)
+    space = Pool(:space, :grass => [:seedling => 0.1, :adult => 1.0], :shrub => [0.1, 1.0, 4.0])
+    sys = PooledProjectionSystem(:grass => grass, :shrub => shrub; pools = [space, shade])
+    state = Dict(:grass => [50.0, 10.0], :shrub => [5.0, 2.0, 1.0])
+    pools = pool_totals(sys, state, nothing)
+    @test pools.shade == [10.0 + 2.0, 4.0]
+    @test pools.space == 0.1 * 50 + 10 + 0.1 * 5 + 2 + 4         # a scalar pool beside it is unchanged
+    ctx = context(grass, state[:grass], pools, nothing)
+    @test to_matrix(grass, ctx)[1, 2] ≈ 6.0 * exp(-4.0 / 100)
+    next = advance(sys, state, nothing)
+    @test next[:grass] ≈ [6.0 * exp(-0.04) * 10, 0.3 * 50 + 0.5 * 10]
+    @test next[:shrub] ≈ [3.0 * exp(-0.004) * 1, 0.3 * 5, 0.5 * 2 + 0.95 * 1]
+
+    # a function may return a vector too, and contributions of both kinds add up; the sum does not write
+    # into what a contribution returned
+    kept = [1.0, 1.0]
+    by_function = Pool(:shade, :grass => (n, env) -> [0.0, env * n[:adult]], :shrub => (n, env) -> kept)
+    sys2 = PooledProjectionSystem(:grass => grass, :shrub => shrub; pools = [by_function])
+    @test pool_totals(sys2, state, 2.0).shade == [1.0, 21.0] && kept == [1.0, 1.0]
+    @test pool_totals(sys2, state, 2.0).shade !== kept
+    mixed = Pool(:shade, :grass => W_grass, :shrub => (n, env) -> [n[:adult], 0.0])
+    @test pool_totals(PooledProjectionSystem(:grass => grass, :shrub => shrub; pools = [mixed]), state, nothing).shade == [11.0, 0.0]
+    # a pool with a single vector contribution, and an empty pool
+    alone = PooledProjectionSystem(:shrub => shrub; pools = [Pool(:shade, :shrub => W_shrub), Pool(:empty)])
+    @test pool_totals(alone, state, nothing) == (shade = [2.0, 4.0], empty = 0.0)
+
+    # the checks: one column per stage; numbers and vectors do not mix; vectors are of one length
+    @test_throws DimensionMismatch PooledProjectionSystem(:grass => grass; pools = [Pool(:shade, :grass => ones(2, 3))])
+    numbers_and_vectors = PooledProjectionSystem(:grass => grass, :shrub => shrub;
+        pools = [Pool(:shade, :grass => W_grass, :shrub => 1.0)])
+    @test_throws ArgumentError pool_totals(numbers_and_vectors, state, nothing)
+    vectors_and_numbers = PooledProjectionSystem(:grass => grass, :shrub => shrub;
+        pools = [Pool(:shade, :grass => 1.0, :shrub => W_shrub)])
+    @test_throws ArgumentError pool_totals(vectors_and_numbers, state, nothing)
+    two_lengths = PooledProjectionSystem(:grass => grass, :shrub => shrub;
+        pools = [Pool(:shade, :grass => W_grass, :shrub => ones(3, 3))])
+    @test_throws DimensionMismatch pool_totals(two_lengths, state, nothing)
+    not_numbers = PooledProjectionSystem(:grass => grass; pools = [Pool(:shade, :grass => (n, env) -> "dark")])
+    @test_throws ArgumentError pool_totals(not_numbers, state, nothing)
+
+    # the solvers log the vectors as the pools of each step, and give the steps of `trajectory`
+    out = trajectory(sys, state, fill(nothing, 30))
+    @test out.pools[1].shade == pools.shade
+    mpm = solve(lower(sys, StateDependentMPMTarget(state, (0, 30); p = nothing)), DirectIteration())
+    ipm = IntegralProjectionModels.solve(lower(sys, CoupledIPMTarget(state, (0, 30); p = nothing)),
+                                         IntegralProjectionModels.DirectIteration())
+    for k in (1, 2, 31), name in (:grass, :shrub)
+        @test mpm.u[k][name] == out.states[k][name]
+        @test ipm.u[k][name] == out.states[k][name]
+    end
+    for k in (1, 30)
+        @test mpm.substep_log[:pools][k].shade == out.pools[k].shade
+        @test mpm.substep_log[:pools][k].space == out.pools[k].space
+        @test ipm.substep_log[:pools][k] == mpm.substep_log[:pools][k]
+    end
+end
+
 @testset "meshes" begin
     SPC = StructuredPopulationCore
     d = SPC.ContinuousDomain(0.0, 3.0, 3)

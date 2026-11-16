@@ -627,12 +627,20 @@ component contributes
 - `[stage => weight, ...]`: the weighted sum of the named stages (names may be groups, as
   in [`StageVector`](@ref));
 - a number `w`: `w` times the component's total;
-- a function `(n, env) -> number` of its [`StageVector`](@ref) and the environment.
+- a function `(n, env) -> number` of its [`StageVector`](@ref) and the environment;
+- `weights::Matrix`, with one column per stage: the vector `weights * n`, one value per row;
+- a function `(n, env) -> vector`.
 
-The pool's value is the sum of the contributions, in the order given.
+The pool's value is the sum of the contributions, in the order given. If the contributions
+are numbers, it is a number. If they are vectors, all of one length, it is a vector: a pool
+with a value for each of a set of classes, such as the prey available to predators of each
+size. A response reads it as `ctx.pool.name[i]`. One pool cannot mix numbers and vectors,
+and a pool without contributions is `0.0`.
 
 ```julia
 Pool(:space, :grass => [:adult => 1.0], :shrub => [:juvenile => 1.0, :adult => 4.0])
+# by size class: grass adults are small, shrub juveniles small and shrub adults large
+Pool(:shade_by_size, :grass => [0.0 1.0; 0.0 0.0], :shrub => [0.0 1.0 0.0; 0.0 0.0 1.0])
 ```
 """
 struct Pool
@@ -651,7 +659,25 @@ function _contribution(w::AbstractVector{<:Pair}, n::StageVector, env)
     end
     return total
 end
+_contribution(w::AbstractMatrix{<:Number}, n::StageVector, env) = w * n.values
 _contribution(f, n::StageVector, env) = f(n, env)
+
+# The value of a pool is the sum of its contributions: numbers, or vectors of one length. The first
+# contribution starts the sum (a number is added to 0.0, as it always was; a vector is copied, so that
+# the sum never writes into a contribution), and each other is added to it.
+_pool_start(pool::Pool, x::Number) = 0.0 + x
+_pool_start(pool::Pool, x::AbstractVector{<:Number}) = collect(float(eltype(x)), x)
+_pool_start(pool::Pool, x) = throw(ArgumentError(
+    "a contribution to pool :$(pool.name) is a $(typeof(x)); a contribution is a number or a vector of numbers"))
+_pool_add(pool::Pool, total::Number, x::Number) = total + x
+function _pool_add(pool::Pool, total::AbstractVector, x::AbstractVector{<:Number})
+    length(x) == length(total) || throw(DimensionMismatch(
+        "the contributions to pool :$(pool.name) are vectors of lengths $(length(total)) and $(length(x))"))
+    return total .+ x
+end
+_pool_add(pool::Pool, total, x) = throw(ArgumentError(
+    "pool :$(pool.name) adds a $(typeof(x)) to a $(typeof(total)); its contributions must be all numbers " *
+    "or all vectors of one length"))
 
 """
     PooledProjectionSystem(name => net, ...; pools = [])
@@ -691,6 +717,8 @@ function PooledProjectionSystem(pairs::Pair{Symbol}...; pools = Pool[])
                 throw(ArgumentError("pool :$(pool.name) lists unknown component :$component"))
             w isa AbstractVector{<:Number} && length(w) != length(stage_names(components[component])) &&
                 throw(DimensionMismatch("pool :$(pool.name) needs one weight per stage of :$component"))
+            w isa AbstractMatrix{<:Number} && size(w, 2) != length(stage_names(components[component])) &&
+                throw(DimensionMismatch("pool :$(pool.name) needs one column of weights per stage of :$component"))
         end
     end
     return PooledProjectionSystem(order, components, collect(Pool, pools))
@@ -717,15 +745,17 @@ end
     pool_totals(sys, state, env)
 
 The value of every pool of `sys`, as a `NamedTuple`, for `state` (a dictionary from
-component name to stage vector) and environment `env`.
+component name to stage vector) and environment `env`. A pool whose contributions are
+vectors has a vector as its value (see [`Pool`](@ref)).
 """
 function pool_totals(sys::PooledProjectionSystem, state::AbstractDict, env)
     values = map(sys.pools) do pool
-        total = 0.0
+        total = nothing
         for (component, w) in pool.contributions
-            total += _contribution(w, StageVector(state[component], sys[component].groups), env)
+            x = _contribution(w, StageVector(state[component], sys[component].groups), env)
+            total = total === nothing ? _pool_start(pool, x) : _pool_add(pool, total, x)
         end
-        total
+        total === nothing ? 0.0 : total
     end
     return NamedTuple{Tuple(pool_names(sys))}(Tuple(values))
 end

@@ -259,7 +259,28 @@ wet_or_dry = PooledProjectionSystem(:grass => rainfed, :shrub => shrub; pools = 
  dry = advance(wet_or_dry, state, (rain = 0.5,))[:grass])
 ```
 
-A component may be a plain valued net, which has no responses. The constructor checks the system: a pool that lists a component the system does not have, and two components or two pools with one name, are `ArgumentError`s; a vector of weights that does not have one weight per stage is a `DimensionMismatch`.
+A component may be a plain valued net, which has no responses. The constructor checks the system: a pool that lists a component the system does not have, and two components or two pools with one name, are `ArgumentError`s; a vector of weights that does not have one weight per stage, or a matrix of weights that does not have one column per stage, is a `DimensionMismatch`.
+
+### Pools with a value for each class
+
+Some interactions need more than one number. Predation that depends on the sizes of predator and prey, for example, needs for each size class of predator the prey of suitable size on offer. A pool can hold such a vector. Its contributions are then vectors of one length, and the pool is their sum. A contribution is a matrix of weights, with one row for each element of the pool and one column per stage of the component, or a function `(n, env)` of the stage vector and the environment that returns a vector. A response reads element `i` of the pool as `ctx.pool.name[i]`.
+
+Below, shade is counted in two height classes. A grass adult casts shade in the lower class; a shrub juvenile casts shade in the lower class and a shrub adult four units in the upper one. Grass seeding falls with the shade above it.
+
+```@example catpd
+shade = Pool(:shade, :grass => [0.0 1.0; 0.0 0.0], :shrub => [0.0 1.0 0.0; 0.0 0.0 4.0])
+shaded = respond(grass, :seeding => ctx -> exp(-ctx.pool.shade[2] / 100))
+canopy = PooledProjectionSystem(:grass => shaded, :shrub => shrub; pools = [space, shade])
+pool_totals(canopy, state, nothing)
+```
+
+The lower class holds the 10 grass adults and no shrub juveniles; the upper one 4 × 1 for the shrub adult. A scalar pool such as `:space` is unchanged by a vector pool beside it. The step uses the vector like any other pool:
+
+```@example catpd
+advance(canopy, state, nothing)[:grass]
+```
+
+One pool cannot mix numbers and vectors, and its vectors must have one length: either is an error when the pool is computed. A pool without contributions is `0.0`. `trajectory` returns the vectors among the pools of each step, and the lowered problems log them in `substep_log[:pools]`.
 
 ## Inflows and after-step maps
 
