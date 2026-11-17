@@ -267,8 +267,12 @@ _join(c::OpenCommunity, state::AbstractDict) = reduce(vcat, [state[sp] for sp in
 
 """
     state_vector(c, species => stages, ...)
+    state_vector(c, n)
 
-The flat state vector of a community from one stage vector per species.
+The flat state vector of a community from one stage vector per species. The second form
+takes a state given either way, as a flat vector (checked for length and copied) or as a
+vector of `species => stages` pairs; functions that accept a community state use it.
+See also [`species_states`](@ref).
 """
 function state_vector(c::OpenCommunity, blocks::Pair{Symbol}...)
     d = Dict(blocks)
@@ -277,13 +281,22 @@ function state_vector(c::OpenCommunity, blocks::Pair{Symbol}...)
     length(n) == length(c) || throw(DimensionMismatch("stage vectors do not match the community's stages"))
     return n
 end
-
-# A state given as a flat vector or as `species => stages` pairs, as a flat vector.
-_state(c::OpenCommunity, n::AbstractVector{<:Real}) =
+state_vector(c::OpenCommunity, n::AbstractVector{<:Real}) =
     length(n) == length(c) ? collect(Float64, n) :
     throw(DimensionMismatch("state has length $(length(n)), community has $(length(c)) states"))
-_state(c::OpenCommunity, n::AbstractVector{<:Pair}) = state_vector(c, n...)
+state_vector(c::OpenCommunity, n::AbstractVector{<:Pair}) = state_vector(c, n...)
 
+"""
+    species_states(c, n)
+
+The state `n` of a community (a flat vector, or `species => stages` pairs) as a dictionary
+from species name to stage vector: the form its [`system`](@ref) uses. The inverse of
+[`state_vector`](@ref).
+"""
+species_states(c::OpenCommunity, n::AbstractVector) = _split(c, state_vector(c, n))
+
+# internal names kept for code written against 0.1.5
+const _state = state_vector
 """
     pool_totals(c, n, env; internal = false)
 

@@ -43,6 +43,13 @@ oc_run(c, n, steps) = permutedims(reduce(hcat, accumulate((m, _) -> advance(c, m
 
         n0 = [50.0, 10.0, 5.0, 0.0, 1.0]
         @test state_vector(com, :shrub => [5.0, 0.0, 1.0], :grass => [50.0, 10.0]) == n0
+        @test state_vector(com, [:shrub => [5.0, 0.0, 1.0], :grass => [50.0, 10.0]]) == n0
+        v = state_vector(com, n0)
+        @test v == n0 && v !== n0
+        @test_throws DimensionMismatch state_vector(com, [1.0, 2.0])
+        @test species_states(com, n0) == Dict(:grass => [50.0, 10.0], :shrub => [5.0, 0.0, 1.0])
+        @test species_states(com, [:grass => [50, 10], :shrub => [5, 0, 1]]) == species_states(com, n0)
+        @test state_vector(com, [k => v for (k, v) in species_states(com, n0)]) == n0
         @test pool_totals(com, n0, nothing) == (space = 0.1 * 50 + 10 + 0.1 * 5 + 4.0,)
         @test pool_totals(com, [:grass => [50.0, 10.0], :shrub => [5.0, 0.0, 1.0]], nothing) == pool_totals(com, n0, nothing)
         # one step of the community is one step of its flattened system

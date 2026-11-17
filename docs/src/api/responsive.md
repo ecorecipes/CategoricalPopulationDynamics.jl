@@ -410,6 +410,7 @@ system
 species_names
 diagram(::OpenCommunity)
 state_vector
+species_states
 ```
 
 `stage_names`, `pool_names`, `pool_totals` and `advance` also take a community; their methods are listed with the others above. The two plants of the section on pools, as species:

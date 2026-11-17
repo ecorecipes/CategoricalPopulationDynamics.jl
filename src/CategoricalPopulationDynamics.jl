@@ -101,7 +101,7 @@ export StageVector, ResponseContext, ResponsiveProjectionNet,
 # Open communities: pooled systems composed along undirected wiring diagrams
 include("open_communities.jl")
 export OpenCommunity, species, community, compose, system, species_names, diagram,
-       subcommunity, state_vector
+       subcommunity, state_vector, species_states
 
 # Time-lagged models
 include("time_lag.jl")
